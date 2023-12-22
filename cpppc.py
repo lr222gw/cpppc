@@ -6,6 +6,8 @@ app = QApplication([])
 window = QWidget()
 layout = QVBoxLayout()
 
+# Create button, run test function on press
+butt = hlp.addButton("Run", layout)
 window.setLayout(layout)
 window.show()
 app.exec()
