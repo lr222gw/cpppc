@@ -11,6 +11,8 @@ project_name = hlp.addTextField("Project Name:", layout)
 
 # Create button, run test function on press
 butt = hlp.addButton("Run", layout)
+butt.clicked.connect(lambda: act.test(project_name) )
+
 window.setLayout(layout)
 window.show()
 app.exec()
