@@ -66,17 +66,19 @@ class CMakeData :
 
     def genStr_cmake_projectdetails(self, projdata : ProjectConfigurationData)->str:    
         
-        return textwrap.indent(
-            re.sub(r'^[ \t]+', '', f'''project(            
+        return tidy_cmake_string(f'''project(            
             {projdata.projectName_str()} 
             VERSION 0.0.1
             DESCRIPTION \"{projdata.projectDesc_str()}\"
-            LANGUAGES CXX C)\n\n''',0, re.MULTILINE),
-            '\t'
-        )[1:] #TODO: Let user set VERSION and LANGUAGES        
+            LANGUAGES CXX C)''') #TODO: Let user set VERSION and LANGUAGES
 
     def genStr_addExecutable(self, projData : ProjectConfigurationData):
         return str.format(f"add_executable({projData.projectExecName_str()})")
 
     def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:
         return str.format("FILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], str.format("\n\t".join(dirs)) )
+
+def tidy_cmake_string(string :str)->str:
+    return textwrap.indent(
+        re.sub(r'^[ \t]+', '', string,0, re.MULTILINE), '\t'
+    )[1:]
