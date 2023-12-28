@@ -56,10 +56,14 @@ class CMakeData :
     def genStr_setVar(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeVars[varName], str.format(f"{varValue}"))
 
-    def genStr_cmake_sources(self) -> str:     
-        return f'''{self.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(self.srcDirPath))}
-    {self.genStr_file_globRecurse_ConfigureDepends(CMVAR__SOURCES,self.getSourcePaths())}
-    {self.genStr_file_globRecurse_ConfigureDepends(CMVAR__HEADERS,self.getHeaderPaths())}'''
+    def genStr_cmake_sourceDirVar(self) -> str:
+        return f"{self.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(self.srcDirPath))}"
+
+    def genStr_cmake_sources(self) -> str:         
+        return tidy_cmake_string(f"{self.genStr_file_globRecurse_ConfigureDepends(CMVAR__SOURCES,self.getSourcePaths())}")
+
+    def genStr_cmake_headers(self) -> str:                         
+        return tidy_cmake_string(f"{self.genStr_file_globRecurse_ConfigureDepends(CMVAR__HEADERS,self.getHeaderPaths())}")
 
     def genStr_cmake_min_version(self, projdata : ProjectConfigurationData) -> str:
         return f'''cmake_minimum_required(VERSION {projdata.cmakeVersionData.get_major()}.{projdata.cmakeVersionData.get_minor()}.{projdata.cmakeVersionData.get_patch()})'''

@@ -47,7 +47,10 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
         if(projdata.get_useProgram_ccache()):
             cmakeDat.addToCMakeList(cm_hlp.addCMakeCompilerLauncher("ccache"))
 
+        cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_sourceDirVar())
         cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_sources())
+        cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_headers())
+
         cmakeDat.addToCMakeList(cmakeDat.genStr_addExecutable(projdata))
         cmakeDat.addToCMakeList(cmakeDat.genStr_targetSources(projdata))
             
