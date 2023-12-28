@@ -78,7 +78,11 @@ class CMakeData :
     def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:
         return str.format("FILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], str.format("\n\t".join(dirs)) )
 
-def tidy_cmake_string(string :str)->str:
-    return textwrap.indent(
-        re.sub(r'^[ \t]+', '', string,0, re.MULTILINE), '\t'
-    )[1:]
+def tidy_cmake_string(string :int = 0)->str:
+    splitLines = re.sub(r'^[ \t]+', '', string,0, re.MULTILINE).splitlines()
+    ret = '\n'.join(splitLines[0:1])
+    ret += '\n'+textwrap.indent(
+        '\n'.join(splitLines[1:len(splitLines)]), '\t',predicate=(lambda line, index=0:  line.strip() != '}' and line.strip() != ")" and (index := index+1) == 1 )
+    )
+    
+    return ret
