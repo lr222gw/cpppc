@@ -48,6 +48,7 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
             content += cm_hlp.addCMakeCompilerLauncher("ccache")
 
         content += cmakeDat.genStr_cmake_sources()
+        content += cmakeDat.genStr_addExecutable(projdata)
             
         with open(cmakeDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:                        
             file.write(content)

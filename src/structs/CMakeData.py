@@ -67,5 +67,9 @@ class CMakeData :
             LANGUAGES CXX C)\n\n''',0, re.MULTILINE),
             '\t'
         )[1:] #TODO: Let user set VERSION and LANGUAGES        
+
+    def genStr_addExecutable(self, projData : ProjectConfigurationData):
+        return str.format(f"\nadd_executable({projData.projectExecName_str()})")
+
     def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:
         return str.format("\nFILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], str.format("\n\t".join(dirs)) )
