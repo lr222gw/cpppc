@@ -47,11 +47,10 @@ def addSpinBox(fieldName:str, parentLayout) -> d.GuiData:
 def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.GuiData:
     
     # Create Label, input field widgets
-    # newFieldLabel=QLabel(text=fieldName)
     newCheckBox=QCheckBox(text=fieldName)    
     newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setTristate(False)
     # Append widgets to parent layout
-    # parentLayout.addWidget(newFieldLabel)
     parentLayout.addWidget(newCheckBox)
 
     return d.GuiData(newCheckBox)    
