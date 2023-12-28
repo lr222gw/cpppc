@@ -82,6 +82,14 @@ class CMakeData :
     def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:
         return str.format("FILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], str.format("\n\t".join(dirs)) )
 
+    def genStr_targetSources(self, projData :ProjectConfigurationData)->str:
+        return tidy_cmake_string(
+            f'''target_sources({projData.projectExecName_str()}
+            PRIVATE
+            ${{{self.cmakeVars[CMVAR__SOURCES]}}}
+            )'''
+        )
+
 def tidy_cmake_string(string :int = 0)->str:
     splitLines = re.sub(r'^[ \t]+', '', string,0, re.MULTILINE).splitlines()
     ret = '\n'.join(splitLines[0:1])
