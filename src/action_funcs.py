@@ -4,6 +4,7 @@ from . import cmake_helper as hlp_cmake
 from PyQt5.QtWidgets import QMessageBox, QTextEdit
 import os
 from . import cmake_helper as cm_hlp
+from .structs.CMakeData import *
 
 
 # Testing access of input data
@@ -28,29 +29,36 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
 
     __placeholderAsBackup(projdata.projectExecName.widget, projdata.projectExecName.widget.placeholderText())
     
-    targetPath      = projdata.getTargetPath()
-    targetSrcPath   = targetPath+"/src"
-    targetCmakePath = targetPath+"/cmake"
-    if os.path.exists(targetPath) and not projdata.get_overwriteProjectTargetDir():
+    cmakeDat = CMakeData()    
+    cmakeDat.setTargetDirPaths(projdata.getTargetPath())
+    cmakeDat.initCmakeVars(projdata)
+    
+    if os.path.exists(projdata.getTargetPath()) and not projdata.get_overwriteProjectTargetDir():
         print("Target Already exists")
         return
     else:
         print("Target Will be Created")
-        os.makedirs(targetPath, exist_ok=True)
-        os.makedirs(targetSrcPath, exist_ok=True)
-        os.makedirs(targetCmakePath, exist_ok=True)
+        os.makedirs(cmakeDat.targetDirPath, exist_ok=True)
+        os.makedirs(cmakeDat.getPathInTarget(cmakeDat.srcDirPath),    exist_ok=True)
+        os.makedirs(cmakeDat.getPathInTarget(cmakeDat.cmakeDirPath),  exist_ok=True)
         content=\
-            genStr_cmake_min_version(projdata) +\
-            genStr_cmake_projectdetails(projdata)
-
-        # TODO: Add the sources... 
-
+            genStr_cmake_min_version(projdata)+\
+            genStr_cmake_projectdetails(projdata)   
+        
         if(projdata.get_useProgram_ccache()):
             content += cm_hlp.addCMakeCompilerLauncher("ccache")
+
+        content += genStr_cmake_sources(cmakeDat)
             
-        with open(targetPath+"/"+"CMakeLists.txt", "w") as file:                        
+        with open(cmakeDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:                        
             file.write(content)
     
+
+def genStr_cmake_sources(cmakeDat : CMakeData) -> str:     
+    return f'''{cmakeDat.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(cmakeDat.srcDirPath))}
+{cmakeDat.genStr_file_globRecurse_ConfigureDepends(CMVAR__SOURCES,cmakeDat.getSourcePaths())}
+{cmakeDat.genStr_file_globRecurse_ConfigureDepends(CMVAR__HEADERS,cmakeDat.getHeaderPaths())}
+'''
 
 def genStr_cmake_min_version(projdata : ProjectConfigurationData) -> str:
     return f'''\
@@ -58,12 +66,12 @@ cmake_minimum_required(VERSION {projdata.cmakeVersionData.get_major()}.{projdata
 '''
 
 def genStr_cmake_projectdetails(projdata : ProjectConfigurationData)->str:    
-    return f'''\
-project(            
+    return f'''project(            
     {projdata.projectName_str()} 
     VERSON 0.0.1 
     DESCRIPTION \"{projdata.projectDesc_str()}\"
     LANGUAGES CXX C)
+
 '''
 
 def __placeholderAsBackup(widget, placeholder:str):
