@@ -28,15 +28,17 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
 
     __placeholderAsBackup(projdata.projectExecName.widget, projdata.projectExecName.widget.placeholderText())
     
-    targetPath = projdata.getTargetPath()
-    srcPath = targetPath+"/src"
+    targetPath      = projdata.getTargetPath()
+    targetSrcPath   = targetPath+"/src"
+    targetCmakePath = targetPath+"/cmake"
     if os.path.exists(targetPath) and not projdata.get_overwriteProjectTargetDir():
         print("Target Already exists")
         return
     else:
         print("Target Will be Created")
         os.makedirs(targetPath, exist_ok=True)
-        os.makedirs(srcPath, exist_ok=True)
+        os.makedirs(targetSrcPath, exist_ok=True)
+        os.makedirs(targetCmakePath, exist_ok=True)
         content=\
             genStr_cmake_min_version(projdata) +\
             genStr_cmake_projectdetails(projdata)
