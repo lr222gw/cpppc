@@ -41,9 +41,8 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
         os.makedirs(cmakeDat.targetDirPath, exist_ok=True)
         os.makedirs(cmakeDat.getPathInTarget(cmakeDat.srcDirPath),    exist_ok=True)
         os.makedirs(cmakeDat.getPathInTarget(cmakeDat.cmakeDirPath),  exist_ok=True)
-        content=\
-            cmakeDat.genStr_cmake_min_version(projdata)+\
-            cmakeDat.genStr_cmake_projectdetails(projdata)   
+        content=cmakeDat.genStr_cmake_min_version(projdata)            
+        content+=cmakeDat.genStr_cmake_projectdetails(projdata)   
         
         if(projdata.get_useProgram_ccache()):
             content += cm_hlp.addCMakeCompilerLauncher("ccache")
