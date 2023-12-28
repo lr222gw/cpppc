@@ -14,6 +14,7 @@ def CMAKIFY_PathToSourceDir(path:str) -> str:
 
 @dataclass
 class CMakeData : 
+    cmakelist_str : str = "#CMakeLists.txt Generated through CPPPC\n"
     # Directory Paths 
     targetDirPath   :str = "."
     srcDirPath      :str = "src"
@@ -22,6 +23,12 @@ class CMakeData :
         self.targetDirPath  = path
         self.srcDirPath     = "src"
         self.cmakeDirPath   = "cmake"
+
+    def addToCMakeList(self, string : str):
+        self.cmakelist_str += string + "\n\n"
+
+    def getCMakeListStr(self) -> str:
+        return self.cmakelist_str
     
     def getPathInTarget(self, targetInsidePath : str) -> str:
         return self.targetDirPath + "/" + targetInsidePath
