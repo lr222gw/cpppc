@@ -1,3 +1,5 @@
+import re
+import textwrap
 from .ProjectConfigurationData import ProjectConfigurationData
 from dataclasses import dataclass, field
 
@@ -47,5 +49,24 @@ class CMakeData :
     def genStr_setVar(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeVars[varName], str.format(f"{varValue}"))
 
+    def genStr_cmake_sources(self) -> str:     
+        return f'''{self.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(self.srcDirPath))}
+    {self.genStr_file_globRecurse_ConfigureDepends(CMVAR__SOURCES,self.getSourcePaths())}
+    {self.genStr_file_globRecurse_ConfigureDepends(CMVAR__HEADERS,self.getHeaderPaths())}
+    '''
+
+    def genStr_cmake_min_version(self, projdata : ProjectConfigurationData) -> str:
+        return f'''cmake_minimum_required(VERSION {projdata.cmakeVersionData.get_major()}.{projdata.cmakeVersionData.get_minor()}.{projdata.cmakeVersionData.get_patch()})\n'''
+
+    def genStr_cmake_projectdetails(self, projdata : ProjectConfigurationData)->str:    
+        
+        return textwrap.indent(
+            re.sub(r'^[ \t]+', '', f'''project(            
+            {projdata.projectName_str()} 
+            VERSION 0.0.1
+            DESCRIPTION \"{projdata.projectDesc_str()}\"
+            LANGUAGES CXX C)\n\n''',0, re.MULTILINE),
+            '\t'
+        )[1:] #TODO: Let user set VERSION and LANGUAGES        
     def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:
         return str.format("\nFILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], str.format("\n\t".join(dirs)) )
