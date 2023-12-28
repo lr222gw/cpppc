@@ -48,10 +48,9 @@ def addCMakeCompilerLauncher(programName : str) -> str:
     name_var=f"{programName}_program_var"
     content=f'''\
 {genStr_find_cmake_tool("program", programName, name_var)}
-if {name_var}
+if({name_var})
     set(CMAKE_CXX_COMPILER_LAUNCHER "${name_var}") # TODO: Do not override "CMAKE_*" variables, it could've been declare before or after this... hmm?
     #set(CMAKE_CUDA_COMPILER_LAUNCHER "${name_var}") # CMake 3.9+ Think about usingh this...
-endif()\n
-'''
+endif()'''
     return content
     

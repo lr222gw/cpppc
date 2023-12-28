@@ -59,10 +59,10 @@ class CMakeData :
     def genStr_cmake_sources(self) -> str:     
         return f'''{self.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(self.srcDirPath))}
     {self.genStr_file_globRecurse_ConfigureDepends(CMVAR__SOURCES,self.getSourcePaths())}
-    {self.genStr_file_globRecurse_ConfigureDepends(CMVAR__HEADERS,self.getHeaderPaths())}\n'''
+    {self.genStr_file_globRecurse_ConfigureDepends(CMVAR__HEADERS,self.getHeaderPaths())}'''
 
     def genStr_cmake_min_version(self, projdata : ProjectConfigurationData) -> str:
-        return f'''cmake_minimum_required(VERSION {projdata.cmakeVersionData.get_major()}.{projdata.cmakeVersionData.get_minor()}.{projdata.cmakeVersionData.get_patch()})\n'''
+        return f'''cmake_minimum_required(VERSION {projdata.cmakeVersionData.get_major()}.{projdata.cmakeVersionData.get_minor()}.{projdata.cmakeVersionData.get_patch()})'''
 
     def genStr_cmake_projectdetails(self, projdata : ProjectConfigurationData)->str:    
         
@@ -76,7 +76,7 @@ class CMakeData :
         )[1:] #TODO: Let user set VERSION and LANGUAGES        
 
     def genStr_addExecutable(self, projData : ProjectConfigurationData):
-        return str.format(f"\nadd_executable({projData.projectExecName_str()})")
+        return str.format(f"add_executable({projData.projectExecName_str()})")
 
     def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:
-        return str.format("\nFILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], str.format("\n\t".join(dirs)) )
+        return str.format("FILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], str.format("\n\t".join(dirs)) )
