@@ -41,17 +41,18 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
         os.makedirs(cmakeDat.targetDirPath, exist_ok=True)
         os.makedirs(cmakeDat.getPathInTarget(cmakeDat.srcDirPath),    exist_ok=True)
         os.makedirs(cmakeDat.getPathInTarget(cmakeDat.cmakeDirPath),  exist_ok=True)
-        content=cmakeDat.genStr_cmake_min_version(projdata)            
-        content+=cmakeDat.genStr_cmake_projectdetails(projdata)   
+        cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_min_version(projdata))
+        cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_projectdetails(projdata))
         
         if(projdata.get_useProgram_ccache()):
-            content += cm_hlp.addCMakeCompilerLauncher("ccache")
+            cmakeDat.addToCMakeList(cm_hlp.addCMakeCompilerLauncher("ccache"))
 
-        content += cmakeDat.genStr_cmake_sources()
-        content += cmakeDat.genStr_addExecutable(projdata)
+        cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_sources())
+        cmakeDat.addToCMakeList(cmakeDat.genStr_addExecutable(projdata))
+        cmakeDat.addToCMakeList(cmakeDat.genStr_targetSources(projdata))
             
         with open(cmakeDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:                        
-            file.write(content)
+            file.write(cmakeDat.getCMakeListStr())
     
 
 def __placeholderAsBackup(widget, placeholder:str):
