@@ -51,7 +51,7 @@ def addCMakeCompilerLauncher(programName : str) -> str:
 if {name_var}
     set(CMAKE_CXX_COMPILER_LAUNCHER "${name_var}") # TODO: Do not override "CMAKE_*" variables, it could've been declare before or after this... hmm?
     #set(CMAKE_CUDA_COMPILER_LAUNCHER "${name_var}") # CMake 3.9+ Think about usingh this...
-endif()
+endif()\n
 '''
     return content
     
