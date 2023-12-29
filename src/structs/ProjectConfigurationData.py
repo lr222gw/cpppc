@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from .CMakeVersionData import CMakeVersionData
 from .GuiData import GuiData, GuiDataToggle, GuiDataComboBox
+from .. import helper_funcs as hlp
 
 
 
@@ -33,12 +34,21 @@ class ProjectConfigurationData:
     useMeasureCompiletime : GuiDataToggle = field(default= GuiDataToggle)
 
     #Properties 
-    use_prop_cppStandard        : GuiDataComboBox = field(default= GuiDataComboBox)
-    use_prop_cppExtensions      : GuiDataToggle  = field(default= GuiDataToggle)
-    use_prop_compileCommands    : GuiDataToggle  = field(default= GuiDataToggle)
-    use_prop_linkWhatYouUse     : GuiDataToggle  = field(default= GuiDataToggle)
-    use_prop_includeWhatYouUse  : GuiDataToggle  = field(default= GuiDataToggle)
-    use_prop_interproceduralOptimization : GuiDataToggle = field(default= GuiDataToggle)
+    props :list = field(default_factory=list)
+    def addProp_checkbox(self, label:str, cmakePropName:str,cmakePropValue:bool, parentLayout) -> GuiDataToggle:
+        datToggle = hlp.addCheckBox(label,cmakePropValue,parentLayout)
+        datToggle.cmake_propName = cmakePropName        
+        datToggle.setValue(cmakePropValue)
+        self.props.append(datToggle)
+
+    def addProp_combobox_list(self, label:str, cmakePropName:str,cmakePropValues:list, defaultChoice:int, parentLayout) -> GuiDataComboBox:
+        datComboboxList = hlp.addComboBox_list(label,cmakePropValues,parentLayout)
+        datComboboxList.cmake_propName = cmakePropName
+        # datToggle.widget.setState(cmakePropValue)
+        
+        datComboboxList.setValue(defaultChoice)
+        self.props.append(datComboboxList)
+    
         
 
     def getTargetPath(self) -> str:
