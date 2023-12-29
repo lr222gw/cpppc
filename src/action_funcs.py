@@ -60,6 +60,8 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
         
         if(projdata.useMeasureCompiletime.getState()):
             cmakeDat.addToCMakeList(cmakeDat.genStr_compileTimeProperty(projdata))
+
+        cmakeDat.addToCMakeList(cmakeDat.genStr_cppProperties(projdata))
             
         with open(cmakeDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:                        
             file.write(cmakeDat.getCMakeListStr())
