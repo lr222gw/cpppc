@@ -19,3 +19,13 @@ class GuiDataComboBox:
     widget: QComboBox
     def getValue(self):        
         return self.widget.currentText()
+
+@dataclass
+class Prop(ABC):    
+    cmake_propName : str = "<MISSING NAME>"
+    @abstractmethod
+    def setValue(self, value):
+        pass
+    @abstractmethod
+    def getValue(self) -> any:
+        pass
