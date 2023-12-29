@@ -44,7 +44,7 @@ def addSpinBox(fieldName:str, parentLayout) -> d.GuiData:
 
     return d.GuiData(newSpinBox)
 
-def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.GuiDataToggle:
+def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.PropToggle:
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
@@ -53,7 +53,7 @@ def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.GuiDataTog
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
 
-    return d.GuiDataToggle(newCheckBox)    
+    return d.PropToggle(newCheckBox)    
 
 def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> d.GuiData:
     # Create Label, input field widgets
