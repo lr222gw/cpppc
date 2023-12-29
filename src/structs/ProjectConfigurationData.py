@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from .CMakeVersionData import CMakeVersionData
-from .GuiData import GuiData, GuiDataToggle
+from .GuiData import GuiData, GuiDataToggle, GuiDataComboBox
 
 
 
@@ -30,8 +30,15 @@ class ProjectConfigurationData:
     #TODO: Split sanitizers into Memory and address sanitizers
     useSanitizers : GuiDataToggle = field(default= GuiDataToggle)
 
-
     useMeasureCompiletime : GuiDataToggle = field(default= GuiDataToggle)
+
+    #Properties 
+    use_prop_cppStandard        : GuiDataComboBox = field(default= GuiDataComboBox)
+    use_prop_cppExtensions      : GuiDataToggle  = field(default= GuiDataToggle)
+    use_prop_compileCommands    : GuiDataToggle  = field(default= GuiDataToggle)
+    use_prop_linkWhatYouUse     : GuiDataToggle  = field(default= GuiDataToggle)
+    use_prop_includeWhatYouUse  : GuiDataToggle  = field(default= GuiDataToggle)
+    use_prop_interproceduralOptimization : GuiDataToggle = field(default= GuiDataToggle)
         
 
     def getTargetPath(self) -> str:
