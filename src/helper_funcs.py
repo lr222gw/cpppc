@@ -70,6 +70,22 @@ def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> d.GuiDa
 
     return d.GuiData(version)    
 
+def addComboBox_list(fieldName:str, alternatives : list, parentLayout ) -> d.PropComboBox:    
+    # Create Label, input field widgets
+    newFieldLabel=QLabel(text=fieldName)
+    version = QComboBox()
+    newLayout = QHBoxLayout()
+
+    for standard in alternatives:
+        version.addItem(str(standard))
+
+    # Append widgets to new layout, then to parent layout
+    newLayout.addWidget(newFieldLabel)
+    newLayout.addWidget(version)
+    parentLayout.addRow(newLayout)    
+
+    return d.PropComboBox(version)    
+
 def addCppLanguageStandardBox(fieldName:str, parentLayout ) -> d.GuiDataComboBox:    
     # Create Label, input field widgets
     newFieldLabel=QLabel(text=fieldName)
