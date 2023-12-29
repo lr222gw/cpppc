@@ -57,7 +57,12 @@ ProjConfDat.useSanitizers         = hlp.addCheckBox("Use Sanitizers", True, layo
 ProjConfDat.useMeasureCompiletime = hlp.addCheckBox("Measure Compiletime", True, layout_projectName)
 
 group_properties = QGroupBox(title="Target Properties")
-ProjConfDat.useMeasureCompiletime = hlp.addCheckBox("Measure Compiletime", True, layout_projectName)
+ProjConfDat.use_prop_cppStandard        = hlp.addCppLanguageStandardBox("C++ Standard", layout_targetProperties)
+ProjConfDat.use_prop_cppExtensions      = hlp.addCheckBox("Use C++ Extensions", True, layout_targetProperties)
+ProjConfDat.use_prop_compileCommands    = hlp.addCheckBox("Generate Compile Commands", True, layout_targetProperties)
+ProjConfDat.use_prop_linkWhatYouUse     = hlp.addCheckBox("Use Link What You Use", True, layout_targetProperties)
+ProjConfDat.use_prop_includeWhatYouUse  = hlp.addCheckBox("Use Include What You Use", True, layout_targetProperties)
+ProjConfDat.use_prop_interproceduralOptimization    = hlp.addCheckBox("Use Interprocedural Optimization", True, layout_targetProperties)
 group_properties.setLayout(layout_targetProperties)
 
 
