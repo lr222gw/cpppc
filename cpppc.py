@@ -14,6 +14,9 @@ window = QWidget()
 rootLayout = QHBoxLayout()
 layout_projectName = QFormLayout()
 layout_cmakeVersion = QHBoxLayout()
+layout_targetProperties = QFormLayout()
+
+layout_rightside = QFormLayout()
 
 ProjConfDat = ProjectConfigurationData()
 
@@ -53,9 +56,17 @@ ProjConfDat.useProgram_ccache     = hlp.addCheckBox("Use CCache", True, layout_p
 ProjConfDat.useSanitizers         = hlp.addCheckBox("Use Sanitizers", True, layout_projectName)
 ProjConfDat.useMeasureCompiletime = hlp.addCheckBox("Measure Compiletime", True, layout_projectName)
 
+group_properties = QGroupBox(title="Target Properties")
+ProjConfDat.useMeasureCompiletime = hlp.addCheckBox("Measure Compiletime", True, layout_projectName)
+group_properties.setLayout(layout_targetProperties)
+
+
+layout_rightside.addWidget(group_cmake)
+layout_rightside.addWidget(group_properties)
+
 
 rootLayout.addWidget(group_projdef)
-rootLayout.addWidget(group_cmake)
+rootLayout.addLayout(layout_rightside)
 
 window.setLayout(rootLayout)
 window.show()

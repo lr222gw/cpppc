@@ -37,6 +37,7 @@ def getCMakeVersion():
             return cmakeVersonData
 
 
+#TODO: Move genStr to CmakeData class
 def genStr_find_cmake_tool(tool:str, name:str, name_var:str) -> str:    
 
     content=f'''\
