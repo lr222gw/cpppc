@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QLabel, QWidget
+from PyQt5.QtWidgets import QLabel, QWidget, QComboBox
 from dataclasses import dataclass
 
 # NOTE: Class may be skipped if it remains this empty
@@ -13,3 +13,9 @@ class GuiDataToggle:
         self.widget.setCheckState(not self.widget.isChecked())
     def getState(self):        
         return self.widget.isChecked()
+
+@dataclass
+class GuiDataComboBox:
+    widget: QComboBox
+    def getValue(self):        
+        return self.widget.currentText()
