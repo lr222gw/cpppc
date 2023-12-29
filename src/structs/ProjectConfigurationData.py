@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from .CMakeVersionData import CMakeVersionData
-from .GuiData import GuiData
+from .GuiData import GuiData, GuiDataToggle
 
 
 
@@ -29,18 +29,20 @@ class ProjectConfigurationData:
         return self.overwriteProjectTargetDir.widget.isChecked()
 
     #TODO: put inside a vector, enable user to use multiple prgorams...
-    useProgram_ccache : GuiData = field(default= GuiData)
+    useProgram_ccache : GuiDataToggle = field(default= GuiDataToggle)
     def toggle_useProgram_ccache(self):
         self.useProgram_ccache.widget.setCheckState(not self.useProgram_ccache.widget.isChecked())
     def get_useProgram_ccache(self):
         return self.useProgram_ccache.widget.isChecked()
 
     #TODO: Split sanitizers into Memory and address sanitizers
-    useSanitizers : GuiData = field(default= GuiData)
+    useSanitizers : GuiDataToggle = field(default= GuiDataToggle)
     def toggle_useSanitizers(self):
         self.useSanitizers.widget.setCheckState(not self.useSanitizers.widget.isChecked())
     def get_useSanitizers(self):
         return self.useSanitizers.widget.isChecked()
+
+    useMeasureCompiletime : GuiDataToggle = field(default= GuiDataToggle)
         
 
     def getTargetPath(self) -> str:

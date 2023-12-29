@@ -6,3 +6,10 @@ from dataclasses import dataclass
 class GuiData:
     widget: QWidget    
 
+@dataclass
+class GuiDataToggle:
+    widget: QWidget    
+    def toggle(self):
+        self.widget.setCheckState(not self.widget.isChecked())
+    def getState(self):        
+        return self.widget.isChecked()

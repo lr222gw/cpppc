@@ -49,9 +49,10 @@ createProjectButton = hlp.addButton("Create", layout_projectName)
 createProjectButton.clicked.connect(lambda: act.createProject(ProjConfDat))
 
 ProjConfDat.overwriteProjectTargetDir = hlp.addCheckBox("Overwrite", False, layout_projectName)
-ProjConfDat.useProgram_ccache   = hlp.addCheckBox("Use CCache", True, layout_projectName)
-ProjConfDat.useSanitizers       = hlp.addCheckBox("Use Sanitizers", True, layout_projectName)
-# ProjConfDat.overwriteProjectTargetDir.widget.stateChanged.connect(lambda: ProjConfDat.toggle_overwriteProjectTargetDir())
+ProjConfDat.useProgram_ccache     = hlp.addCheckBox("Use CCache", True, layout_projectName)
+ProjConfDat.useSanitizers         = hlp.addCheckBox("Use Sanitizers", True, layout_projectName)
+ProjConfDat.useMeasureCompiletime = hlp.addCheckBox("Measure Compiletime", True, layout_projectName)
+
 
 rootLayout.addWidget(group_projdef)
 rootLayout.addWidget(group_cmake)

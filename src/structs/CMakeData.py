@@ -56,6 +56,13 @@ class CMakeData :
     def genStr_setVar(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeVars[varName], str.format(f"{varValue}"))
 
+    def genStr_setProperty(self, projData: ProjectConfigurationData, propertyName:str, propertyValue:str) -> str:
+        return str.format("set_property(TARGET {} PROPERTY {} \"{}\")", 
+            projData.projectExecName_str(), 
+            propertyName,
+            propertyValue
+        )
+
     # TODO: Support other than Clang!
     def genStr_setTargetCompileOptions(self, projData: ProjectConfigurationData,options:list) -> str:
         return str.format("target_compile_options({} PRIVATE $<$<CXX_COMPILER_ID:Clang>: {} > )", 
@@ -111,6 +118,9 @@ class CMakeData :
     def genStr_linkSanitizers(self, projData :ProjectConfigurationData, ) -> str:        
         return self.genStr_setTargetLinkOptions(projData,   {"g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-memory-track-origins=2", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt"})        
         
+    def genStr_compileTimeProperty(self, projData :ProjectConfigurationData, ) -> str:
+        return self.genStr_setProperty(projData, "RULE_LAUNCH_COMPILE", "${CMAKE_COMMAND} -E time}")
+
 def tidy_cmake_string(string :int = 0)->str:
     splitLines = re.sub(r'^[ \t]+', '', string,0, re.MULTILINE).splitlines()
     ret = '\n'.join(splitLines[0:1])
