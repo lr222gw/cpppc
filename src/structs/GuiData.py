@@ -8,7 +8,7 @@ class GuiData:
 
 @dataclass
 class GuiDataToggle:
-    widget: QWidget    
+    widget: QCheckBox
     def toggle(self):
         self.widget.setCheckState(not self.widget.isChecked())
     def getState(self):        
