@@ -54,15 +54,24 @@ createProjectButton.clicked.connect(lambda: act.createProject(ProjConfDat))
 ProjConfDat.overwriteProjectTargetDir = hlp.addCheckBox("Overwrite", False, layout_projectName)
 ProjConfDat.useProgram_ccache     = hlp.addCheckBox("Use CCache", True, layout_projectName)
 ProjConfDat.useSanitizers         = hlp.addCheckBox("Use Sanitizers", True, layout_projectName)
-ProjConfDat.useMeasureCompiletime = hlp.addCheckBox("Measure Compiletime", True, layout_projectName)
+ProjConfDat.useMeasureCompiletime = hlp.addCheckBox("Measure Compiletime", True, layout_projectName) #TODO: Move into group_properties
 
 group_properties = QGroupBox(title="Target Properties")
-ProjConfDat.use_prop_cppStandard        = hlp.addCppLanguageStandardBox("C++ Standard", layout_targetProperties)
-ProjConfDat.use_prop_cppExtensions      = hlp.addCheckBox("Use C++ Extensions", True, layout_targetProperties)
-ProjConfDat.use_prop_compileCommands    = hlp.addCheckBox("Generate Compile Commands", True, layout_targetProperties)
-ProjConfDat.use_prop_linkWhatYouUse     = hlp.addCheckBox("Use Link What You Use", True, layout_targetProperties)
-ProjConfDat.use_prop_includeWhatYouUse  = hlp.addCheckBox("Use Include What You Use", True, layout_targetProperties)
-ProjConfDat.use_prop_interproceduralOptimization    = hlp.addCheckBox("Use Interprocedural Optimization", True, layout_targetProperties)
+
+# TODO: Fetch Default values from .cfg files (or similar format)
+ProjConfDat.addProp_combobox_list("C++ Standard", 
+                            "CXX_STANDARD",                     [98,11,14,17,20,23,26] , 4, layout_targetProperties)
+ProjConfDat.addProp_checkbox("Use C++ Extensions",               
+                            "CXX_EXTENSIONS",                    False, layout_targetProperties)
+ProjConfDat.addProp_checkbox("Generate Compile Commands",        
+                            "EXPORT_COMPILE_COMMANDS",           True, layout_targetProperties)
+ProjConfDat.addProp_checkbox("Use Link What You Use",            
+                            "LINK_WHAT_YOU_USE",                 True, layout_targetProperties)
+ProjConfDat.addProp_checkbox("Use Include What You Use",         
+                            "CMAKE_CXX_INCLUDE_WHAT_YOU_USE",    True, layout_targetProperties)
+ProjConfDat.addProp_checkbox("Use Interprocedural Optimization", 
+                            "INTERPROCEDURAL_OPTIMIZATION",      True, layout_targetProperties)
+
 group_properties.setLayout(layout_targetProperties)
 
 
