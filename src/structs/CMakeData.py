@@ -121,6 +121,15 @@ class CMakeData :
     def genStr_compileTimeProperty(self, projData :ProjectConfigurationData, ) -> str:
         return self.genStr_setProperty(projData, "RULE_LAUNCH_COMPILE", "${CMAKE_COMMAND} -E time}")
 
+    def genStr_cppProperties(self, projData:ProjectConfigurationData) -> str:
+        ret = f"set_target_properties({projData.projectExecName_str()} PROPERTIES\n"
+        maxSpace=max(len(cmakeProp.cmake_propName) for cmakeProp in projData.props) + 1 # +1 is padding
+        ret += "\n".join(
+                cmakeProp.cmake_propName.ljust(maxSpace) + str(cmakeProp.getValue())
+                for cmakeProp in projData.props 
+            ) + "\n)"
+        return tidy_cmake_string(ret)
+
 def tidy_cmake_string(string :int = 0)->str:
     splitLines = re.sub(r'^[ \t]+', '', string,0, re.MULTILINE).splitlines()
     ret = '\n'.join(splitLines[0:1])
