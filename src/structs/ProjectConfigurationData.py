@@ -22,25 +22,14 @@ class ProjectConfigurationData:
     def projectDesc_str(self) -> str:
         return self.projectDesc.widget.toPlainText()
 
-    overwriteProjectTargetDir : GuiData = field(default= GuiData)
-    def toggle_overwriteProjectTargetDir(self):
-        self.overwriteProjectTargetDir.widget.setCheckState(not self.overwriteProjectTargetDir.widget.isChecked())
-    def get_overwriteProjectTargetDir(self):
-        return self.overwriteProjectTargetDir.widget.isChecked()
+    overwriteProjectTargetDir : GuiDataToggle = field(default= GuiDataToggle)    
 
     #TODO: put inside a vector, enable user to use multiple prgorams...
     useProgram_ccache : GuiDataToggle = field(default= GuiDataToggle)
-    def toggle_useProgram_ccache(self):
-        self.useProgram_ccache.widget.setCheckState(not self.useProgram_ccache.widget.isChecked())
-    def get_useProgram_ccache(self):
-        return self.useProgram_ccache.widget.isChecked()
 
     #TODO: Split sanitizers into Memory and address sanitizers
     useSanitizers : GuiDataToggle = field(default= GuiDataToggle)
-    def toggle_useSanitizers(self):
-        self.useSanitizers.widget.setCheckState(not self.useSanitizers.widget.isChecked())
-    def get_useSanitizers(self):
-        return self.useSanitizers.widget.isChecked()
+
 
     useMeasureCompiletime : GuiDataToggle = field(default= GuiDataToggle)
         

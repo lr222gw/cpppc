@@ -33,7 +33,7 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
     cmakeDat.setTargetDirPaths(projdata.getTargetPath())
     cmakeDat.initCmakeVars(projdata)
     
-    if os.path.exists(projdata.getTargetPath()) and not projdata.get_overwriteProjectTargetDir():
+    if os.path.exists(projdata.getTargetPath()) and not projdata.overwriteProjectTargetDir.getState():
         print("Target Already exists")
         return
     else:
@@ -44,7 +44,7 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
         cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_min_version(projdata))
         cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_projectdetails(projdata))
         
-        if(projdata.get_useProgram_ccache()):
+        if(projdata.useProgram_ccache.getState()):
             cmakeDat.addToCMakeList(cm_hlp.addCMakeCompilerLauncher("ccache"))
 
         cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_sourceDirVar())
@@ -54,7 +54,7 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
         cmakeDat.addToCMakeList(cmakeDat.genStr_addExecutable(projdata))
         cmakeDat.addToCMakeList(cmakeDat.genStr_targetSources(projdata))
 
-        if(projdata.get_useSanitizers()):
+        if(projdata.useSanitizers.getState()):
             cmakeDat.addToCMakeList(cmakeDat.genStr_compileSanitizers(projdata))
             cmakeDat.addToCMakeList(cmakeDat.genStr_linkSanitizers(projdata))
         
