@@ -104,6 +104,13 @@ class CMakeData :
             )'''
         )
 
+    #TODO: Split into several functions
+    def genStr_compileSanitizers(self, projData :ProjectConfigurationData, ) -> str:
+        return self.genStr_setTargetCompileOptions(projData, {"g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-recover=address",        "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt"})
+        
+    def genStr_linkSanitizers(self, projData :ProjectConfigurationData, ) -> str:        
+        return self.genStr_setTargetLinkOptions(projData,   {"g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-memory-track-origins=2", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt"})        
+        
 def tidy_cmake_string(string :int = 0)->str:
     splitLines = re.sub(r'^[ \t]+', '', string,0, re.MULTILINE).splitlines()
     ret = '\n'.join(splitLines[0:1])

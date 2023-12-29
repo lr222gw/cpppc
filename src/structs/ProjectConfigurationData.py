@@ -35,6 +35,12 @@ class ProjectConfigurationData:
     def get_useProgram_ccache(self):
         return self.useProgram_ccache.widget.isChecked()
 
+    #TODO: Split sanitizers into Memory and address sanitizers
+    useSanitizers : GuiData = field(default= GuiData)
+    def toggle_useSanitizers(self):
+        self.useSanitizers.widget.setCheckState(not self.useSanitizers.widget.isChecked())
+    def get_useSanitizers(self):
+        return self.useSanitizers.widget.isChecked()
         
 
     def getTargetPath(self) -> str:

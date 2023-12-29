@@ -53,6 +53,10 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
 
         cmakeDat.addToCMakeList(cmakeDat.genStr_addExecutable(projdata))
         cmakeDat.addToCMakeList(cmakeDat.genStr_targetSources(projdata))
+
+        if(projdata.get_useSanitizers()):
+            cmakeDat.addToCMakeList(cmakeDat.genStr_compileSanitizers(projdata))
+            cmakeDat.addToCMakeList(cmakeDat.genStr_linkSanitizers(projdata))
             
         with open(cmakeDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:                        
             file.write(cmakeDat.getCMakeListStr())
