@@ -85,20 +85,3 @@ def addComboBox_list(fieldName:str, alternatives : list, parentLayout ) -> d.Pro
     parentLayout.addRow(newLayout)    
 
     return d.PropComboBox(version)    
-
-def addCppLanguageStandardBox(fieldName:str, parentLayout ) -> d.GuiDataComboBox:    
-    # Create Label, input field widgets
-    newFieldLabel=QLabel(text=fieldName)
-    version = QComboBox()
-    newLayout = QHBoxLayout()
-
-    cppLangStandards = [98,11,14,17,20,23,26]
-    for standard in cppLangStandards:
-        version.addItem(str(standard))
-
-    # Append widgets to new layout, then to parent layout
-    newLayout.addWidget(newFieldLabel)
-    newLayout.addWidget(version)
-    parentLayout.addRow(newLayout)    
-
-    return d.GuiData(version)    
