@@ -56,6 +56,20 @@ class CMakeData :
     def genStr_setVar(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeVars[varName], str.format(f"{varValue}"))
 
+    # TODO: Support other than Clang!
+    def genStr_setTargetCompileOptions(self, projData: ProjectConfigurationData,options:list) -> str:
+        return str.format("target_compile_options({} PRIVATE $<$<CXX_COMPILER_ID:Clang>: {} > )", 
+            projData.projectExecName_str(), 
+            "-"+ ', -'.join(options) if len(options) != 0 else ""
+        ) # NOTE: Does Order matter of Compile option list?
+
+    # TODO: Support other than Clang!
+    def genStr_setTargetLinkOptions(self, projData: ProjectConfigurationData,options:list) -> str:
+        return str.format("target_link_options({} PRIVATE $<$<CXX_COMPILER_ID:Clang>: {} > )", 
+            projData.projectExecName_str(), 
+            "-"+ ', -'.join(options) if len(options) != 0 else ""
+        ) # NOTE: Does Order matter of Link option list?
+
     def genStr_cmake_sourceDirVar(self) -> str:
         return f"{self.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(self.srcDirPath))}"
 
