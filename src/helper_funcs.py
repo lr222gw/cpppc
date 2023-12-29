@@ -1,5 +1,5 @@
 from .structs import GuiData as d
-from PyQt5.QtWidgets import QLabel, QLineEdit, QPushButton, QSpinBox, QFormLayout, QTextEdit, QCheckBox ,QVBoxLayout
+from PyQt5.QtWidgets import QLabel, QLineEdit, QPushButton, QSpinBox, QFormLayout, QTextEdit, QCheckBox , QComboBox, QHBoxLayout
 
 
 def addButton(text:str, layout) -> QPushButton:
@@ -56,12 +56,8 @@ def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.GuiDataTog
     return d.GuiDataToggle(newCheckBox)    
 
 def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> d.GuiData:
-    
     # Create Label, input field widgets
     newFieldLabel=QLabel(text=fieldName)
-    # newSpinBox=QSpinBox()
-    # newSpinBox.setValue(version)
-
     newLayout = QFormLayout()
     
     newLayout.addWidget(newFieldLabel)
@@ -71,5 +67,22 @@ def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> d.GuiDa
     # Append widgets to parent layout    
     parentLayout.addLayout(newLayout)
     
+
+    return d.GuiData(version)    
+
+def addCppLanguageStandardBox(fieldName:str, parentLayout ) -> d.GuiDataComboBox:    
+    # Create Label, input field widgets
+    newFieldLabel=QLabel(text=fieldName)
+    version = QComboBox()
+    newLayout = QHBoxLayout()
+
+    cppLangStandards = [98,11,14,17,20,23,26]
+    for standard in cppLangStandards:
+        version.addItem(str(standard))
+
+    # Append widgets to new layout, then to parent layout
+    newLayout.addWidget(newFieldLabel)
+    newLayout.addWidget(version)
+    parentLayout.addRow(newLayout)    
 
     return d.GuiData(version)    
