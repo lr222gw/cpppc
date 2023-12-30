@@ -31,6 +31,8 @@ class CMakeData :
     cmakeFuncs : dict = field(default_factory=dict)
     cmakeVars : dict = field(default_factory=dict)
 
+    def getRelativeCMakeFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
+        return self.targetDirPath+"/"+self.cmakeDirPath+ "/"+file 
 
     def genStr_FILE_cmake_cpp_data(self, projDat :ProjectConfigurationData):
         targetArg = "target"

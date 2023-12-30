@@ -63,7 +63,14 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
             cmakeDat.addToCMakeList(cmakeDat.genStr_compileTimeProperty(projdata))
 
         cmakeDat.addToCMakeList(cmakeDat.genStr_cppProperties(projdata))
-            
+
+        if(projdata.useCmakeCppBridge.getState()):
+            if os.path.exists(cmakeDat.getRelativeCMakeFilePath(cmakeDat.FILE_cmake_cpp_data)) and not projdata.overwriteProjectTargetDir.getState():
+                print(f"Target File ({cmakeDat.getRelativeCMakeFilePath(cmakeDat.FILE_cmake_cpp_data)}) Already exists")
+            else: 
+                with open(cmakeDat.getRelativeCMakeFilePath(cmakeDat.FILE_cmake_cpp_data), "w") as file:                        
+                    file.write(cmakeDat.genStr_FILE_cmake_cpp_data(projdata))                
+
         with open(cmakeDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:                        
             file.write(cmakeDat.getCMakeListStr())
     
