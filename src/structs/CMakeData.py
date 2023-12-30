@@ -137,12 +137,10 @@ class CMakeData :
     def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:
         return str.format("FILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], "\n\t".join(dirs) )
 
-    def genStr_targetSources(self, projData :ProjectConfigurationData)->str:
+    def genStrHlp_addingProjectsTargetSources(self, projData :ProjectConfigurationData)->str:
         return tidy_cmake_string(
-            f'''target_sources({projData.projectExecName_str()}
-            PRIVATE
-            ${{{self.cmakeVars[CMVAR__SOURCES]}}}
-            )'''
+            self.genStr_targetSources(projData.projectExecName_str(), [str.format("${{{}}}",self.cmakeVars[CMVAR__SOURCES])] )
+
         )
 
     #TODO: Split into several functions
