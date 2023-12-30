@@ -7,6 +7,9 @@ CMVAR__SOURCE_DIR : str   = "_SOURCE_DIR"
 CMVAR__SOURCES    : str   = "_SOURCES"
 CMVAR__HEADERS    : str   = "_HEADERS"
 
+CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR : str = "CPPPC_EXAMPLE_BRIDGE_VAR"
+CMFUNC__add_cmake_inputs_to_targets : str = "add_cmake_inputs_to_targets"
+
 CMAKE_CURRENT_SOURCE_DIR = "${CMAKE_CURRENT_SOURCE_DIR}"
 
 def CMAKIFY_PathToSourceDir(path:str) -> str:
@@ -19,6 +22,15 @@ class CMakeData :
     targetDirPath   :str = "."
     srcDirPath      :str = "src"
     cmakeDirPath    :str = "cmake"
+    cmakeGenSrcDirPath: str = srcDirPath + "/generated" #TODO avoid hardcoding...
+    
+    FILE_cmake_cpp_data     :str = "cmake_cpp_data.cmake"
+    FILE_cmake_inputs_h_in  :str = "cmake_inputs.h.in"
+    FILE_cmake_inputs_h     :str = "cmake_inputs.h"
+
+    cmakeFuncs : dict = field(default_factory=dict)
+    cmakeVars : dict = field(default_factory=dict)
+
     def setTargetDirPaths(self, path :str):
         self.targetDirPath  = path
         self.srcDirPath     = "src"
@@ -47,7 +59,6 @@ class CMakeData :
             CMAKIFY_PathToSourceDir(self.srcDirPath)+"/*.h",
         }
 
-    cmakeVars : dict = field(default_factory=dict)
     def initCmakeVars(self,projData : ProjectConfigurationData):        
         self.cmakeVars[CMVAR__SOURCE_DIR] = projData.projectName_str() + CMVAR__SOURCE_DIR
         self.cmakeVars[CMVAR__SOURCES]    = projData.projectName_str() + CMVAR__SOURCES
