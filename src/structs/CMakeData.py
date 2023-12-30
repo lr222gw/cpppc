@@ -7,7 +7,7 @@ CMVAR__SOURCE_DIR : str   = "_SOURCE_DIR"
 CMVAR__SOURCES    : str   = "_SOURCES"
 CMVAR__HEADERS    : str   = "_HEADERS"
 
-CMAKE_CURRENT_SOURCE_DIR = "${{CMAKE_CURRENT_SOURCE_DIR}}"
+CMAKE_CURRENT_SOURCE_DIR = "${CMAKE_CURRENT_SOURCE_DIR}"
 
 def CMAKIFY_PathToSourceDir(path:str) -> str:
     return str.format("{}",CMAKE_CURRENT_SOURCE_DIR+"/"+path)
@@ -54,7 +54,10 @@ class CMakeData :
         self.cmakeVars[CMVAR__HEADERS]    = projData.projectName_str() + CMVAR__HEADERS
 
     def genStr_setVar(self, varName:str,varValue:str) -> str:
-        return str.format("set({} {})", self.cmakeVars[varName], str.format(f"{varValue}"))
+        return str.format("set({} {})", self.cmakeVars[varName], str.format("{}",varValue))
+
+    def genStr_setVarString(self, varName:str,varValue:str) -> str:
+        return str.format("set({} {})", self.cmakeVars[varName], str.format("\"{}\"",varValue))
 
     def genStr_setProperty(self, projData: ProjectConfigurationData, propertyName:str, propertyValue:str) -> str:
         return str.format("set_property(TARGET {} PROPERTY {} \"{}\")", 
@@ -101,7 +104,7 @@ class CMakeData :
         return str.format(f"add_executable({projData.projectExecName_str()})")
 
     def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:
-        return str.format("FILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], str.format("\n\t".join(dirs)) )
+        return str.format("FILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], "\n\t".join(dirs) )
 
     def genStr_targetSources(self, projData :ProjectConfigurationData)->str:
         return tidy_cmake_string(
