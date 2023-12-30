@@ -65,6 +65,8 @@ class CMakeData :
         self.cmakeVars[CMVAR__HEADERS]    = projData.projectName_str() + CMVAR__HEADERS
         self.cmakeVars[CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR] = CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR
 
+    def initCmakeFuncs(self,projData : ProjectConfigurationData):        
+        self.cmakeFuncs[CMVAR__SOURCE_DIR] = projData.projectName_str() + CMVAR__SOURCE_DIR        
 
     def genStr_setVar(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeVars[varName], str.format("{}",varValue))

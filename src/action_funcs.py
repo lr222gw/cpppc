@@ -32,6 +32,7 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
     cmakeDat = CMakeData()    
     cmakeDat.setTargetDirPaths(projdata.getTargetPath())
     cmakeDat.initCmakeVars(projdata)
+    cmakeDat.initCmakeFuncs(projdata)
     
     if os.path.exists(projdata.getTargetPath()) and not projdata.overwriteProjectTargetDir.getState():
         print("Target Already exists")
