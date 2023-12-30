@@ -108,6 +108,9 @@ class CMakeData :
     def genStr_targetSources(self, target:str, sources :list) ->str : 
         return "target_sources({} PRIVATE \n\t{}\n)".format(target,'\n\t'.join(sources))
 
+    def genStr_targetIncludeDirectories(self, target:str, dirPath :str) ->str : 
+        return f"target_include_directories({target} PRIVATE {dirPath})"
+
     def genStr_cmake_sourceDirVar(self) -> str:
         return f"{self.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(self.srcDirPath))}"
 
