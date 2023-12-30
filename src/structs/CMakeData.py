@@ -31,6 +31,13 @@ class CMakeData :
     cmakeFuncs : dict = field(default_factory=dict)
     cmakeVars : dict = field(default_factory=dict)
 
+
+    def genStr_function(self, functionName : str, arguments:list, lines : list) -> str:
+        ret = f"function({functionName} {' '.join(arguments)})\n"
+        ret += "\t" +'\n\t'.join(lines) + '\n'
+        ret += "endfunction()"
+        return ret
+
     def setTargetDirPaths(self, path :str):
         self.targetDirPath  = path
         self.srcDirPath     = "src"
