@@ -32,6 +32,9 @@ class CMakeData :
     cmakeVars : dict = field(default_factory=dict)
 
 
+    def genStr_configureFile(self, inputFile :str, outputFile :str)->str:
+        return str.format("configure_file({} {})",inputFile,outputFile)
+
     def genStr_function(self, functionName : str, arguments:list, lines : list) -> str:
         ret = f"function({functionName} {' '.join(arguments)})\n"
         ret += "\t" +'\n\t'.join(lines) + '\n'
