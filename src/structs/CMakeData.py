@@ -35,6 +35,14 @@ class CMakeData :
     def getRelativeCMakeFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
         return self.targetDirPath+"/"+self.cmakeDirPath+ "/"+file 
 
+    def genStr_FILE_cmake_inputs_h_in(self, projDat:ProjectConfigurationData):
+        ret = self.genStr_cmake_cpp_defines()
+        return ret
+
+    def genStr_cmake_cpp_defines(self):
+        ret = "#define " + "#define ".join([f'{key}  \"@{val}@\"' for key, val in self.cmakeToCppVars.items()])
+        return ret
+
     def genStr_FILE_cmake_cpp_data(self, projDat :ProjectConfigurationData):
         targetArg = "target"
         ret = self.genStr_setVarString_cmakeToCpp(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, "Example string from CMake to C++") + "\n"
