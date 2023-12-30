@@ -152,3 +152,6 @@ def tidy_cmake_string(string :str, linesToSkip:int = 1)->str:
     )
     
     return ret
+
+def pathify(strings :list) -> str:
+        return "/".join(strings)    
