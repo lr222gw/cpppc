@@ -144,11 +144,11 @@ class CMakeData :
             ) + "\n)"
         return tidy_cmake_string(ret)
 
-def tidy_cmake_string(string :int = 0)->str:
+def tidy_cmake_string(string :str, linesToSkip:int = 1)->str:
     splitLines = re.sub(r'^[ \t]+', '', string,0, re.MULTILINE).splitlines()
-    ret = '\n'.join(splitLines[0:1])
+    ret = '\n'.join(splitLines[0:linesToSkip])
     ret += '\n'+textwrap.indent(
-        '\n'.join(splitLines[1:len(splitLines)]), '\t',predicate=(lambda line, index=0:  line.strip() != '}' and line.strip() != ")" and (index := index+1) == 1 )
+        '\n'.join(splitLines[linesToSkip:len(splitLines)]), '\t',predicate=(lambda line, index=0:  line.strip() != '}' and line.strip() != ")" and (index := index+1) == 1 )
     )
     
     return ret
