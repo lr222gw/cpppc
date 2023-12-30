@@ -1,5 +1,5 @@
 from .structs import GuiData as d
-from PyQt5.QtWidgets import QLabel, QLineEdit, QPushButton, QSpinBox, QFormLayout, QTextEdit, QCheckBox , QComboBox, QHBoxLayout
+from PyQt5.QtWidgets import QLabel, QLineEdit, QPushButton, QSpinBox, QFormLayout, QTextEdit, QCheckBox , QComboBox, QHBoxLayout,QFrame
 
 
 def addButton(text:str, layout) -> QPushButton:
@@ -85,3 +85,10 @@ def addComboBox_list(fieldName:str, alternatives : list, parentLayout ) -> d.Pro
     parentLayout.addRow(newLayout)    
 
     return d.PropComboBox(version)    
+
+
+def showHideFrame(frame :QFrame, condition:bool):    
+    if condition:
+        frame.show()
+    else: 
+        frame.hide()

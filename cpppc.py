@@ -1,5 +1,7 @@
 from src import helper_funcs as hlp, action_funcs as act
-from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout,QVBoxLayout, QHBoxLayout, QGroupBox, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout,QVBoxLayout, QHBoxLayout, QGroupBox, QFrame, QStackedLayout, QLineEdit
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import *
 
 from src.structs.GuiData import GuiData 
 from src.structs.CMakeVersionData import CMakeVersionData
@@ -15,6 +17,9 @@ rootLayout = QHBoxLayout()
 layout_projectName = QFormLayout()
 layout_cmakeVersion = QHBoxLayout()
 layout_targetProperties = QFormLayout()
+layout_cmakeBridge = QVBoxLayout()
+layout_cmakeBridge.setAlignment(Qt.AlignmentFlag.AlignTop)
+
 
 layout_rightside = QFormLayout()
 
@@ -51,6 +56,7 @@ butt.clicked.connect(lambda: act.cmakebuttontest() )
 createProjectButton = hlp.addButton("Create", layout_projectName)
 createProjectButton.clicked.connect(lambda: act.createProject(ProjConfDat))
 
+# TODO: Replace with addProp_* functions
 ProjConfDat.overwriteProjectTargetDir = hlp.addCheckBox("Overwrite", False, layout_projectName)
 ProjConfDat.useProgram_ccache     = hlp.addCheckBox("Use CCache", True, layout_projectName)
 ProjConfDat.useSanitizers         = hlp.addCheckBox("Use Sanitizers", True, layout_projectName)
@@ -74,13 +80,31 @@ ProjConfDat.addProp_checkbox("Use Interprocedural Optimization",
 
 group_properties.setLayout(layout_targetProperties)
 
-
 layout_rightside.addWidget(group_cmake)
 layout_rightside.addWidget(group_properties)
+
+group_cmakeBridge = QGroupBox(title="CMake vars to C++")
+ProjConfDat.useCmakeCppBridge = hlp.addCheckBox("Create \"CMake bridge\" to C++", False, layout_cmakeBridge)
+
+
+layout_cmakeBridge_content = QVBoxLayout()
+frame_cmakeBridge_content = QFrame()
+hlp.showHideFrame(frame_cmakeBridge_content, ProjConfDat.useCmakeCppBridge.getState())
+
+frame_cmakeBridge_content.setLayout(layout_cmakeBridge_content)
+cmakeBridgeVar_hello = hlp.addTextField("Hello", "test", layout_cmakeBridge_content)
+
+ProjConfDat.useCmakeCppBridge.registerConnection(
+    lambda: hlp.showHideFrame(frame_cmakeBridge_content, ProjConfDat.useCmakeCppBridge.getState())
+)
+
+group_cmakeBridge.setLayout(layout_cmakeBridge)
+layout_cmakeBridge.addWidget(frame_cmakeBridge_content)
 
 
 rootLayout.addWidget(group_projdef)
 rootLayout.addLayout(layout_rightside)
+rootLayout.addWidget(group_cmakeBridge)
 
 window.setLayout(rootLayout)
 window.show()

@@ -33,6 +33,8 @@ class ProjectConfigurationData:
 
     useMeasureCompiletime : GuiDataToggle = field(default= GuiDataToggle)
 
+    useCmakeCppBridge : GuiDataToggle = field(default= GuiDataToggle)
+
     #Properties 
     props :list = field(default_factory=list)
     def addProp_checkbox(self, label:str, cmakePropName:str,cmakePropValue:bool, parentLayout) -> GuiDataToggle:

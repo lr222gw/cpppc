@@ -1,14 +1,17 @@
 from abc import ABC, abstractmethod
 from PyQt5.QtWidgets import QLabel, QWidget, QComboBox, QCheckBox
 from dataclasses import dataclass
+from typing import Callable
 
 # NOTE: Class may be skipped if it remains this empty
 @dataclass
 class GuiData:
-    widget: QWidget    
+    widget: QWidget
+    def registerConnection(self, func : Callable):
+        self.widget.clicked.connect(func)
 
 @dataclass
-class GuiDataToggle:
+class GuiDataToggle(GuiData):
     widget: QCheckBox
     def toggle(self):
         self.widget.setCheckState(not self.widget.isChecked())
@@ -16,7 +19,7 @@ class GuiDataToggle:
         return self.widget.isChecked()
 
 @dataclass
-class GuiDataComboBox:
+class GuiDataComboBox(GuiData):
     widget: QComboBox
     def getValue(self):        
         return self.widget.currentText()
@@ -36,7 +39,7 @@ class PropToggle(Prop, GuiDataToggle):
     def setValue(self, value):
         self.widget.setChecked(value)        
 
-    def getValue(self) -> bool:
+    def getValue(self) -> str:
         return "ON" if self.widget.isChecked() else "OFF"
 
 @dataclass
