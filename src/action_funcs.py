@@ -53,7 +53,7 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
         cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_headers())
 
         cmakeDat.addToCMakeList(cmakeDat.genStr_addExecutable(projdata))
-        cmakeDat.addToCMakeList(cmakeDat.genStr_targetSources(projdata))
+        cmakeDat.addToCMakeList(cmakeDat.genStrHlp_addingProjectsTargetSources(projdata))
 
         if(projdata.useSanitizers.getState()):
             cmakeDat.addToCMakeList(cmakeDat.genStr_compileSanitizers(projdata))
