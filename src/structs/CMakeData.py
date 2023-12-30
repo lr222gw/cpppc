@@ -32,6 +32,45 @@ class CMakeData :
     cmakeVars : dict = field(default_factory=dict)
 
 
+    def genStr_FILE_cmake_cpp_data(self, projDat :ProjectConfigurationData):
+        targetArg = "target"
+        ret = self.genStr_setVarString(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, "Example string from CMake to C++") + "\n"
+        ret += self.genStr_function(CMFUNC__add_cmake_inputs_to_targets, 
+            [targetArg, "varValue"],
+            [
+                self.genStr_setVarString(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, r"${varValue}"),
+                self.genStrHlp_generateHeaderFileInBuildDir(targetArg)
+            ]
+        )        
+        return ret    
+
+    def genStrHlp_generateHeaderFileInBuildDir(self, targetVar) -> str: 
+        ret = tidy_cmake_string(
+            self.genStr_configureFile(
+                pathify([self.cmakeDirPath,self.FILE_cmake_inputs_h_in]),
+                pathify([CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h])
+                ),
+                0
+                )
+        ret += tidy_cmake_string(
+            self.genStr_targetIncludeDirectories(
+                str.format("${{{}}}",targetVar),
+                pathify([CMAKE_CURRENT_SOURCE_DIR, self.cmakeGenSrcDirPath])
+                ),
+                0
+                )
+
+        ret += tidy_cmake_string(
+            self.genStr_targetSources(                
+                str.format("${{{}}}",targetVar),
+                [
+                    pathify([CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h])
+                ]
+            ),0
+            
+        )
+        return ret
+
     def genStr_configureFile(self, inputFile :str, outputFile :str)->str:
         return str.format("configure_file({} {})",inputFile,outputFile)
 
