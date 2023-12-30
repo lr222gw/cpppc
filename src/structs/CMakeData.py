@@ -29,18 +29,19 @@ class CMakeData :
     FILE_cmake_inputs_h     :str = "cmake_inputs.h"
 
     cmakeFuncs : dict = field(default_factory=dict)
-    cmakeVars : dict = field(default_factory=dict)
+    cmakeVars  : dict = field(default_factory=dict)
+    cmakeToCppVars : dict = field(default_factory=dict)
 
     def getRelativeCMakeFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
         return self.targetDirPath+"/"+self.cmakeDirPath+ "/"+file 
 
     def genStr_FILE_cmake_cpp_data(self, projDat :ProjectConfigurationData):
         targetArg = "target"
-        ret = self.genStr_setVarString(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, "Example string from CMake to C++") + "\n"
+        ret = self.genStr_setVarString_cmakeToCpp(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, "Example string from CMake to C++") + "\n"
         ret += self.genStr_function(CMFUNC__add_cmake_inputs_to_targets, 
             [targetArg, "varValue"],
             [
-                self.genStr_setVarString(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, r"${varValue}"),
+                self.genStr_setVarString_cmakeToCpp(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, r"${varValue}"),
                 self.genStrHlp_generateHeaderFileInBuildDir(targetArg)
             ]
         )        
@@ -114,7 +115,8 @@ class CMakeData :
         self.cmakeVars[CMVAR__SOURCE_DIR] = projData.projectName_str() + CMVAR__SOURCE_DIR
         self.cmakeVars[CMVAR__SOURCES]    = projData.projectName_str() + CMVAR__SOURCES
         self.cmakeVars[CMVAR__HEADERS]    = projData.projectName_str() + CMVAR__HEADERS
-        self.cmakeVars[CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR] = CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR
+        
+        self.cmakeToCppVars[CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR] = CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR
 
     def initCmakeFuncs(self,projData : ProjectConfigurationData):        
         self.cmakeFuncs[CMVAR__SOURCE_DIR] = projData.projectName_str() + CMVAR__SOURCE_DIR        
@@ -124,6 +126,13 @@ class CMakeData :
 
     def genStr_setVarString(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeVars[varName], str.format("\"{}\"",varValue))
+
+
+    def genStr_setVar_cmakeToCpp(self, varName:str,varValue:str) -> str:
+        return str.format("set({} {})", self.cmakeToCppVars[varName], str.format("{}",varValue))
+
+    def genStr_setVarString_cmakeToCpp(self, varName:str,varValue:str) -> str:
+        return str.format("set({} {})", self.cmakeToCppVars[varName], str.format("\"{}\"",varValue))
 
     def genStr_setProperty(self, projData: ProjectConfigurationData, propertyName:str, propertyValue:str) -> str:
         return str.format("set_property(TARGET {} PROPERTY {} \"{}\")", 
