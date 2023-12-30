@@ -71,6 +71,11 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
                 cmakeDat.FILE_cmake_cpp_data, 
                 cmakeDat.genStr_FILE_cmake_cpp_data(projdata))
 
+            createCMakeFileOnDemand(
+                cmakeDat, projdata.overwriteProjectTargetDir.getState(), 
+                cmakeDat.FILE_cmake_inputs_h_in, 
+                cmakeDat.genStr_FILE_cmake_inputs_h_in(projdata))
+            
         with open(cmakeDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:                        
             file.write(cmakeDat.getCMakeListStr())
     
