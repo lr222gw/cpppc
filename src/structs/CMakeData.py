@@ -105,6 +105,9 @@ class CMakeData :
             "-"+ ', -'.join(options) if len(options) != 0 else ""
         ) # NOTE: Does Order matter of Link option list?
 
+    def genStr_targetSources(self, target:str, sources :list) ->str : 
+        return "target_sources({} PRIVATE \n\t{}\n)".format(target,'\n\t'.join(sources))
+
     def genStr_cmake_sourceDirVar(self) -> str:
         return f"{self.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(self.srcDirPath))}"
 
