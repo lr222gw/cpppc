@@ -132,6 +132,9 @@ class CMakeData :
     def initCmakeFuncs(self,projData : ProjectConfigurationData):        
         self.cmakeFuncs[CMVAR__SOURCE_DIR] = projData.projectName_str() + CMVAR__SOURCE_DIR        
 
+    def genStr_includeCmakeFile(self, cmakeFile : str) -> str:
+        return str.format("include({})\n", pathify([self.cmakeDirPath, cmakeFile]))
+
     def genStr_setVar(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeVars[varName], str.format("{}",varValue))
 
