@@ -125,6 +125,9 @@ class CMakeData :
         self.cmakeVars[CMVAR__HEADERS]    = projData.projectName_str() + CMVAR__HEADERS
         
         self.cmakeToCppVars[CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR] = CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR
+        for name, val in projData.cmakeToCppVars.items() :
+            self.cmakeToCppVars[val.getVariable()[0]] = val.getVariable()[1]
+
 
     def initCmakeFuncs(self,projData : ProjectConfigurationData):        
         self.cmakeFuncs[CMVAR__SOURCE_DIR] = projData.projectName_str() + CMVAR__SOURCE_DIR        
