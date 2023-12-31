@@ -102,6 +102,10 @@ ProjConfDat.useCmakeCppBridge.registerConnection(
 group_cmakeBridge.setLayout(layout_cmakeBridge)
 layout_cmakeBridge.addWidget(frame_cmakeBridge_content)
 
+#TODO: GUI to select libs from system and files
+ProjConfDat.publicLinkLibs = ["lib1", "lib2", "lib3"]
+ProjConfDat.privateLinkLibs  = ["lib4", "lib5", "lib6"]
+
 
 rootLayout.addWidget(group_projdef)
 rootLayout.addLayout(layout_rightside)
