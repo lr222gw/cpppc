@@ -35,6 +35,8 @@ class ProjectConfigurationData:
 
     useCmakeCppBridge : GuiDataToggle = field(default= GuiDataToggle)
 
+    cmakeToCppVars : dict = field(default_factory=dict)
+
     #Properties 
     props :list = field(default_factory=list)
     def addProp_checkbox(self, label:str, cmakePropName:str,cmakePropValue:bool, parentLayout) -> GuiDataToggle:
