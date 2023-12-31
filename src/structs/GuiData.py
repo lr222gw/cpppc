@@ -25,6 +25,27 @@ class GuiDataComboBox(GuiData):
         return self.widget.currentText()
 
 @dataclass
+class CmakeCppVarWidget():    
+    nameWidget: QLineEdit
+    valWidget : QLineEdit
+        
+    def __init__(self, name:str, val):
+        self.nameWidget = QLineEdit()
+        self.valWidget  = QLineEdit()
+        self.nameWidget.setText(name)
+        self.valWidget.setText(str(val))    
+
+        self.nameWidget.setDisabled(True)
+        self.valWidget.setDisabled(True)
+
+    def setVariable(self, name:str, value):
+        self.nameWidget.setText(name)
+        self.valWidget.setText(str(value))
+
+    def getVariable(self) -> tuple:
+        return (self.nameWidget.text(), self.valWidget.text())
+
+@dataclass
 class CmakeCppVar_inputWidget():    
     nameWidget: QLineEdit
     valWidget : QLineEdit
