@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from PyQt5.QtWidgets import QLabel, QWidget, QComboBox, QCheckBox
+from PyQt5.QtWidgets import QLabel, QWidget, QComboBox, QCheckBox, QLineEdit
 from dataclasses import dataclass
 from typing import Callable
 
@@ -23,6 +23,24 @@ class GuiDataComboBox(GuiData):
     widget: QComboBox
     def getValue(self):        
         return self.widget.currentText()
+
+@dataclass
+class CmakeCppVar_inputWidget():    
+    nameWidget: QLineEdit
+    valWidget : QLineEdit
+        
+    def __init__(self, name:str, val):
+        self.nameWidget = QLineEdit()
+        self.valWidget  = QLineEdit()
+        self.nameWidget.setText(name)
+        self.valWidget.setText(str(val))    
+
+    def setVariable(self, name:str, value):
+        self.nameWidget.setText(name)
+        self.valWidget.setText(str(value))
+
+    def getVariable(self) -> tuple:
+        return (self.nameWidget.text(), self.valWidget.text())
 
 @dataclass
 class Prop(ABC):    
