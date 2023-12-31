@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from .CMakeVersionData import CMakeVersionData
-from .GuiData import GuiData, GuiDataToggle, GuiDataComboBox
+from .GuiData import GuiData, GuiDataToggle, GuiDataComboBox, CmakeCppVarWidget, CmakeCppVar_inputWidget
 from .. import helper_funcs as hlp
 
 
@@ -53,7 +53,12 @@ class ProjectConfigurationData:
         datComboboxList.setValue(defaultChoice)
         self.props.append(datComboboxList)
     
-        
+    def remCmakeToCppVar(self, cmakeCppvar : CmakeCppVarWidget, remButton, layout):        
+        self.cmakeToCppVars.pop(cmakeCppvar.nameWidget.text())
+        layout.removeWidget(cmakeCppvar.nameWidget)
+        layout.removeWidget(cmakeCppvar.valWidget)
+        layout.removeWidget(remButton)
+
 
     def getTargetPath(self) -> str:
         path = self.projectTargetDir.widget.text() +  "/" + self.projectName.widget.text()
