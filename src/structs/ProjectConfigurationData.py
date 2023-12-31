@@ -53,6 +53,29 @@ class ProjectConfigurationData:
         datComboboxList.setValue(defaultChoice)
         self.props.append(datComboboxList)
     
+    def addCmakeCppVarHeader(self, parentLayout):
+        layout_headerTop  = hlp.createQHBoxLayout()
+        layout_headerInput  = hlp.createQHBoxLayout()
+        
+        nameTitle  = hlp.createLabel("Variable Name")
+        valueTitle = hlp.createLabel("Value")
+        dummy = hlp.createLabel("") # Easy way to add spacing
+
+        layout_headerTop.addWidget(nameTitle)
+        layout_headerTop.addWidget(valueTitle)
+        layout_headerTop.addWidget(dummy)
+
+        input = CmakeCppVar_inputWidget("", str(""))
+
+        layout_headerInput.addWidget(input.nameWidget)
+        layout_headerInput.addWidget(input.valWidget)    
+
+        addCmakeCppVarButton = hlp.addButton("Add/Edit", layout_headerInput)
+        addCmakeCppVarButton.clicked.connect(lambda: self.addCmakeToCppVar(input.getVariable()[0],input.getVariable()[1], parentLayout))
+
+        parentLayout.addLayout(layout_headerTop)
+        parentLayout.addLayout(layout_headerInput)
+
     def addCmakeToCppVar(self, name : str, val, parentLayout ):
         
         if name == "" or str(val) == "": 
