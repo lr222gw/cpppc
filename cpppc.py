@@ -92,7 +92,6 @@ frame_cmakeBridge_content = QFrame()
 hlp.showHideFrame(frame_cmakeBridge_content, ProjConfDat.useCmakeCppBridge.getState())
 
 frame_cmakeBridge_content.setLayout(layout_cmakeBridge_content)
-cmakeBridgeVar_hello = hlp.addTextField("Hello", "test", layout_cmakeBridge_content)
 
 ProjConfDat.useCmakeCppBridge.registerConnection(
     lambda: hlp.showHideFrame(frame_cmakeBridge_content, ProjConfDat.useCmakeCppBridge.getState())
