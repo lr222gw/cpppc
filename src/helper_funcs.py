@@ -86,6 +86,13 @@ def addComboBox_list(fieldName:str, alternatives : list, parentLayout ) -> d.Pro
 
     return d.PropComboBox(version)    
 
+def createLabel(text) -> QLabel:
+    newLabel = QLabel(text=text)
+    return newLabel
+
+def createQHBoxLayout() -> QHBoxLayout:
+    newLayout = QHBoxLayout()
+    return newLayout    
 
 def showHideFrame(frame :QFrame, condition:bool):    
     if condition:
