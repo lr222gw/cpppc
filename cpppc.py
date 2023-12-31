@@ -91,6 +91,8 @@ layout_cmakeBridge_content = QVBoxLayout()
 frame_cmakeBridge_content = QFrame()
 hlp.showHideFrame(frame_cmakeBridge_content, ProjConfDat.useCmakeCppBridge.getState())
 
+ProjConfDat.addCmakeCppVarHeader(layout_cmakeBridge_content)
+
 frame_cmakeBridge_content.setLayout(layout_cmakeBridge_content)
 
 ProjConfDat.useCmakeCppBridge.registerConnection(
