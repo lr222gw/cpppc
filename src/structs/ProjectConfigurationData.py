@@ -53,6 +53,26 @@ class ProjectConfigurationData:
         datComboboxList.setValue(defaultChoice)
         self.props.append(datComboboxList)
     
+    def addCmakeToCppVar(self, name : str, val, parentLayout ):
+        
+        if name == "" or str(val) == "": 
+            return
+
+        if name not in self.cmakeToCppVars:
+            cmakeCppvar = CmakeCppVarWidget(name, str(val))
+            newLayout = hlp.createQHBoxLayout()
+
+            newLayout.addWidget(cmakeCppvar.nameWidget)
+            newLayout.addWidget(cmakeCppvar.valWidget)
+
+            remButton = hlp.addButton("-", newLayout)
+            remButton.clicked.connect(lambda: self.remCmakeToCppVar(cmakeCppvar, remButton, newLayout))
+            
+            parentLayout.addLayout(newLayout)
+            self.cmakeToCppVars[name] = cmakeCppvar
+        else: 
+            self.cmakeToCppVars[name].valWidget.setText(str(val))
+
     def remCmakeToCppVar(self, cmakeCppvar : CmakeCppVarWidget, remButton, layout):        
         self.cmakeToCppVars.pop(cmakeCppvar.nameWidget.text())
         layout.removeWidget(cmakeCppvar.nameWidget)
