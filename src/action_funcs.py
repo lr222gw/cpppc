@@ -64,6 +64,8 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
 
         cmakeDat.addToCMakeList(cmakeDat.genStr_cppProperties(projdata))
 
+        cmakeDat.addToCMakeList(cmakeDat.genStr_targetLinkLibraries(projdata))
+
         if(projdata.useCmakeCppBridge.getState()):     
 
             createCMakeFileOnDemand(

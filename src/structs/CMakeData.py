@@ -166,6 +166,13 @@ class CMakeData :
             "-"+ ', -'.join(options) if len(options) != 0 else ""
         ) # NOTE: Does Order matter of Link option list?
 
+    def genStr_targetLinkLibraries(self, projData: ProjectConfigurationData) -> str:
+        return str.format("target_link_libraries({} \n\t {} \n\t {} )", 
+            projData.projectExecName_str(), 
+            "PUBLIC\n\t"  + ',\n\t'.join(projData.publicLinkLibs)  if len(projData.publicLinkLibs)  != 0 else "",            
+            "PRIVATE\n\t" + ',\n\t'.join(projData.privateLinkLibs) if len(projData.privateLinkLibs) != 0 else ""            
+        )
+
     def genStr_targetSources(self, target:str, sources :list) ->str : 
         return "target_sources({} PRIVATE \n\t{}\n)".format(target,'\n\t'.join(sources))
 
