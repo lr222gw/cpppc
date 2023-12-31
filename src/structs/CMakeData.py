@@ -40,7 +40,7 @@ class CMakeData :
         return ret
 
     def genStr_cmake_cpp_defines(self):
-        ret = "#define " + "#define ".join([f'{key}  \"@{val}@\"' for key, val in self.cmakeToCppVars.items()])
+        ret = "#define " + "#define ".join([f'{key}  \"@{val}@\"\n' for key, val in self.cmakeToCppVars.items()])
         return ret
 
     def genStr_FILE_cmake_cpp_data(self, projDat :ProjectConfigurationData):
