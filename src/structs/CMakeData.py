@@ -225,7 +225,7 @@ class CMakeData :
         return self.genStr_setTargetLinkOptions(projData,   {"g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-memory-track-origins=2", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt"})        
         
     def genStr_compileTimeProperty(self, projData :ProjectConfigurationData, ) -> str:
-        return self.genStr_setProperty(projData, "RULE_LAUNCH_COMPILE", "${CMAKE_COMMAND} -E time}")
+        return self.genStr_setProperty(projData, "RULE_LAUNCH_COMPILE", "${CMAKE_COMMAND} -E time")
 
     def genStr_cppProperties(self, projData:ProjectConfigurationData) -> str:
         ret = f"set_target_properties({projData.projectExecName_str()} PROPERTIES\n"
