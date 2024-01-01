@@ -52,7 +52,7 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
             cmakeDat.addToCMakeList(cm_hlp.addCMakeCompilerLauncher("ccache"))
 
         if(projdata.useCmakeCppBridge.getState()):
-            cmakeDat.genStr_includeCmakeFile(cmakeDat.FILE_cmake_cpp_data)
+            cmakeDat.addToCMakeList(cmakeDat.genStr_includeCmakeFile(cmakeDat.FILE_cmake_cpp_data))
 
         cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_sourceDirVar())
         cmakeDat.addToCMakeList(cmakeDat.genStr_cmake_sources())
