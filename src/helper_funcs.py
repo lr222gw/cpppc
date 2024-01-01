@@ -139,6 +139,48 @@ def addHidableFrame(
     )   
 
     return frame_layout
+
+def addHidableGroup(
+    parentLayout,
+    checkboxParentLayout,
+    groupTitle:str,
+    checkbox :d.PropToggle
+) -> QVBoxLayout:
+
+    # Create A frame, needed to make the layout/content collapsable
+    frame_widget = QFrame()
+
+    # Create new Layout for collapsable content, assign to frame widget
+    frame_layout = QVBoxLayout()
+    frame_widget.setLayout(frame_layout)
+    
+    # Create A Group
+    group_widget = QGroupBox(title=groupTitle)
+
+    # new Layout for button and collapsable content, assign to group widget
+    group_layout = QVBoxLayout()
+    group_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    group_widget.setLayout(group_layout)
+
+    # Assign the group widget to the frames layout
+    frame_layout.addWidget(group_widget)
+
+    # Add Checkbox to the provided Layout, used to toggle if hidden
+    checkboxParentLayout.addWidget(checkbox.widget)
+
+    # Add the frame Widget to the parent Layout to be displayed
+    parentLayout.addWidget(frame_widget)    
+
+    # Set Frame visible based on initial value of checkbox 
+    showHideFrame(frame_widget, checkbox.getState())    
+
+    # Add checkbox toggle to frame    
+    checkbox.registerConnection(
+        lambda: showHideFrame(frame_widget, checkbox.getState())
+    )   
+
+    return frame_layout    
+   
 def showHideFrame(frame :QFrame, condition:bool):    
     if condition:
         frame.show()
