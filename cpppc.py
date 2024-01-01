@@ -17,9 +17,6 @@ rootLayout = QHBoxLayout()
 layout_projectName = QFormLayout()
 layout_cmakeVersion = QHBoxLayout()
 layout_targetProperties = QFormLayout()
-layout_cmakeBridge = QVBoxLayout()
-layout_cmakeBridge.setAlignment(Qt.AlignmentFlag.AlignTop)
-
 
 layout_rightside = QFormLayout()
 
@@ -82,27 +79,19 @@ ProjConfDat.addProp_checkbox("Use Interprocedural Optimization",
 
 group_properties.setLayout(layout_targetProperties)
 
+CmakeBridgeFrameLayout = hlp.addHidableFrame(
+    rootLayout,
+    "CMake vars to C++",
+    hlp.createCheckBox("Create \"CMake bridge\" to C++", False)
+    )
+
+ProjConfDat.addCmakeCppVarHeader(CmakeBridgeFrameLayout)
+
+
+
+
 layout_rightside.addWidget(group_cmake)
 layout_rightside.addWidget(group_properties)
-
-group_cmakeBridge = QGroupBox(title="CMake vars to C++")
-ProjConfDat.useCmakeCppBridge = hlp.addCheckBox("Create \"CMake bridge\" to C++", False, layout_cmakeBridge)
-
-
-layout_cmakeBridge_content = QVBoxLayout()
-frame_cmakeBridge_content = QFrame()
-hlp.showHideFrame(frame_cmakeBridge_content, ProjConfDat.useCmakeCppBridge.getState())
-
-ProjConfDat.addCmakeCppVarHeader(layout_cmakeBridge_content)
-
-frame_cmakeBridge_content.setLayout(layout_cmakeBridge_content)
-
-ProjConfDat.useCmakeCppBridge.registerConnection(
-    lambda: hlp.showHideFrame(frame_cmakeBridge_content, ProjConfDat.useCmakeCppBridge.getState())
-)
-
-group_cmakeBridge.setLayout(layout_cmakeBridge)
-layout_cmakeBridge.addWidget(frame_cmakeBridge_content)
 
 #TODO: GUI to select libs from system and files
 # ProjConfDat.publicLinkLibs = ["lib1", "lib2", "lib3"]
@@ -111,7 +100,6 @@ layout_cmakeBridge.addWidget(frame_cmakeBridge_content)
 
 rootLayout.addWidget(group_projdef)
 rootLayout.addLayout(layout_rightside)
-rootLayout.addWidget(group_cmakeBridge)
 
 window.setLayout(rootLayout)
 window.show()
