@@ -70,6 +70,15 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
 
         cmakeDat.addToCMakeList(cmakeDat.genStr_cppProperties(projdata))
 
+        #TODO: Only add this line if users checked use CMakeToCpp Bridge...
+        cmakeDat.addToCMakeList(cmakeDat.genStr_callFunction(
+            CMFUNC__add_cmake_inputs_to_targets, 
+            [
+                projdata.projectExecName_str(),
+
+            ])
+        )
+
         cmakeDat.addToCMakeList(cmakeDat.genStr_targetLinkLibraries(projdata))
 
         if(projdata.useCmakeCppBridge.getState()):     

@@ -55,6 +55,9 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
         ret = "#define " + "#define ".join([f'{key}  \"@{val}@\"\n' for key, val in self.cmakeToCppVars.items()])
         return ret
 
+    def genStr_callFunction(self, functionName : str, arguments:list) ->str:
+        return str.format("{}({})", functionName, ", ".join(arguments))
+
     def genStr_FILE_cmake_cpp_data(self, projDat :ProjectConfigurationData):
         targetArg = "target"
         ret = self.genStr_setVarString_cmakeToCpp(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, "Example string from CMake to C++") + "\n"
