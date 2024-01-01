@@ -59,9 +59,8 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
         targetArg = "target"
         ret = self.genStr_setVarString_cmakeToCpp(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, "Example string from CMake to C++") + "\n"
         ret += self.genStr_function(CMFUNC__add_cmake_inputs_to_targets, 
-            [targetArg, "varValue"],
+            [targetArg],
             [
-                self.genStr_setVarString_cmakeToCpp(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, r"${varValue}"),
                 self.genStrHlp_generateHeaderFileInBuildDir(targetArg)
             ]
         )        
