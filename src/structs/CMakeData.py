@@ -33,7 +33,10 @@ class CMakeData :
     cmakeToCppVars : dict = field(default_factory=dict)
 
     def getRelativeCMakeFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
-        return self.targetDirPath+"/"+self.cmakeDirPath+ "/"+file 
+        return self.targetDirPath+"/"+self.cmakeDirPath+ "/"+file
+    
+    def getRelativeCppFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
+        return self.targetDirPath+"/"+self.srcDirPath+ "/"+file 
 
     def genStr_FILE_cmake_inputs_h_in(self, projDat:ProjectConfigurationData):
         ret = self.genStr_cmake_cpp_defines()

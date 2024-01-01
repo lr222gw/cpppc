@@ -1,5 +1,6 @@
 from .structs import GuiData as d
 from .structs.ProjectConfigurationData import ProjectConfigurationData
+from .structs.CppDataHelper import CppDataHelper
 from . import cmake_helper as hlp_cmake
 from PyQt5.QtWidgets import QMessageBox, QTextEdit
 import os
@@ -28,11 +29,12 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
     __placeholderAsBackup(projdata.projectName.widget, projdata.projectName.widget.placeholderText())    
 
     __placeholderAsBackup(projdata.projectExecName.widget, projdata.projectExecName.widget.placeholderText())
+
+    #TODO: Make placeholderAsBackup a behavior of a class rather than forced here...
+    __placeholderAsBackup(projdata.entryPointFile.widget, projdata.entryPointFile.widget.placeholderText())
     
-    cmakeDat = CMakeData()    
-    cmakeDat.setTargetDirPaths(projdata.getTargetPath())
-    cmakeDat.initCmakeVars(projdata)
-    cmakeDat.initCmakeFuncs(projdata)
+
+    cppDat = CppDataHelper(projdata, cmakeDat)
     
     if os.path.exists(projdata.getTargetPath()) and not projdata.overwriteProjectTargetDir.getState():
         print("Target Already exists")
@@ -83,6 +85,10 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
             
         with open(cmakeDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:                        
             file.write(cmakeDat.getCMakeListStr())
+
+        #TODO: Move other file creation below creation of CMakeLists.txt 
+
+        cppDat.createCppEntryPointFileOnDemand(cppDat.genStr_FILE_entrypoint())
     
 
 def createCMakeFileOnDemand(cmakeDat :CMakeData, shouldOverwrite :bool, file : str, content :str ):

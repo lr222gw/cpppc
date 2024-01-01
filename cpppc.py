@@ -35,6 +35,8 @@ ProjConfDat.projectTargetDir = hlp.addTextField("Target directory:"      , ".", 
 ProjConfDat.projectExecName  = hlp.addTextField("Executable Name:"       , "executable",layout_projectName)
 ProjConfDat.projectDesc      = hlp.addTextBoxField("Project Description:",layout_projectName)
 
+ProjConfDat.entryPointFile  = hlp.addTextField("Entry Point file:"       , "main.cpp",layout_projectName)
+
 group_projdef.setLayout(layout_projectName)
 
 group_cmake = QGroupBox(title="CMake version")
@@ -103,8 +105,8 @@ group_cmakeBridge.setLayout(layout_cmakeBridge)
 layout_cmakeBridge.addWidget(frame_cmakeBridge_content)
 
 #TODO: GUI to select libs from system and files
-ProjConfDat.publicLinkLibs = ["lib1", "lib2", "lib3"]
-ProjConfDat.privateLinkLibs  = ["lib4", "lib5", "lib6"]
+# ProjConfDat.publicLinkLibs = ["lib1", "lib2", "lib3"]
+# ProjConfDat.privateLinkLibs  = ["lib4", "lib5", "lib6"]
 
 
 rootLayout.addWidget(group_projdef)

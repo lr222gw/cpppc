@@ -23,6 +23,10 @@ class ProjectConfigurationData:
     def projectDesc_str(self) -> str:
         return self.projectDesc.widget.toPlainText()
 
+    entryPointFile :   GuiData= field(default= GuiData)
+    def entryPointFile_str(self) -> str:
+        return self.entryPointFile.widget.text()
+
     overwriteProjectTargetDir : GuiDataToggle = field(default= GuiDataToggle)    
 
     #TODO: put inside a vector, enable user to use multiple prgorams...
