@@ -87,8 +87,12 @@ CmakeBridgeFrameLayout = hlp.addHidableFrame(
 
 ProjConfDat.addCmakeCppVarHeader(CmakeBridgeFrameLayout)
 
-
-
+sanitizerSettingsLayout = hlp.addHidableGroup(
+    layout_rightside,
+    layout_projectName,
+    "Sanitizer settings",
+    hlp.createCheckBox("Use Sanitizers", True)
+)
 
 layout_rightside.addWidget(group_cmake)
 layout_rightside.addWidget(group_properties)
