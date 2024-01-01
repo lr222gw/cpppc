@@ -33,6 +33,7 @@ def __generateCMakeLists(projdata : ProjectConfigurationData):
     #TODO: Make placeholderAsBackup a behavior of a class rather than forced here...
     __placeholderAsBackup(projdata.entryPointFile.widget, projdata.entryPointFile.widget.placeholderText())
     
+    cmakeDat = CMakeData(projdata)
 
     cppDat = CppDataHelper(projdata, cmakeDat)
     

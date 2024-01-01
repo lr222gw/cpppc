@@ -16,7 +16,7 @@ def CMAKIFY_PathToSourceDir(path:str) -> str:
     return str.format("{}",CMAKE_CURRENT_SOURCE_DIR+"/"+path)
 
 @dataclass
-class CMakeData : 
+class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
     cmakelist_str : str = "#CMakeLists.txt created through CPPPC\n"
     # Directory Paths 
     targetDirPath   :str = "."
@@ -31,6 +31,15 @@ class CMakeData :
     cmakeFuncs : dict = field(default_factory=dict)
     cmakeVars  : dict = field(default_factory=dict)
     cmakeToCppVars : dict = field(default_factory=dict)
+
+    def __init__(self, projdata :ProjectConfigurationData):
+        self.setTargetDirPaths(projdata.getTargetPath())
+        self.cmakeVars = dict()
+        self.cmakeFuncs = dict()
+        self.cmakeToCppVars = dict()
+
+        self.initCmakeVars(projdata)
+        self.initCmakeFuncs(projdata)
 
     def getRelativeCMakeFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
         return self.targetDirPath+"/"+self.cmakeDirPath+ "/"+file
