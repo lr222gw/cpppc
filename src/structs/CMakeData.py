@@ -2,6 +2,7 @@ import re
 import textwrap
 from .ProjectConfigurationData import ProjectConfigurationData
 from dataclasses import dataclass, field
+from .CMakeCommands import *
 
 CMVAR__SOURCE_DIR : str   = "_SOURCE_DIR"
 CMVAR__SOURCES    : str   = "_SOURCES"
@@ -32,14 +33,16 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
     cmakeVars  : dict = field(default_factory=dict)
     cmakeToCppVars : dict = field(default_factory=dict)
 
+    cmakeCommands : CMakeCommandDct= field(default_factory=CMakeCommandDct)
+
+
     def __init__(self, projdata :ProjectConfigurationData):
         self.setTargetDirPaths(projdata.getTargetPath())
         self.cmakeVars = dict()
         self.cmakeFuncs = dict()
         self.cmakeToCppVars = dict()
+        self.cmakeCommands = CMakeCommandDct()
 
-        self.initCmakeVars(projdata)
-        self.initCmakeFuncs(projdata)
 
     def getRelativeCMakeFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
         return self.targetDirPath+"/"+self.cmakeDirPath+ "/"+file
@@ -162,12 +165,31 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_setVarString_cmakeToCpp(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeToCppVars[varName], str.format("\"{}\"",varValue))
 
-    def genStr_setProperty(self, projData: ProjectConfigurationData, propertyName:str, propertyValue:str) -> str:
-        return str.format("set_property(TARGET {} PROPERTY {} \"{}\")", 
-            projData.projectExecName_str(), 
-            propertyName,
-            propertyValue
-        )
+    def genStr_find_program(self, name:str, name_var:str) -> str:    
+        return self.cmakeCommands.add_CMC(
+            CMC_find_program(
+                CMCK(name, name_var)
+            )
+        ).__str__()
+
+    def addCMakeCompilerLauncher(self, programName : str) -> str:        
+        name_var=f"{programName}_program_var"
+        content= self.genStr_find_program(programName, name_var)+"\n"
+        content += self.genStr_if(
+            name_var,            
+            CMC_set(
+                CMCK_str("CMAKE_CXX_COMPILER_LAUNCHER", CMVAR_REF(name_var))
+            )            
+        ) + "\n"
+        return content
+
+    def genStr_if(self,condition, *body):
+        return self.cmakeCommands.add_CMC_C(
+            CMCC_if(
+                [CMCK(condition)],
+                *body
+            )
+        ).__str__()
 
     # TODO: Support other than Clang!
     def genStr_setTargetCompileOptions(self, projData: ProjectConfigurationData,options:list) -> str:
