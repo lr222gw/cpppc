@@ -1,12 +1,13 @@
 from dataclasses import dataclass, field
+from typing import Callable
 from .CMakeVersionData import CMakeVersionData
-from .GuiData import GuiData, GuiDataToggle, GuiDataComboBox, CmakeCppVarWidget, CmakeCppVar_inputWidget
+from .GuiData import GuiData, GuiDataToggle, GuiDataComboBox, CmakeCppVarWidget, CmakeCppVar_inputWidget, FeatureToggle
 from .. import helper_funcs as hlp
-
-
+from .CMakeCommands import *
 
 @dataclass
-class ProjectConfigurationData: 
+class ProjectConfigurationData:     
+
     projectName :       GuiData= field(default= GuiData)
     def projectName_str(self) -> str:
         return self.projectName.widget.text()
@@ -43,6 +44,21 @@ class ProjectConfigurationData:
 
     publicLinkLibs :list = field(default_factory=list)
     privateLinkLibs:list = field(default_factory=list)
+
+    extraFeatures :list[FeatureToggle] = field(default_factory=list[FeatureToggle])
+    def initExtraFeatures(self):
+        for feature in self.extraFeatures:
+            if feature.getState():
+                feature.func()
+
+    def addExtraFeature_checkbox(self, label:str, featureDefaultState:bool, f :Callable, parentLayout) -> FeatureToggle: 
+        datToggle = hlp.addFeatures_CheckBox(label,featureDefaultState,parentLayout)
+        # datToggle.featureName = featureName
+        datToggle.setValue(featureDefaultState)
+        datToggle.func = f
+        self.extraFeatures.append(datToggle)
+        return datToggle
+
 
     #Properties 
     props :list = field(default_factory=list)
