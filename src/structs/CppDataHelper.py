@@ -2,18 +2,18 @@ import os
 from .ProjectConfigurationData import ProjectConfigurationData
 from .CMakeData import *
 from dataclasses import dataclass, field
-
+from .CppCommands import *
 
 @dataclass
 class CppDataHelper():
     projData: ProjectConfigurationData
     cmakeDataHelper: CMakeData
+    cppCommands : CPPCommandDct = field(default_factory=CPPCommandDct) 
 
     def __init__(self, projData: ProjectConfigurationData, cmakeDataHelper: CMakeData):
         self.projData = projData
         self.cmakeDataHelper = cmakeDataHelper
-
-    def createCppEntryPointFileOnDemand(self, content : str) -> str:
+        self.cppCommands = CPPCommandDct()
         if os.path.exists(self.cmakeDataHelper.getRelativeCppFilePath(self.projData.entryPointFile_str())) and not self.projData.overwriteProjectTargetDir.getState():
             print(f"Target File ({self.cmakeDataHelper.getRelativeCppFilePath(self.projData.entryPointFile_str())}) Already exists")
         else: 
