@@ -18,108 +18,107 @@ class CPPPC_Manager:
         self.cmake_inputsDat    = CMakeData(self.projDat)
         self.cppDat             = CppDataHelper(self.projDat, self.cmakeListDat)
 
-    def createProject(self, projdata : ProjectConfigurationData):
-        print("Creating Project")
-        projdata.toString()
-        self.__generateCMakeLists(projdata)
+    def runtimeInit(self):        
+        self.__setDefaultValues()
 
+    def createProject(self):     
+        print("Iniitializing default values") 
+        self.runtimeInit()
 
-    def __generateCMakeLists(self, projdata : ProjectConfigurationData):
+        print("Creating Project")        
+        self.projDat.toString()     #TODO: Junk?!
+        self.__generateCMakeLists()
+        self.__generateCMakeCppBridge()
+        self.__generateCPPFiles()
         
-        __placeholderAsBackup(projdata.projectTargetDir.widget, projdata.projectTargetDir.widget.placeholderText())    
-        
-        __placeholderAsBackup(projdata.projectName.widget, projdata.projectName.widget.placeholderText())    
-
-        __placeholderAsBackup(projdata.projectExecName.widget, projdata.projectExecName.widget.placeholderText())
-
+    def __setDefaultValues(self):
         #TODO: Make placeholderAsBackup a behavior of a class rather than forced here...
-        __placeholderAsBackup(projdata.entryPointFile.widget, projdata.entryPointFile.widget.placeholderText())
+        self.__placeholderAsBackup(self.projDat.projectTargetDir.widget, self.projDat.projectTargetDir.widget.placeholderText())    
         
-        cmakeListDat = CMakeData(projdata)
+        self.__placeholderAsBackup(self.projDat.projectName.widget, self.projDat.projectName.widget.placeholderText())    
 
-        cppDat = CppDataHelper(projdata, cmakeListDat)
+        self.__placeholderAsBackup(self.projDat.projectExecName.widget, self.projDat.projectExecName.widget.placeholderText())
         
-        if os.path.exists(projdata.getTargetPath()) and not projdata.overwriteProjectTargetDir.getState():
+        self.__placeholderAsBackup(self.projDat.entryPointFile.widget, self.projDat.entryPointFile.widget.placeholderText())
+    
+    def __generateCMakeLists(self):
+
+        if os.path.exists(self.projDat.getTargetPath()) and not self.projDat.overwriteProjectTargetDir.getState():
             print("Target Already exists")
             return
         else:
             print("Target Will be Created")
-            os.makedirs(cmakeListDat.targetDirPath, exist_ok=True)
-            os.makedirs(cmakeListDat.getPathInTarget(cmakeListDat.srcDirPath),    exist_ok=True)
-            os.makedirs(cmakeListDat.getPathInTarget(cmakeListDat.cmakeDirPath),  exist_ok=True)
-            cmakeListDat.addToCMakeList(cmakeListDat.genStr_cmake_min_version(projdata))
-            cmakeListDat.addToCMakeList(cmakeListDat.genStr_cmake_projectdetails(projdata))
+            os.makedirs(self.cmakeListDat.targetDirPath, exist_ok=True)
+            os.makedirs(self.cmakeListDat.getPathInTarget(self.cmakeListDat.srcDirPath),    exist_ok=True)
+            os.makedirs(self.cmakeListDat.getPathInTarget(self.cmakeListDat.cmakeDirPath),  exist_ok=True)
+
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_min_version())
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_projectdetails())
             
-            if(projdata.useProgram_ccache.getState()):
-                cmakeListDat.addToCMakeList(cmakeListDat.addCMakeCompilerLauncher("ccache"))
-                # cmakeDat.addToCMakeList(cm_hlp.addCMakeCompilerLauncher("ccache"))
+            if(self.projDat.useProgram_ccache.getState()):
+                self.cmakeListDat.addToCMakeList(self.cmakeListDat.addCMakeCompilerLauncher("ccache"))
 
             # if(projdata.useCmakeCppBridge.getState()): #TODO: FIX
             if(True): #TODO: FIX
-                cmakeListDat.addToCMakeList(cmakeListDat.genStr_includeCmakeFile(cmakeListDat.FILE_cmake_cpp_data))
+                self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_includeCmakeFile(self.cmakeListDat.FILE_cmake_cpp_data))
 
-            cmakeListDat.addToCMakeList(cmakeListDat.genStr_cmake_sourceDirVar())
-            cmakeListDat.addToCMakeList(cmakeListDat.genStr_cmake_sources())
-            cmakeListDat.addToCMakeList(cmakeListDat.genStr_cmake_headers())
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_sourceDirVar())
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_sources())
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_headers())
 
-            cmakeListDat.addToCMakeList(cmakeListDat.genStr_addExecutable(projdata))
-            cmakeListDat.addToCMakeList(cmakeListDat.genStrHlp_addingProjectsTargetSources(projdata))
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_addExecutable())
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStrHlp_addingProjectsTargetSources())
 
-            if(projdata.useSanitizers.getState()):
-                cmakeListDat.addToCMakeList(cmakeListDat.genStr_compileSanitizers(projdata))
-                cmakeListDat.addToCMakeList(cmakeListDat.genStr_linkSanitizers(projdata))
+            # if(self.projDat.useSanitizers.getState()):
+            #     self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_compileSanitizers(self.projDat))
+            #     self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_linkSanitizers(self.projDat))
             
-            if(projdata.useMeasureCompiletime.getState()):
-                cmakeListDat.addToCMakeList(cmakeListDat.genStr_compileTimeProperty(projdata))
+            if(self.projDat.useMeasureCompiletime.getState()):
+                self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_compileTimeProperty())
 
-            cmakeListDat.addToCMakeList(cmakeListDat.genStr_cppProperties(projdata))
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cppProperties())
 
             #TODO: Only add this line if users checked use CMakeToCpp Bridge...
-            cmakeListDat.addToCMakeList(cmakeListDat.genStr_callFunction(
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_callFunction(
                 CMFUNC__add_cmake_inputs_to_targets, 
                 [
-                    projdata.projectExecName_str(),
-
+                    self.projDat.projectExecName_str(),
                 ])
             )
 
-            cmakeListDat.addToCMakeList(cmakeListDat.genStr_targetLinkLibraries(projdata))
-            
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_targetLinkLibraries())            
 
-            # if(projdata.useCmakeCppBridge.getState()):     
-            if(True): #TODO FIX
-                cmake_inputs_fileDat = CMakeData(projdata)
-
-                createCMakeFileOnDemand(
-                    cmake_inputs_fileDat, projdata.overwriteProjectTargetDir.getState(), 
-                    cmake_inputs_fileDat.FILE_cmake_cpp_data, 
-                    cmake_inputs_fileDat.genStr_FILE_cmake_cpp_data(projdata))
-
-                createCMakeFileOnDemand(
-                    cmake_inputs_fileDat, projdata.overwriteProjectTargetDir.getState(), 
-                    cmake_inputs_fileDat.FILE_cmake_inputs_h_in, 
-                    cmake_inputs_fileDat.genStr_FILE_cmake_inputs_h_in(projdata))
-                
-            with open(cmakeListDat.targetDirPath+"/"+"CMakeLists_OLD.txt", "w") as file:                        
-                file.write(cmakeListDat.getCMakeListStr())
-
-            # New version
-            with open(cmakeListDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:
-                file.write(cmakeListDat.genCMakeList())
-
+            with open(self.cmakeListDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:
+                file.write(self.cmakeListDat.genCMakeList())
             #TODO: Move other file creation below creation of CMakeLists.txt 
+            
+    
+    def __generateCMakeCppBridge(self):
+        # if(projdata.useCmakeCppBridge.getState()):     
+        if(True): #TODO FIX
 
-            cppDat.createCppEntryPointFileOnDemand(cppDat.genStr_FILE_entrypoint())
+            self.__createCMakeFileOnDemand(
+                self.cmake_inputsDat, self.projDat.overwriteProjectTargetDir.getState(), 
+                self.cmake_inputsDat.FILE_cmake_cpp_data, 
+                self.cmake_inputsDat.genStr_FILE_cmake_cpp_data())
+
+            self.__createCMakeFileOnDemand(
+                self.cmake_inputsDat, self.projDat.overwriteProjectTargetDir.getState(), 
+                self.cmake_inputsDat.FILE_cmake_inputs_h_in, 
+                self.cmake_inputsDat.genStr_FILE_cmake_inputs_h_in())
+
+    def __generateCPPFiles(self):
+        self.cppDat.genStr_FILE_entrypoint()
+        self.cppDat.createCppEntryPointFileOnDemand()
         
 
-def createCMakeFileOnDemand(cmakeFileDat :CMakeData, shouldOverwrite :bool, file : str, content :str ):
-    if os.path.exists(cmakeFileDat.getRelativeCMakeFilePath(file)) and not shouldOverwrite:
-        print(f"Target File ({cmakeFileDat.getRelativeCMakeFilePath(file)}) Already exists")
-    else: 
-        with open(cmakeFileDat.getRelativeCMakeFilePath(file), "w") as file:                        
-            file.write(content)    
+    def __createCMakeFileOnDemand(self, cmakeFileDat :CMakeData, shouldOverwrite :bool, file : str, content :str ):
+        if os.path.exists(cmakeFileDat.getRelativeCMakeFilePath(file)) and not shouldOverwrite:
+            print(f"Target File ({cmakeFileDat.getRelativeCMakeFilePath(file)}) Already exists")
+        else: 
+            with open(cmakeFileDat.getRelativeCMakeFilePath(file), "w") as file:                        
+                file.write(content)    
 
-def __placeholderAsBackup(widget, placeholder:str):
-    if(widget.text() == ""):
-        widget.setText(placeholder)
-
+    def __placeholderAsBackup(self, widget, placeholder:str):
+        if(widget.text() == ""):
+            widget.setText(placeholder)
