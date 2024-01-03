@@ -14,11 +14,24 @@ class CppDataHelper():
         self.projData = projData
         self.cmakeDataHelper = cmakeDataHelper
         self.cppCommands = CPPCommandDct()
+
+    def genCPPfileContent(self) -> str:
+        cppfileStr = ""
+        for cmdKeyValList in self.cppCommands.all_cppc.items():
+            for cmdKeyVal in self.cppCommands.all_cppc[cmdKeyValList[0]]:
+                
+                cppfileStr += cmdKeyVal.__str__()
+
+            cppfileStr += "\n"
+        return cppfileStr
+
+
+    def createCppEntryPointFileOnDemand(self) -> str:
         if os.path.exists(self.cmakeDataHelper.getRelativeCppFilePath(self.projData.entryPointFile_str())) and not self.projData.overwriteProjectTargetDir.getState():
             print(f"Target File ({self.cmakeDataHelper.getRelativeCppFilePath(self.projData.entryPointFile_str())}) Already exists")
         else: 
             with open(self.cmakeDataHelper.getRelativeCppFilePath(self.projData.entryPointFile_str()), "w") as file:                        
-                file.write(content)        
+                file.write(self.genCPPfileContent())        
 
     def genStr_includeSystemFile(self, installedFile:str)->str:
         return self.cppCommands.add_CPP(
