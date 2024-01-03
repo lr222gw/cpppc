@@ -55,7 +55,18 @@ def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.PropToggle
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
 
-    return d.PropToggle(newCheckBox)    
+    return d.PropToggle(newCheckBox)   
+
+def addFeatures_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.FeatureToggle:
+    
+    # Create Label, input field widgets
+    newCheckBox=QCheckBox(text=fieldName)    
+    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setTristate(False)
+    # Append widgets to parent layout
+    parentLayout.addWidget(newCheckBox)
+
+    return d.FeatureToggle(newCheckBox)         
 
 def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> d.GuiData:
     # Create Label, input field widgets
