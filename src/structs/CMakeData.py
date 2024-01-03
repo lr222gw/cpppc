@@ -51,7 +51,7 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
     def getRelativeCppFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
         return self.targetDirPath+"/"+self.srcDirPath+ "/"+file 
 
-    def genStr_FILE_cmake_inputs_h_in(self, projDat:ProjectConfigurationData):
+    def genStr_FILE_cmake_inputs_h_in(self):
         ret = self.genStr_cmake_cpp_defines()
         return ret
 
@@ -60,9 +60,13 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
         return ret
 
     def genStr_callFunction(self, functionName : str, arguments:list) ->str:
-        return str.format("{}({})", functionName, ", ".join(arguments))
+        return self.cmakeCommands.add_CMC(
+            CMC_CALLFUNC(functionName,
+                CMCK_args(arguments)
+            )
+        ).__str__()
 
-    def genStr_FILE_cmake_cpp_data(self, projDat :ProjectConfigurationData):
+    def genStr_FILE_cmake_cpp_data(self):
         targetArg = "target"
         ret = self.genStr_setVarString_cmakeToCpp(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, "Example string from CMake to C++") + "\n"
         ret += self.genStr_function(CMFUNC__add_cmake_inputs_to_targets, 
@@ -151,10 +155,18 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
         self.cmakeFuncs[CMVAR__SOURCE_DIR] = self.projdata.projectName_str() + CMVAR__SOURCE_DIR        
 
     def genStr_includeCmakeFile(self, cmakeFile : str) -> str:
-        return str.format("include({})\n", pathify([self.cmakeDirPath, cmakeFile]))
+        return self.cmakeCommands.add_CMC(
+            CMC_include(
+                CMCK_args(pathify([self.cmakeDirPath, cmakeFile]))
+            )
+        ).__str__()
 
     def genStr_setVar(self, varName:str,varValue:str) -> str:
-        return str.format("set({} {})", self.cmakeVars[varName], str.format("{}",varValue))
+        return self.cmakeCommands.add_CMC(           
+                CMC_set(
+                    CMCK(self.cmakeVars[varName],str.format("{}",varValue))
+                )
+        ).__str__()
 
     def genStr_setVarString(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeVars[varName], str.format("\"{}\"",varValue))
@@ -165,6 +177,15 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
 
     def genStr_setVarString_cmakeToCpp(self, varName:str,varValue:str) -> str:
         return str.format("set({} {})", self.cmakeToCppVars[varName], str.format("\"{}\"",varValue))
+
+    def genStr_setProperty(self, propertyName:str, propertyValue:str) -> str:
+        return self.cmakeCommands.add_CMC(
+            CMC_set_property(
+                CMCK("TARGET", self.projdata.projectExecName_str()),
+                CMCK("PROPERTY"),
+                CMCK_str(propertyName, propertyValue)
+            )
+        ).__str__()
 
     def genStr_find_program(self, name:str, name_var:str) -> str:    
         return self.cmakeCommands.add_CMC(
@@ -193,28 +214,39 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
         ).__str__()
 
     # TODO: Support other than Clang!
-    def genStr_setTargetCompileOptions(self, projData: ProjectConfigurationData,options:list) -> str:
-        return str.format("target_compile_options({} PRIVATE $<$<CXX_COMPILER_ID:Clang>: {} > )", 
-            projData.projectExecName_str(), 
-            "-"+ ', -'.join(options) if len(options) != 0 else ""
-        ) # NOTE: Does Order matter of Compile option list?
+    def genStr_setTargetCompileOptions(self, *options) -> str:
+        return self.cmakeCommands.add_CMC(
+            CMC_target_compile_options(
+                CMCK(self.projdata.projectExecName_str()),
+                CMCK("PRIVATE", CM_generatorExpressionConditional("CXX_COMPILER_ID:Clang", *options))
+            )
+        ).__str__()
 
     # TODO: Support other than Clang!
-    def genStr_setTargetLinkOptions(self, projData: ProjectConfigurationData,options:list) -> str:
-        return str.format("target_link_options({} PRIVATE $<$<CXX_COMPILER_ID:Clang>: {} > )", 
-            projData.projectExecName_str(), 
-            "-"+ ', -'.join(options) if len(options) != 0 else ""
-        ) # NOTE: Does Order matter of Link option list?
+    def genStr_setTargetLinkOptions(self, options:list) -> str:
+        return self.cmakeCommands.add_CMC(
+            CMC_target_link_options(
+                CMCK(self.projdata.projectExecName_str()),
+                CMCK("PRIVATE", CM_generatorExpressionConditional("CXX_COMPILER_ID:Clang", *options))
+            )
+        ).__str__()
 
-    def genStr_targetLinkLibraries(self, projData: ProjectConfigurationData) -> str:
-        return str.format("target_link_libraries({} \n\t {} \n\t {} )", 
-            projData.projectExecName_str(), 
-            "PUBLIC\n\t"  + ',\n\t'.join(projData.publicLinkLibs)  if len(projData.publicLinkLibs)  != 0 else "",            
-            "PRIVATE\n\t" + ',\n\t'.join(projData.privateLinkLibs) if len(projData.privateLinkLibs) != 0 else ""            
-        )
+    def genStr_targetLinkLibraries(self) -> str:
+        return self.cmakeCommands.add_CMC(
+            CMC_target_link_libraries(
+                CMCK(self.projdata.projectExecName_str()),
+                CMCK("PUBLIC", self.projdata.publicLinkLibs),
+                CMCK("PRIVATE", self.projdata.privateLinkLibs)
+            )
+        ).__str__()
 
     def genStr_targetSources(self, target:str, sources :list) ->str : 
-        return "target_sources({} PRIVATE \n\t{}\n)".format(target,'\n\t'.join(sources))
+        return self.cmakeCommands.add_CMC(
+            CMC_target_sources(
+                CMCK(target),
+                CMCK("PRIVATE", sources)
+            )
+        ).__str__()
 
     def genStr_targetIncludeDirectories(self, target:str, dirPath :str) ->str : 
         return f"target_include_directories({target} PRIVATE {dirPath})"
@@ -228,47 +260,59 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_cmake_headers(self) -> str:                         
         return tidy_cmake_string(f"{self.genStr_file_globRecurse_ConfigureDepends(CMVAR__HEADERS,self.getHeaderPaths())}")
 
-    def genStr_cmake_min_version(self, projdata : ProjectConfigurationData) -> str:
-        return f'''cmake_minimum_required(VERSION {projdata.cmakeVersionData.get_major()}.{projdata.cmakeVersionData.get_minor()}.{projdata.cmakeVersionData.get_patch()})'''
+    def genStr_cmake_min_version(self) -> str:
+        return self.cmakeCommands.add_CMC(
+            CMC_cmake_minimum_required(
+                CMCK("VERSION", self.projdata.cmakeVersionData.get_major(), self.projdata.cmakeVersionData.get_minor(), self.projdata.cmakeVersionData.get_patch()),                
+            )
+        ).__str__()
 
-    def genStr_cmake_projectdetails(self, projdata : ProjectConfigurationData)->str:    
-        
-        return tidy_cmake_string(f'''project(            
-            {projdata.projectName_str()} 
-            VERSION 0.0.1
-            DESCRIPTION \"{projdata.projectDesc_str()}\"
-            LANGUAGES CXX C)''') #TODO: Let user set VERSION and LANGUAGES
+    def genStr_cmake_projectdetails(self)->str:
+        return self.cmakeCommands.add_CMC(
+                CMC_project(
+                    CMCK(self.projdata.projectName_str()),
+                    CMCK("VERSION", "0.0.1"), #TODO: Let User set VERSION
+                    CMCK_str("DESCRIPTION", self.projdata.projectDesc_str()),
+                    CMCK("LANGUAGES", "CXX C") #TODO: Let user set LANGUAGES
+                )
+            ).__str__()
 
-    def genStr_addExecutable(self, projData : ProjectConfigurationData):
-        return str.format(f"add_executable({projData.projectExecName_str()})")
+    def genStr_addExecutable(self):
+        return self.cmakeCommands.add_CMC(CMC_add_executable(CMCK(self.projdata.projectExecName_str()))).__str__()
 
-    def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:
-        return str.format("FILE(GLOB_RECURSE {} CONFIGURE_DEPENDS\n    {}\n)", self.cmakeVars[varName], "\n\t".join(dirs) )
+    def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:                
+        return self.cmakeCommands.add_CMC(
+            CMC_file(
+                    CMCK("GLOB_RECURSE",self.cmakeVars[varName]),
+                    CMCK("CONFIGURE_DEPENDS",  dirs)
+                )).__str__()
 
-    def genStrHlp_addingProjectsTargetSources(self, projData :ProjectConfigurationData)->str:
+    def genStrHlp_addingProjectsTargetSources(self)->str:
         return tidy_cmake_string(
-            self.genStr_targetSources(projData.projectExecName_str(), [str.format("${{{}}}",self.cmakeVars[CMVAR__SOURCES])] )
+            self.genStr_targetSources(self.projdata.projectExecName_str(), [str.format("${{{}}}",self.cmakeVars[CMVAR__SOURCES])] )
 
         )
 
     #TODO: Split into several functions
-    def genStr_compileSanitizers(self, projData :ProjectConfigurationData, ) -> str:
-        return self.genStr_setTargetCompileOptions(projData, {"g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-recover=address",        "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt"})
+    def genStr_compileSanitizers(self ) -> str:
+        return self.genStr_setTargetCompileOptions("g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-recover=address",        "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt")
         
-    def genStr_linkSanitizers(self, projData :ProjectConfigurationData, ) -> str:        
-        return self.genStr_setTargetLinkOptions(projData,   {"g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-memory-track-origins=2", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt"})        
+    def genStr_linkSanitizers(self ) -> str:        
+        return self.genStr_setTargetLinkOptions({"g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-memory-track-origins=2", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt"})        
         
-    def genStr_compileTimeProperty(self, projData :ProjectConfigurationData, ) -> str:
-        return self.genStr_setProperty(projData, "RULE_LAUNCH_COMPILE", "${CMAKE_COMMAND} -E time")
+    def genStr_compileTimeProperty(self ) -> str:
+        return self.genStr_setProperty("RULE_LAUNCH_COMPILE", "${CMAKE_COMMAND} -E time")
 
-    def genStr_cppProperties(self, projData:ProjectConfigurationData) -> str:
-        ret = f"set_target_properties({projData.projectExecName_str()} PROPERTIES\n"
-        maxSpace=max(len(cmakeProp.cmake_propName) for cmakeProp in projData.props) + 1 # +1 is padding
-        ret += "\n".join(
-                cmakeProp.cmake_propName.ljust(maxSpace) + str(cmakeProp.getValue())
-                for cmakeProp in projData.props 
-            ) + "\n)"
-        return tidy_cmake_string(ret)
+    def genStr_cppProperties(self) -> str:
+        return self.cmakeCommands.add_CMC(
+            CMC_set_target_properties(
+                CMCK(self.projdata.projectExecName_str()),
+                CMCK(
+                    "PROPERTIES", 
+                    propifyList(self.projdata.props)
+                )
+            ),            
+        ).__str__()
 
 def tidy_cmake_string(string :str, linesToSkip:int = 1)->str:
     splitLines = re.sub(r'^[ \t]+', '', string,0, re.MULTILINE).splitlines()
