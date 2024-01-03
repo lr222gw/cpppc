@@ -123,18 +123,18 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
         return self.targetDirPath + "/" + targetInsidePath
 
     def getSourcePaths(self) ->list:
-        return {
+        return [
             CMAKIFY_PathToSourceDir(self.srcDirPath)+"/*.cpp",
             CMAKIFY_PathToSourceDir(self.srcDirPath)+"/*.c",
             CMAKIFY_PathToSourceDir(self.srcDirPath)+"/*.hpp",
             CMAKIFY_PathToSourceDir(self.srcDirPath)+"/*.h",
-        }
+        ]
     
     def getHeaderPaths(self) ->list:
-        return {
+        return [
             CMAKIFY_PathToSourceDir(self.srcDirPath)+"/*.hpp",
             CMAKIFY_PathToSourceDir(self.srcDirPath)+"/*.h",
-        }
+        ]
 
     def initCmakeVars(self,projData : ProjectConfigurationData):        
         self.cmakeVars[CMVAR__SOURCE_DIR] = projData.projectName_str() + CMVAR__SOURCE_DIR
