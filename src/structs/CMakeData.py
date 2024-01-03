@@ -45,6 +45,18 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
         self.cmakeCommands = CMakeCommandDct()
 
 
+    def genCMakeList(self):
+
+        cmakeListStr = ""
+        for cmdKeyValList in self.cmakeCommands.all_cmc.items():
+            for cmdKeyVal in self.cmakeCommands.all_cmc[cmdKeyValList[0]]:
+                
+                cmakeListStr += cmdKeyVal.__str__() + "\n"
+
+            cmakeListStr += "\n"
+
+        return cmakeListStr
+
     def getRelativeCMakeFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
         return self.targetDirPath+"/"+self.cmakeDirPath+ "/"+file
     
