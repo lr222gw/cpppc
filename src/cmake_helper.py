@@ -36,22 +36,3 @@ def getCMakeVersion():
             cmakeVersonData = CMakeVersionData(0, 0, 0)
             return cmakeVersonData
 
-
-#TODO: Move genStr to CmakeData class
-def genStr_find_cmake_tool(tool:str, name:str, name_var:str) -> str:    
-
-    content=f'''\
-find_{tool}({name_var} {name})
-'''
-    return content
-
-def addCMakeCompilerLauncher(programName : str) -> str:
-    name_var=f"{programName}_program_var"
-    content= str.format("{}",genStr_find_cmake_tool("program", programName, name_var))+"\n"
-    content += str.format("if({})",name_var)+"\n"
-    content += str.format("set(CMAKE_CXX_COMPILER_LAUNCHER \"${{{}}}\")",name_var) +"\n" # TODO: Do not override "CMAKE_*" variables, it could've been declare before or after this... hmm?")
-    content += str.format("#set(CMAKE_CUDA_COMPILER_LAUNCHER \"${{{}}}\") # CMake 3.9+ Think about usingh this...",name_var)+"\n"
-    content += str.format("endif()")
-
-    return content
-    
