@@ -21,21 +21,29 @@ class CppDataHelper():
                 file.write(content)        
 
     def genStr_includeSystemFile(self, installedFile:str)->str:
-        return str.format("#include <{}>\n", installedFile)
+        return self.cppCommands.add_CPP(
+            CPP_INCLUDE_SYS(
+                CPPCK_args(installedFile.strip())
+            )
+        ).__str__()
 
     def genStr_includeUserFile(self, localFile:str)->str:
-        return str.format("#include \"{}\"\n", localFile)
+        return self.cppCommands.add_CPP(
+            CPP_INCLUDE_USR(
+                CPPCK_args(localFile.strip())
+            )
+        ).__str__()
 
-    def genStr_mainfunc(self, lines :list = [], args :list = ["int argc","char* argv[]"], returnStatement : str = "0")->str:
-        ret = "int main("+", ".join(args)+")"
-        ret += "{\n"+"\n\t".join(lines)+"\n return "+returnStatement+";\n}"
-        return ret
-    
+    def genStr_mainfunc(self, lines :list = [], args :list = [CPPCK("int","argc"),CPPCK("char*","argv[]")], returnStatement : str = "0")->str:
+        return self.cppCommands.add_CPP_C(
+            CPPC_main(
+                 args,
+                 *lines, CPP_CUSTOMLINE("return "+returnStatement)
+            )
+        ).__str__()
+
     def genStr_FILE_entrypoint(self) -> str:
         ret = self.genStr_includeSystemFile("iostream")
         ret += self.genStr_includeUserFile("generated/cmake_inputs.h") #TODO: do not hardcode
-        if self.projData.useCmakeCppBridge.getState() and len(self.cmakeDataHelper.cmakeToCppVars) != 0:
-            ret += self.genStr_mainfunc(["std::cout << \"Hello, <<"+self.cmakeDataHelper.cmakeToCppVars[CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR]+"!\" << std::endl;"])
-        else :
-            ret += self.genStr_mainfunc(["std::cout << \"Hello, World!\" << std::endl;"])
+        ret += self.genStr_mainfunc([CPP_CUSTOMLINE("std::cout << \"Hello, \"<<"+self.cmakeDataHelper.cmakeToCppVars[CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR]+"<<\"!\" << std::endl")])
         return ret
