@@ -7,6 +7,7 @@ from src.structs.GuiData import GuiData
 from src.structs.CMakeVersionData import CMakeVersionData
 from src.structs.ProjectConfigurationData import ProjectConfigurationData
 import src.cmake_helper as  cmake_helper
+from src.structs.CPPPC_Manager import CPPPC_Manager
 
 app = QApplication([])
 app.setStyleSheet("QPushButton { color: magenta; }")
@@ -21,6 +22,7 @@ layout_targetProperties = QFormLayout()
 layout_rightside = QFormLayout()
 
 ProjConfDat = ProjectConfigurationData()
+cppc = CPPPC_Manager(ProjConfDat)
 
 # Declare Project Name
 group_projdef = QGroupBox(title="Project config")
@@ -53,7 +55,7 @@ butt.clicked.connect(lambda: act.cmakebuttontest() )
 
 
 createProjectButton = hlp.addButton("Create", layout_projectName)
-createProjectButton.clicked.connect(lambda: act.createProject(ProjConfDat))
+createProjectButton.clicked.connect(lambda: cppc.createProject())
 
 # TODO: Replace with addProp_* functions
 ProjConfDat.overwriteProjectTargetDir = hlp.addCheckBox("Overwrite", False, layout_projectName)
@@ -91,8 +93,9 @@ sanitizerSettingsLayout = hlp.addHidableGroup(
     layout_rightside,
     layout_projectName,
     "Sanitizer settings",
-    hlp.createCheckBox("Use Sanitizers", True)
+    ProjConfDat.addExtraFeature_checkbox("Use Sanitizers2", True, cppc.cmakeListDat.genStr_linkSanitizers, layout_projectName)
 )
+
 
 layout_rightside.addWidget(group_cmake)
 layout_rightside.addWidget(group_properties)
