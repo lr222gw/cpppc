@@ -31,6 +31,9 @@ class CPPPC_Manager:
         print("Iniitializing default values") 
         self.runtimeInit()
 
+        print("Adding user Configurations")
+        self.projDat.initExtraFeatures()
+                   
         print("Creating Project")        
         self.projDat.toString()     #TODO: Junk?!
         self.__generateCMakeLists()
