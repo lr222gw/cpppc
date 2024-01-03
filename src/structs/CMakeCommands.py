@@ -140,3 +140,61 @@ class CMakeCommandContainer(metaclass=CMakeCommandMeta):
             ' '.join(map(str, self.containerContent)) if len(self.containerContent) < 3 else '\n\t'.join(map(str, self.containerContent)),
             "end" + self.commandName # NOTE: Might exist cases where the scope does not end with <key>() \n <body contents> \n end<key>() ...
         )
+
+# Any class inheriting from CMakeCommand will be expected to have their classname start with "CMC_"
+@dataclass
+class CMC_set(CMakeCommand): pass
+
+@dataclass
+class CMC_file(CMakeCommand): pass
+
+@dataclass
+class CMC_include(CMakeCommand): pass
+
+@dataclass
+class CMC_add_executable(CMakeCommand): pass
+
+@dataclass
+class CMC_project(CMakeCommand): pass
+
+@dataclass
+class CMC_find_program(CMakeCommand): pass
+
+@dataclass
+class CMC_target_sources(CMakeCommand): pass
+
+@dataclass
+class CMC_target_compile_options(CMakeCommand): pass
+
+@dataclass
+class CMC_target_link_options(CMakeCommand): pass
+
+@dataclass
+class CMC_target_link_libraries(CMakeCommand): pass
+
+@dataclass
+class CMC_set_property(CMakeCommand): pass
+
+@dataclass
+class CMC_set_target_properties(CMakeCommand): pass
+
+@dataclass
+class CMC_findProgram(CMakeCommand): pass
+
+@dataclass
+class CMCC_if(CMakeCommandContainer): pass
+
+@dataclass
+class CMC_CALLFUNC(CMakeCommand):
+    def __init__(self,funcName,*CMC_CKeyArgs):
+        super().__init__(*CMC_CKeyArgs)
+        self.commandName = funcName
+
+@dataclass
+class CMC_cmake_minimum_required(CMakeCommand):
+    def __str__(self):
+        return str.format(
+            "{}({})",
+            self.commandName,
+            "".join(arg.getStr_custom('.') for arg  in self.commandArgVals)
+        )
