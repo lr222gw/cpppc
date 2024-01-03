@@ -45,6 +45,16 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
         self.cmakeCommands = CMakeCommandDct()
 
 
+    def runtimeInit(self):
+        self.setTargetDirPaths(self.projdata.getTargetPath())
+        self.cmakeVars.clear()
+        self.cmakeFuncs.clear()
+        self.cmakeToCppVars.clear()
+        self.cmakeCommands.clear()
+
+        self.initCmakeVars()
+        self.initCmakeFuncs()
+
     def genCMakeList(self):
 
         cmakeListStr = ""

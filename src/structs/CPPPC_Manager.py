@@ -20,6 +20,9 @@ class CPPPC_Manager:
 
     def runtimeInit(self):        
         self.__setDefaultValues()
+        self.cmakeListDat.runtimeInit()
+        self.cmake_inputsDat.runtimeInit()
+        self.cppDat.runtimeInit()
 
     def createProject(self):     
         print("Iniitializing default values") 

@@ -15,6 +15,9 @@ class CppDataHelper():
         self.cmakeDataHelper = cmakeDataHelper
         self.cppCommands = CPPCommandDct()
 
+    def runtimeInit(self):        
+        self.cppCommands.clear()
+
     def genCPPfileContent(self) -> str:
         cppfileStr = ""
         for cmdKeyValList in self.cppCommands.all_cppc.items():
