@@ -48,12 +48,6 @@ group_cmake.setLayout(layout_cmakeVersion)
 
 
 
-# Create button, run test function on press
-butt = hlp.addButton("Test", layout_projectName)
-# butt.clicked.connect(lambda: act.test(project_name) )
-butt.clicked.connect(lambda: act.cmakebuttontest() )
-
-
 createProjectButton = hlp.addButton("Create", layout_projectName)
 createProjectButton.clicked.connect(lambda: cppc.createProject())
 
