@@ -247,3 +247,25 @@ class CMakeCommandDct:
             ret += "\n".join(map(str,value)) + "\n\n"
 
         return ret
+
+# Helper functions 
+def CM_generatorExpressionConditional(condition:str, *args) -> str:
+    return str.format("$<$<{}>: \n\t\t{}>",condition, "-" + '\n\t\t-'.join(map(str, args)))
+
+def propifyList(propList):
+    padding = 1
+    maxSpace=max(len(arg.cmake_propName) + padding for arg in propList)
+    return [prop.cmake_propName.ljust(maxSpace) + str(prop.getValue()) for prop in propList]
+
+def CMVAR_REF(varName :str) -> str: 
+    """
+    Generates a CMVAR reference for a given variable name.
+    EXAMPLE: CMVAR_REF("varName") -> "${varName}"
+
+    Parameters:
+        varName (str): The name of the CMake variable.
+
+    Returns:
+        str: Reference of a CMake variable.
+    """
+    return str.format("${}", "{"+varName+"}")
