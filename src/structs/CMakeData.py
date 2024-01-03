@@ -55,6 +55,9 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
         self.initCmakeVars()
         self.initCmakeFuncs()
 
+    def appendOrder(self, cmakeCommandType : Type):
+        self.cmakeCommands.appendOrder(cmakeCommandType)
+
     def genCMakeList(self):
 
         cmakeListStr = ""

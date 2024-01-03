@@ -17,12 +17,15 @@ class CPPPC_Manager:
         self.cmakeListDat       = CMakeData(self.projDat)
         self.cmake_inputsDat    = CMakeData(self.projDat)
         self.cppDat             = CppDataHelper(self.projDat, self.cmakeListDat)
+        self.decideOrder()
 
     def runtimeInit(self):        
         self.__setDefaultValues()
         self.cmakeListDat.runtimeInit()
         self.cmake_inputsDat.runtimeInit()
         self.cppDat.runtimeInit()
+        self.decideOrder()        
+        
 
     def createProject(self):     
         print("Iniitializing default values") 
@@ -33,6 +36,24 @@ class CPPPC_Manager:
         self.__generateCMakeLists()
         self.__generateCMakeCppBridge()
         self.__generateCPPFiles()
+
+    def decideOrder(self):
+        self.cmakeListDat.appendOrder(CMC_cmake_minimum_required)
+        self.cmakeListDat.appendOrder(CMC_project)
+        self.cmakeListDat.appendOrder(CMC_include)
+        self.cmakeListDat.appendOrder(CMC_set)
+        self.cmakeListDat.appendOrder(CMC_find_program)
+        self.cmakeListDat.appendOrder(CMCC_if)
+        self.cmakeListDat.appendOrder(CMC_file)
+        self.cmakeListDat.appendOrder(CMC_add_executable)
+        self.cmakeListDat.appendOrder(CMC_set_property)
+        self.cmakeListDat.appendOrder(CMC_set_target_properties)
+        self.cmakeListDat.appendOrder(CMC_target_sources)
+        self.cmakeListDat.appendOrder(CMC_target_compile_options)
+        self.cmakeListDat.appendOrder(CMC_target_link_options)
+        self.cmakeListDat.appendOrder(CMC_target_link_libraries)
+        self.cmakeListDat.appendOrder(CMC_CALLFUNC)
+
         
     def __setDefaultValues(self):
         #TODO: Make placeholderAsBackup a behavior of a class rather than forced here...
