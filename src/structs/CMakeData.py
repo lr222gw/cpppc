@@ -35,9 +35,10 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
 
     cmakeCommands : CMakeCommandDct= field(default_factory=CMakeCommandDct)
 
+    projdata : ProjectConfigurationData = field(default_factory=ProjectConfigurationData)
 
     def __init__(self, projdata :ProjectConfigurationData):
-        self.setTargetDirPaths(projdata.getTargetPath())
+        self.projdata = projdata
         self.cmakeVars = dict()
         self.cmakeFuncs = dict()
         self.cmakeToCppVars = dict()
@@ -136,18 +137,18 @@ class CMakeData : #TODO: Rename this to CMakeDataManager or similar...
             CMAKIFY_PathToSourceDir(self.srcDirPath)+"/*.h",
         ]
 
-    def initCmakeVars(self,projData : ProjectConfigurationData):        
-        self.cmakeVars[CMVAR__SOURCE_DIR] = projData.projectName_str() + CMVAR__SOURCE_DIR
-        self.cmakeVars[CMVAR__SOURCES]    = projData.projectName_str() + CMVAR__SOURCES
-        self.cmakeVars[CMVAR__HEADERS]    = projData.projectName_str() + CMVAR__HEADERS
+    def initCmakeVars(self):        
+        self.cmakeVars[CMVAR__SOURCE_DIR] = self.projdata.projectName_str() + CMVAR__SOURCE_DIR
+        self.cmakeVars[CMVAR__SOURCES]    = self.projdata.projectName_str() + CMVAR__SOURCES
+        self.cmakeVars[CMVAR__HEADERS]    = self.projdata.projectName_str() + CMVAR__HEADERS
         
         self.cmakeToCppVars[CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR] = CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR
-        for name, val in projData.cmakeToCppVars.items() :
+        for name, val in self.projdata.cmakeToCppVars.items() :
             self.cmakeToCppVars[val.getVariable()[0]] = val.getVariable()[1]
 
 
-    def initCmakeFuncs(self,projData : ProjectConfigurationData):        
-        self.cmakeFuncs[CMVAR__SOURCE_DIR] = projData.projectName_str() + CMVAR__SOURCE_DIR        
+    def initCmakeFuncs(self):
+        self.cmakeFuncs[CMVAR__SOURCE_DIR] = self.projdata.projectName_str() + CMVAR__SOURCE_DIR        
 
     def genStr_includeCmakeFile(self, cmakeFile : str) -> str:
         return str.format("include({})\n", pathify([self.cmakeDirPath, cmakeFile]))
