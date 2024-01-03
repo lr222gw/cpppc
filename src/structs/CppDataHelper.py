@@ -1,16 +1,16 @@
 import os
 from .ProjectConfigurationData import ProjectConfigurationData
-from .CMakeData import *
+from .CMakeDataHelper import *
 from dataclasses import dataclass, field
 from .CppCommands import *
 
 @dataclass
 class CppDataHelper():
     projData: ProjectConfigurationData
-    cmakeDataHelper: CMakeData
+    cmakeDataHelper: CMakeDataHelper
     cppCommands : CPPCommandDct = field(default_factory=CPPCommandDct) 
 
-    def __init__(self, projData: ProjectConfigurationData, cmakeDataHelper: CMakeData):
+    def __init__(self, projData: ProjectConfigurationData, cmakeDataHelper: CMakeDataHelper):
         self.projData = projData
         self.cmakeDataHelper = cmakeDataHelper
         self.cppCommands = CPPCommandDct()

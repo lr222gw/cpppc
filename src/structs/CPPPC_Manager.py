@@ -1,21 +1,21 @@
 from dataclasses import dataclass, field
-from .CMakeData import *
+from .CMakeDataHelper import *
 from .CppDataHelper import *
 from .ProjectConfigurationData import *
 import os
 
 @dataclass
 class CPPPC_Manager:
-    cmakeListDat    : CMakeData
-    cmake_inputsDat : CMakeData
+    cmakeListDat    : CMakeDataHelper
+    cmake_inputsDat : CMakeDataHelper
     cppDat          : CppDataHelper
     projDat         : ProjectConfigurationData
     
     
     def __init__(self, projdat : ProjectConfigurationData):
         self.projDat = projdat        
-        self.cmakeListDat       = CMakeData(self.projDat)
-        self.cmake_inputsDat    = CMakeData(self.projDat)
+        self.cmakeListDat       = CMakeDataHelper(self.projDat)
+        self.cmake_inputsDat    = CMakeDataHelper(self.projDat)
         self.cppDat             = CppDataHelper(self.projDat, self.cmakeListDat)
         self.decideOrder()
 
@@ -139,7 +139,7 @@ class CPPPC_Manager:
         self.cppDat.createCppEntryPointFileOnDemand()
         
 
-    def __createCMakeFileOnDemand(self, cmakeFileDat :CMakeData, shouldOverwrite :bool, file : str, content :str ):
+    def __createCMakeFileOnDemand(self, cmakeFileDat :CMakeDataHelper, shouldOverwrite :bool, file : str, content :str ):
         if os.path.exists(cmakeFileDat.getRelativeCMakeFilePath(file)) and not shouldOverwrite:
             print(f"Target File ({cmakeFileDat.getRelativeCMakeFilePath(file)}) Already exists")
         else: 
