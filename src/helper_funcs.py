@@ -203,7 +203,7 @@ def addHidableGroup(
         lambda: showHideFrame(frame_widget, checkbox.getState())
     )   
 
-    return frame_layout    
+    return group_layout
    
 def showHideFrame(frame :QFrame, condition:bool):    
     if condition:
