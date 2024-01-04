@@ -48,14 +48,11 @@ class ProjectConfigurationData:
     extraFeatures :list[FeatureToggle] = field(default_factory=list[FeatureToggle])
     def initExtraFeatures(self):
         for feature in self.extraFeatures:
-            if feature.getState():
-                feature.func()
+            feature.functionWrapper()
 
-    def addExtraFeature_checkbox(self, label:str, featureDefaultState:bool, f :Callable, parentLayout) -> FeatureToggle: 
-        datToggle = hlp.addFeatures_CheckBox(label,featureDefaultState,parentLayout)
-        # datToggle.featureName = featureName
-        datToggle.setValue(featureDefaultState)
-        datToggle.func = f
+    def addExtraFeature_checkbox(self, label:str, value :str, featureDefaultState:bool, parentLayout) -> FeatureToggle: 
+        datToggle = hlp.addFeature_CheckBox(label,value, featureDefaultState, parentLayout)
+        datToggle.setState(featureDefaultState)
         self.extraFeatures.append(datToggle)
         return datToggle
 
