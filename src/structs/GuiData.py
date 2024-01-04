@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from PyQt5.QtWidgets import QLabel, QWidget, QComboBox, QCheckBox, QLineEdit
-from dataclasses import dataclass
-from typing import Callable
+from dataclasses import dataclass, field
+from typing import Callable, Tuple
 from ..dev.Terminate import terminate
 
 # NOTE: Class may be skipped if it remains this empty
