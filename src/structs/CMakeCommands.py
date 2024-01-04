@@ -250,7 +250,7 @@ class CMakeCommandDct:
 
 # Helper functions 
 def CM_generatorExpressionConditional(condition:str, *args) -> str:
-    return str.format("$<$<{}>: \n\t\t{}>",condition, "-" + '\n\t\t-'.join(map(str, args)))
+    return str.format("$<$<{}>: \n\t\t{}>",condition, "-" + '\n\t\t-'.join(map(str, args)) if len(args)> 0 else "")
 
 def propifyList(propList):
     padding = 1
