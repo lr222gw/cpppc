@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Callable
 from .CMakeVersionData import CMakeVersionData
-from .GuiData import GuiData, GuiDataToggle, GuiDataComboBox, CmakeCppVarWidget, CmakeCppVar_inputWidget, FeatureToggle
+from .GuiData import *
 from .. import helper_funcs as hlp
 from .CMakeCommands import *
 
