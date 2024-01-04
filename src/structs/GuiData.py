@@ -91,12 +91,23 @@ class PropComboBox(Prop, GuiDataComboBox):
         return self.widget.currentText()
 
 
-def __defaultFunc__():
+def __defaultFunc__(*args):
     terminate("Feature function not implemented")
+
+
+
+@dataclass
+class FunctionWrapper():
+    func : Callable[..., None]  = field(default=lambda *args:())
+    arg  : Callable[[],Tuple]  = field(default=lambda:())
+        
+    def __call__(self):
+        self.func(*self.arg())
 
 @dataclass
 class Feature(ABC):    
-    func : Callable = __defaultFunc__
+    value : str
+    functionWrapper : FunctionWrapper = field(default_factory=FunctionWrapper)
     featureName : str = "<MISSING NAME>"
     @abstractmethod
     def setValue(self, value):
