@@ -1,3 +1,4 @@
+from typing import Callable
 from .structs.GuiData import *
 from PyQt5.QtWidgets import QLabel, QLineEdit, QPushButton, QSpinBox, QFormLayout, QTextEdit, QCheckBox , QComboBox, QHBoxLayout,QFrame
 from PyQt5.QtWidgets import QVBoxLayout, QGroupBox
@@ -80,6 +81,14 @@ def addFeature_CheckBox(fieldName:str,value : str, defaultValue :bool, parentLay
 
     return FeatureToggle(newCheckBox,value)         
 
+def strListFactory(func :Callable, parentCheckbox : GuiDataToggle, *args) -> FunctionWrapper:
+
+    funcWrapper = FunctionWrapper(
+        func,
+        lambda : [ f.getValue() for f in args if f.getState() and parentCheckbox.getState() ]
+    )
+    
+    return funcWrapper
 
 def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> GuiData:
     # Create Label, input field widgets

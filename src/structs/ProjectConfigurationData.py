@@ -1,3 +1,4 @@
+from typing import Tuple
 from dataclasses import dataclass, field
 from typing import Callable
 from .CMakeVersionData import CMakeVersionData
@@ -55,6 +56,28 @@ class ProjectConfigurationData:
         datToggle.setState(featureDefaultState)
         self.extraFeatures.append(datToggle)
         return datToggle
+
+    def __addExtraFeature_subCheckbox(self, label:str, value :str, featureDefaultState:bool, parentLayout) -> FeatureToggle: 
+        datToggle = hlp.addFeature_CheckBox(label,value, featureDefaultState, parentLayout)
+        datToggle.setState(featureDefaultState)
+        return datToggle
+
+    def addExtraFeatureGroup_checkbox(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, genStrFunc : Callable, *ToggleDatas : ToggleData) -> FeatureGroup : 
+        groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
+        sanitizerSettingsLayout = hlp.addHidableGroup(
+            groupParentLayout,
+            groupCheckBoxParentLayout,
+            groupName,
+            groupToggle
+        )
+        # Use the regular GuiToggle as arg, create a Feature Toggle
+        featureGroupToggle = FeatureGroup(
+            groupToggle,
+            functionWrapper=hlp.strListFactory(genStrFunc, groupToggle, *[self.__addExtraFeature_subCheckbox(data.name, data.val, data.defaultValue, sanitizerSettingsLayout) for data in ToggleDatas]),
+            featureName=groupName
+        )
+        self.extraFeatures.append(featureGroupToggle)
+        return featureGroupToggle
 
 
     #Properties 
