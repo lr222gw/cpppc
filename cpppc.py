@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout,QVBoxLayout, QHBo
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 
-from src.structs.GuiData import ToggleData
+from src.structs.GuiData import *
 from src.structs.CMakeVersionData import CMakeVersionData
 from src.structs.ProjectConfigurationData import ProjectConfigurationData
 import src.cmake_helper as  cmake_helper
@@ -83,7 +83,9 @@ CmakeBridgeFrameLayout = hlp.addHidableFrame(
 
 ProjConfDat.addCmakeCppVarHeader(CmakeBridgeFrameLayout)
 
-ProjConfDat.addExtraFeatureGroup_checkbox(
+if False : #Old version, still valid if a checkbox is not connected to more than one function
+
+    ProjConfDat.addExtraFeatureGroup_checkbox(
     layout_rightside,       
     layout_projectName,
     "Sanitizer settings",   
@@ -94,8 +96,34 @@ ProjConfDat.addExtraFeatureGroup_checkbox(
     ToggleData("Sanitize Adress,Leak and Undef", "fsanitize=address,leak,undefined", True),
     ToggleData("No omit frame ptr", "fno-omit-frame-pointer", True),
     ToggleData("memory track origins=2", "fsanitize-memory-track-origins=2", True),
-    ToggleData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", False),
-)
+    ToggleData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", False,
+        requirement=lambda: cppc.createFileOnDemand("sanitizer_blacklist.txt", "test")),
+    )
+
+g = cppc.cmakeListDat #Shorthand
+
+ProjConfDat.addExtraFeatureShareGroup_checkbox(
+    layout_rightside,       
+    layout_projectName,
+    "Sanitizer settings",   
+    "Use Sanitizers",
+    True,
+    ToggleShareData("Debug", "g", True, 
+        g.genStr_linkSanitizers, g.genStr_compileSanitizers),
+    ToggleShareData("Sanitize Adress,Leak and Undef", "fsanitize=address,leak,undefined", True,
+        g.genStr_linkSanitizers, g.genStr_compileSanitizers),
+    ToggleShareData("No omit frame ptr", "fno-omit-frame-pointer", True,
+        g.genStr_linkSanitizers, g.genStr_compileSanitizers),
+    ToggleShareData("Memory track origins=2", "fsanitize-memory-track-origins=2", True,
+        g.genStr_linkSanitizers),
+    ToggleShareData("Recover adress", "fsanitize-recover=address", True,
+        g.genStr_compileSanitizers),
+    ToggleShareData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", False,
+        g.genStr_linkSanitizers, g.genStr_compileSanitizers, 
+        requirement=lambda: cppc.createFileOnDemand("sanitizer_blacklist.txt", "test")
+        ),
+    )    
+
 
 
 layout_rightside.addWidget(group_cmake)

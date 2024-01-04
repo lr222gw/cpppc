@@ -47,9 +47,21 @@ class ProjectConfigurationData:
     privateLinkLibs:list = field(default_factory=list)
 
     extraFeatures :list[FeatureToggle] = field(default_factory=list[FeatureToggle])
+    extraFeaturesShared :list[FeatureShareToggle] = field(default_factory=list[FeatureShareToggle])
     def initExtraFeatures(self):
+        self.__initExtraFeature()
+        self.__initExtraFeatureShared()
+    def __initExtraFeature(self):
         for feature in self.extraFeatures:
             feature.functionWrapper()
+    def __initExtraFeatureShared(self):
+        for feature in self.extraFeaturesShared:
+            for functionWrapper in feature.functionWrappers:
+                functionWrapper()
+
+    def getPathInTarget(self, targetInsidePath : str) -> str:
+        return self.getTargetPath() + "/" + targetInsidePath
+         
 
     def addExtraFeature_checkbox(self, label:str, value :str, featureDefaultState:bool, parentLayout) -> FeatureToggle: 
         datToggle = hlp.addFeature_CheckBox(label,value, featureDefaultState, parentLayout)
@@ -57,14 +69,21 @@ class ProjectConfigurationData:
         self.extraFeatures.append(datToggle)
         return datToggle
 
-    def __addExtraFeature_subCheckbox(self, label:str, value :str, featureDefaultState:bool, parentLayout) -> FeatureToggle: 
+    def __addExtraFeature_subCheckbox(self, label:str, value :str, featureDefaultState:bool, parentLayout, requirement:Optional[Callable]) -> FeatureToggle: 
         datToggle = hlp.addFeature_CheckBox(label,value, featureDefaultState, parentLayout)
         datToggle.setState(featureDefaultState)
+        datToggle.requirement=requirement
+        return datToggle
+    
+    def __addExtraFeatureShare_subCheckbox(self, label:str, value :str, featureDefaultState:bool, parentLayout, requirement:Optional[Callable]) -> FeatureShareToggle: 
+        datToggle = hlp.addFeatureShare_CheckBox(label,value, featureDefaultState, parentLayout)
+        datToggle.setState(featureDefaultState)
+        datToggle.requirement=requirement
         return datToggle
 
     def addExtraFeatureGroup_checkbox(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, genStrFunc : Callable, *ToggleDatas : ToggleData) -> FeatureGroup : 
         groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
-        sanitizerSettingsLayout = hlp.addHidableGroup(
+        groupLayout = hlp.addHidableGroup(
             groupParentLayout,
             groupCheckBoxParentLayout,
             groupName,
@@ -73,11 +92,30 @@ class ProjectConfigurationData:
         # Use the regular GuiToggle as arg, create a Feature Toggle
         featureGroupToggle = FeatureGroup(
             groupToggle,
-            functionWrapper=hlp.strListFactory(genStrFunc, groupToggle, *[self.__addExtraFeature_subCheckbox(data.name, data.val, data.defaultValue, sanitizerSettingsLayout) for data in ToggleDatas]),
+            functionWrapper=hlp.strListFactory(genStrFunc, groupToggle, *[self.__addExtraFeature_subCheckbox(data.name, data.val, data.defaultValue, groupLayout, requirement=data.requirement) for data in ToggleDatas]),
             featureName=groupName
         )
         self.extraFeatures.append(featureGroupToggle)
         return featureGroupToggle
+
+    def addExtraFeatureShareGroup_checkbox(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, *ToggleShareDatas : ToggleShareData) -> FeatureShareGroup : 
+        groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
+        groupLayout = hlp.addHidableGroup(
+            groupParentLayout,
+            groupCheckBoxParentLayout,
+            groupName,
+            groupToggle
+        )
+        # Use the regular GuiToggle as arg, create a Feature Toggle
+        featureGroupToggles = FeatureShareGroup(
+            groupToggle,
+            functionWrappers=hlp.strListShareFactory(
+                groupToggle, 
+                *[Container_FeatureShareToggle_FunctionWrapperList(self.__addExtraFeatureShare_subCheckbox(data.name, data.val, data.defaultValue, groupLayout,requirement=data.requirement ), data.functionWrappers) for data in ToggleShareDatas]),
+            featureName=groupName
+        )
+        self.extraFeaturesShared.append(featureGroupToggles)
+        return featureGroupToggles        
 
 
     #Properties 

@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QLabel, QWidget, QComboBox, QCheckBox, QLineEdit
 from dataclasses import dataclass, field
 from typing import Callable, Tuple
 from ..dev.Terminate import terminate
+from typing import Optional
 
 # NOTE: Class may be skipped if it remains this empty
 @dataclass
@@ -14,6 +15,9 @@ class GuiData:
 @dataclass
 class GuiDataToggle(GuiData):
     widget: QCheckBox
+    def __init__(self, widget: QCheckBox ):
+        self.widget = widget
+
     def toggle(self):
         self.widget.setCheckState(not self.widget.isChecked())
     def setState(self, value):
@@ -109,7 +113,21 @@ class FunctionWrapper():
 @dataclass
 class Feature(ABC):    
     value : str
+    requirement : Callable = None
     functionWrapper : FunctionWrapper = field(default_factory=FunctionWrapper)
+    featureName : str = "<MISSING NAME>"
+    @abstractmethod
+    def setValue(self, value):
+        pass
+    @abstractmethod
+    def getValue(self) -> any:
+        pass
+
+@dataclass
+class FeatureShare(ABC):    
+    value : str
+    requirement : Callable = None
+    functionWrappers : list[FunctionWrapper] = field(default_factory=list)
     featureName : str = "<MISSING NAME>"
     @abstractmethod
     def setValue(self, value):
@@ -127,6 +145,14 @@ class FeatureToggle(Feature, GuiDataToggle):
         return self.value
 
 @dataclass
+class FeatureShareToggle(FeatureShare, GuiDataToggle):
+    
+    def setValue(self, value):
+        self.value = value    
+    def getValue(self) -> str:
+        return self.value
+
+@dataclass
 class FeatureGroup(GuiDataToggle):
     functionWrapper : FunctionWrapper = field(default_factory=FunctionWrapper)
     featureName : str = "<MISSING NAME>"
@@ -135,10 +161,46 @@ class FeatureGroup(GuiDataToggle):
         pass
     @abstractmethod
     def getValue(self) -> any:
-        pass        
+        pass         
+
+@dataclass
+class FeatureShareGroup(GuiDataToggle):
+    functionWrappers : list[FunctionWrapper] = field(default_factory=list[FunctionWrapper])
+    featureName : str = "<MISSING NAME>"
+    @abstractmethod
+    def setValue(self, value):
+        pass
+    @abstractmethod
+    def getValue(self) -> any:
+        pass          
 
 @dataclass
 class ToggleData():
     name : str
     val  : str 
     defaultValue : bool
+    requirement : Optional[Callable]
+    def __init__(self,name,val,defaultValue, requirement: Optional[Callable] = None):
+        self.name = name
+        self.val = val
+        self.defaultValue = defaultValue
+        self.requirement = requirement
+
+@dataclass
+class ToggleShareData(ToggleData):
+    name : str
+    val  : str 
+    defaultValue : bool
+    requirement : Optional[Callable]
+    functionWrappers : list[FunctionWrapper] = field(default_factory=list[FunctionWrapper])
+    def __init__(self,name,val,defaultValue, *args, requirement: Optional[Callable] = None):
+        self.name = name
+        self.val = val
+        self.defaultValue = defaultValue
+        self.functionWrappers = args
+        self.requirement = requirement
+
+@dataclass
+class Container_FeatureShareToggle_FunctionWrapperList():
+    featureShareToggle : FeatureShareToggle = field(default_factory=FeatureShareToggle)
+    functions : list[Callable]  = field(default_factory=list[Callable])

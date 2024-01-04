@@ -146,6 +146,13 @@ class CPPPC_Manager:
             with open(cmakeFileDat.getRelativeCMakeFilePath(file), "w") as file:                        
                 file.write(content)    
 
+    def createFileOnDemand(self, file : str, content :str, shouldOverwrite :bool = False):
+        if os.path.exists(self.projDat.getPathInTarget(file)) and not shouldOverwrite:
+            print(f"Target File ({self.projDat.getPathInTarget(file)}) Already exists")
+        else: 
+            with open(self.projDat.getPathInTarget(file), "w") as file:                        
+                file.write(content)                
+
     def __placeholderAsBackup(self, widget, placeholder:str):
         if(widget.text() == ""):
             widget.setText(placeholder)

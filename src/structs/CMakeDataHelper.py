@@ -239,7 +239,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         ).__str__()
 
     # TODO: Support other than Clang!
-    def genStr_setTargetCompileOptions(self, *options) -> str:
+    def genStr_setTargetCompileOptions(self, options:list) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_target_compile_options(
                 CMCK(self.projdata.projectExecName_str()),
@@ -319,8 +319,8 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         )
 
     #TODO: Split into several functions
-    def genStr_compileSanitizers(self ) -> str:
-        return self.genStr_setTargetCompileOptions("g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-recover=address",        "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt")
+    def genStr_compileSanitizers(self, *args ) -> str:
+        return self.genStr_setTargetCompileOptions(args)
         
     def genStr_linkSanitizers(self,*args) -> str:        
         return self.genStr_setTargetLinkOptions(args)

@@ -79,16 +79,58 @@ def addFeature_CheckBox(fieldName:str,value : str, defaultValue :bool, parentLay
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
 
-    return FeatureToggle(newCheckBox,value)         
+    return FeatureToggle(newCheckBox,value)
+
+def addFeatureShare_CheckBox(fieldName:str,value : str, defaultValue :bool, parentLayout) -> FeatureShareToggle:
+    
+    # Create Label, input field widgets
+    newCheckBox=QCheckBox(text=fieldName)    
+    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setTristate(False)
+    
+    # Append widgets to parent layout
+    parentLayout.addWidget(newCheckBox)
+
+    return FeatureShareToggle(newCheckBox,value)        
 
 def strListFactory(func :Callable, parentCheckbox : GuiDataToggle, *args) -> FunctionWrapper:
 
     funcWrapper = FunctionWrapper(
         func,
-        lambda : [ f.getValue() for f in args if f.getState() and parentCheckbox.getState() ]
+        lambda toggles=args, parentCheckbox=parentCheckbox : lambdaHelper(toggles,parentCheckbox)
     )
     
     return funcWrapper
+
+def strListShareFactory(parentCheckbox : GuiDataToggle, *args : Container_FeatureShareToggle_FunctionWrapperList) -> list[FunctionWrapper]:
+
+    funcCallDictionary :dict[list] = dict()
+    # Prepare dictionary
+    for toggleFuncPair in args:                        
+        for func in toggleFuncPair.functions:
+            if func not in funcCallDictionary.keys():
+                funcCallDictionary.setdefault(func, [])
+            funcCallDictionary[func].append(toggleFuncPair.featureShareToggle)
+
+    functionWrapperList : list[FunctionWrapper] = []
+    for (func, toggles) in funcCallDictionary.items():
+        functionWrapperList.append(
+            FunctionWrapper(
+                func,
+                lambda toggles=toggles, parentCheckbox=parentCheckbox : lambdaHelper(toggles,parentCheckbox)
+            )
+        )
+
+    return functionWrapperList
+def lambdaHelper(toggles, parentCheckbox)->list[str]:
+    valueList = list()
+    for toggle in toggles:
+        if toggle.getState() and parentCheckbox.getState():
+            valueList.append(toggle.getValue())
+            if toggle.requirement != None:
+                toggle.requirement()
+    
+    return valueList 
 
 def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> GuiData:
     # Create Label, input field widgets
