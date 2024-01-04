@@ -125,3 +125,20 @@ class FeatureToggle(Feature, GuiDataToggle):
         self.value = value    
     def getValue(self) -> str:
         return self.value
+
+@dataclass
+class FeatureGroup(GuiDataToggle):
+    functionWrapper : FunctionWrapper = field(default_factory=FunctionWrapper)
+    featureName : str = "<MISSING NAME>"
+    @abstractmethod
+    def setValue(self, value):
+        pass
+    @abstractmethod
+    def getValue(self) -> any:
+        pass        
+
+@dataclass
+class ToggleData():
+    name : str
+    val  : str 
+    defaultValue : bool
