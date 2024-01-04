@@ -116,12 +116,10 @@ class Feature(ABC):
     def getValue(self) -> any:
         pass
 
-
-
 @dataclass
 class FeatureToggle(Feature, GuiDataToggle):
-    def setValue(self, value):
-        self.widget.setChecked(value)        
     
+    def setValue(self, value):
+        self.value = value    
     def getValue(self) -> str:
-        return self.widget.currentText()
+        return self.value
