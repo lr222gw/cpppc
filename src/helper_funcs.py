@@ -1,4 +1,4 @@
-from .structs import GuiData as d
+from .structs.GuiData import *
 from PyQt5.QtWidgets import QLabel, QLineEdit, QPushButton, QSpinBox, QFormLayout, QTextEdit, QCheckBox , QComboBox, QHBoxLayout,QFrame
 from PyQt5.QtWidgets import QVBoxLayout, QGroupBox
 from PyQt5.QtCore    import *
@@ -9,7 +9,7 @@ def addButton(text:str, layout) -> QPushButton:
     layout.addWidget(newButton)
     return newButton
 
-def addTextField(fieldName:str,placeholder:str, parentLayout) -> d.GuiData:
+def addTextField(fieldName:str,placeholder:str, parentLayout) -> GuiData:
     
     # Create Label, input field widgets
     newFieldLabel=QLabel(text=fieldName)
@@ -20,9 +20,9 @@ def addTextField(fieldName:str,placeholder:str, parentLayout) -> d.GuiData:
     parentLayout.addWidget(newFieldLabel)
     parentLayout.addWidget(newLineEdit)
 
-    return d.GuiData(newLineEdit)
+    return GuiData(newLineEdit)
 
-def addTextBoxField(fieldName:str, parentLayout) -> d.GuiData:
+def addTextBoxField(fieldName:str, parentLayout) -> GuiData:
     
     # Create Label, input field widgets
     newFieldLabel=QLabel(text=fieldName)
@@ -32,9 +32,9 @@ def addTextBoxField(fieldName:str, parentLayout) -> d.GuiData:
     parentLayout.addWidget(newFieldLabel)
     parentLayout.addWidget(newLineEdit)
 
-    return d.GuiData(newLineEdit)
+    return GuiData(newLineEdit)
 
-def addSpinBox(fieldName:str, parentLayout) -> d.GuiData:
+def addSpinBox(fieldName:str, parentLayout) -> GuiData:
     
     # Create Label, input field widgets
     newFieldLabel=QLabel(text=fieldName)
@@ -44,9 +44,9 @@ def addSpinBox(fieldName:str, parentLayout) -> d.GuiData:
     parentLayout.addWidget(newFieldLabel)
     parentLayout.addWidget(newSpinBox)
 
-    return d.GuiData(newSpinBox)
+    return GuiData(newSpinBox)
 
-def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.GuiDataToggle:
+def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> GuiDataToggle:
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
@@ -55,10 +55,10 @@ def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.GuiDataTog
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
 
-    return d.GuiDataToggle(newCheckBox)   
+    return GuiDataToggle(newCheckBox)   
 
 
-def addProp_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.PropToggle:
+def addProp_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> PropToggle:
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
@@ -67,9 +67,9 @@ def addProp_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.PropT
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
 
-    return d.PropToggle(newCheckBox)       
+    return PropToggle(newCheckBox)       
 
-def addFeatures_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.FeatureToggle:
+def addFeature_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> FeatureToggle:
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
@@ -78,9 +78,10 @@ def addFeatures_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.F
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
 
-    return d.FeatureToggle(newCheckBox)         
+    return FeatureToggle(newCheckBox)         
 
-def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> d.GuiData:
+
+def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> GuiData:
     # Create Label, input field widgets
     newFieldLabel=QLabel(text=fieldName)
     newLayout = QFormLayout()
@@ -93,9 +94,9 @@ def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> d.GuiDa
     parentLayout.addLayout(newLayout)
     
 
-    return d.GuiData(version)    
+    return GuiData(version)    
 
-def addComboBox_list(fieldName:str, alternatives : list, parentLayout ) -> d.PropComboBox:    
+def addComboBox_list(fieldName:str, alternatives : list, parentLayout ) -> PropComboBox:    
     # Create Label, input field widgets
     newFieldLabel=QLabel(text=fieldName)
     version = QComboBox()
@@ -109,7 +110,7 @@ def addComboBox_list(fieldName:str, alternatives : list, parentLayout ) -> d.Pro
     newLayout.addWidget(version)
     parentLayout.addRow(newLayout)    
 
-    return d.PropComboBox(version)    
+    return PropComboBox(version)    
 
 def createLabel(text) -> QLabel:
     newLabel = QLabel(text=text)
@@ -119,17 +120,17 @@ def createQHBoxLayout() -> QHBoxLayout:
     newLayout = QHBoxLayout()
     return newLayout
 
-def createCheckBox(fieldName:str, defaultValue :bool) -> d.PropToggle:        
+def createCheckBox(fieldName:str, defaultValue :bool) -> PropToggle:        
     newCheckBox=QCheckBox(text=fieldName)    
     newCheckBox.setCheckState(defaultValue)
     newCheckBox.setTristate(False)
 
-    return d.PropToggle(newCheckBox)    
+    return PropToggle(newCheckBox)    
 
 def addHidableFrame(
     parentLayout,
     groupTitle:str,
-    checkbox :d.PropToggle
+    checkbox :PropToggle
 ) -> QVBoxLayout:
     # Create A Group
     group_widget = QGroupBox(title=groupTitle)
@@ -167,7 +168,7 @@ def addHidableGroup(
     parentLayout,
     checkboxParentLayout,
     groupTitle:str,
-    checkbox :d.GuiDataToggle
+    checkbox :GuiDataToggle
 ) -> QVBoxLayout:
 
     # Create A frame, needed to make the layout/content collapsable
