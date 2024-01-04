@@ -46,7 +46,7 @@ def addSpinBox(fieldName:str, parentLayout) -> d.GuiData:
 
     return d.GuiData(newSpinBox)
 
-def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.PropToggle:
+def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.GuiDataToggle:
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
@@ -55,7 +55,19 @@ def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.PropToggle
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
 
-    return d.PropToggle(newCheckBox)   
+    return d.GuiDataToggle(newCheckBox)   
+
+
+def addProp_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.PropToggle:
+    
+    # Create Label, input field widgets
+    newCheckBox=QCheckBox(text=fieldName)    
+    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setTristate(False)
+    # Append widgets to parent layout
+    parentLayout.addWidget(newCheckBox)
+
+    return d.PropToggle(newCheckBox)       
 
 def addFeatures_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> d.FeatureToggle:
     
@@ -155,7 +167,7 @@ def addHidableGroup(
     parentLayout,
     checkboxParentLayout,
     groupTitle:str,
-    checkbox :d.PropToggle
+    checkbox :d.GuiDataToggle
 ) -> QVBoxLayout:
 
     # Create A frame, needed to make the layout/content collapsable

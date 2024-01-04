@@ -62,11 +62,12 @@ class ProjectConfigurationData:
 
     #Properties 
     props :list = field(default_factory=list)
-    def addProp_checkbox(self, label:str, cmakePropName:str,cmakePropValue:bool, parentLayout) -> GuiDataToggle:
-        datToggle = hlp.addCheckBox(label,cmakePropValue,parentLayout)
+    def addProp_checkbox(self, label:str, cmakePropName:str,cmakePropValue:bool, parentLayout) -> PropToggle:
+        datToggle = hlp.addProp_CheckBox(label,cmakePropValue,parentLayout)
         datToggle.cmake_propName = cmakePropName        
         datToggle.setValue(cmakePropValue)
         self.props.append(datToggle)
+        return datToggle
 
     def addProp_combobox_list(self, label:str, cmakePropName:str,cmakePropValues:list, defaultChoice:int, parentLayout) -> GuiDataComboBox:
         datComboboxList = hlp.addComboBox_list(label,cmakePropValues,parentLayout)
