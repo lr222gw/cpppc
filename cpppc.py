@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout,QVBoxLayout, QHBo
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 
-from src.structs.GuiData import GuiData 
+from src.structs.GuiData import ToggleData
 from src.structs.CMakeVersionData import CMakeVersionData
 from src.structs.ProjectConfigurationData import ProjectConfigurationData
 import src.cmake_helper as  cmake_helper
@@ -83,11 +83,18 @@ CmakeBridgeFrameLayout = hlp.addHidableFrame(
 
 ProjConfDat.addCmakeCppVarHeader(CmakeBridgeFrameLayout)
 
-sanitizerSettingsLayout = hlp.addHidableGroup(
-    layout_rightside,
+ProjConfDat.addExtraFeatureGroup_checkbox(
+    layout_rightside,       
     layout_projectName,
-    "Sanitizer settings",
-    ProjConfDat.addExtraFeature_checkbox("Use Sanitizers2", True, cppc.cmakeListDat.genStr_linkSanitizers, layout_projectName)
+    "Sanitizer settings",   
+    "Use Sanitizers",
+    True,
+    cppc.cmakeListDat.genStr_linkSanitizers,
+    ToggleData("Debug", "g", True),
+    ToggleData("Sanitize Adress,Leak and Undef", "fsanitize=address,leak,undefined", True),
+    ToggleData("No omit frame ptr", "fno-omit-frame-pointer", True),
+    ToggleData("memory track origins=2", "fsanitize-memory-track-origins=2", True),
+    ToggleData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", False),
 )
 
 
