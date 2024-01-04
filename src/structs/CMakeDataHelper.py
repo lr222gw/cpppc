@@ -322,8 +322,8 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_compileSanitizers(self ) -> str:
         return self.genStr_setTargetCompileOptions("g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-recover=address",        "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt")
         
-    def genStr_linkSanitizers(self ) -> str:        
-        return self.genStr_setTargetLinkOptions({"g", "fsanitize=address,leak,undefined", "fno-omit-frame-pointer", "fsanitize-memory-track-origins=2", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt"})        
+    def genStr_linkSanitizers(self,*args) -> str:        
+        return self.genStr_setTargetLinkOptions(args)
         
     def genStr_compileTimeProperty(self ) -> str:
         return self.genStr_setProperty("RULE_LAUNCH_COMPILE", "${CMAKE_COMMAND} -E time")
