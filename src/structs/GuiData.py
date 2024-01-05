@@ -205,7 +205,7 @@ class UserInput(GuiData):
     input: QLineEdit
     def __init__(self, labelStr : str):
         self.label = QLabel(labelStr)
-        self.input = QLineEdit(labelStr)
+        self.input = QLineEdit()
 
     def setVariable(self, name:str, value):
         self.label.setText(name)
