@@ -114,7 +114,7 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
     layout_projectName,
     "Sanitizer settings",   
     "Use Sanitizers",
-    True,
+    False,
     ToggleShareData("Debug", "g", True, 
         g.genStr_linkSanitizers, g.genStr_compileSanitizers),
     ToggleShareData("Sanitize Adress,Leak and Undef", "fsanitize=address,leak,undefined", True,
