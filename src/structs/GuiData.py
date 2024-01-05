@@ -7,7 +7,7 @@ from typing import Optional
 
 # NOTE: Class may be skipped if it remains this empty
 @dataclass
-class GuiData:
+class GuiData():
     widget: QWidget
     def registerConnection(self, func : Callable):
         self.widget.clicked.connect(func)
