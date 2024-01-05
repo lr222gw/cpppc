@@ -74,13 +74,17 @@ ProjConfDat.addProp_checkbox("Use Interprocedural Optimization",
 
 group_properties.setLayout(layout_targetProperties)
 
-CmakeBridgeFrameLayout = hlp.addHidableFrame(
+ProjConfDat.addExtraFeatureGroup_UserInputs(
     rootLayout,
+    layout_projectName,
     "CMake vars to C++",
-    hlp.createCheckBox("Create \"CMake bridge\" to C++", False)
-    )
-
-ProjConfDat.addCmakeCppVarHeader(CmakeBridgeFrameLayout)
+    "Use CMake to C++ Communcation",
+    True,
+    ProjConfDat.addCmakeToCppVar,
+    UserInput("Variable Name"),
+    UserInput("Value"),
+    requirement= (lambda:  cppc.requireCMakeCppBridge())
+)
 
 if False : #Old version, still valid if a checkbox is not connected to more than one function
 
