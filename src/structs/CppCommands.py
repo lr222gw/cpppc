@@ -190,8 +190,8 @@ class CPPC_main(CPPCommandContainer):
 @dataclass
 class CPPCommandDct:
     all_cppc : dict = field(default_factory=dict)
-    __cpps :   dict = field(default_factory=dict)
-    __cpp_cs : dict = field(default_factory=dict)
+    _cpps :   dict = field(default_factory=dict)
+    _cpp_cs : dict = field(default_factory=dict)
     all_cppc : dict = field(default_factory=dict)
 
     
@@ -199,11 +199,11 @@ class CPPCommandDct:
         if not issubclass(type(cmc), CPPCommand):
             terminate("Can only add subclass of CPPCommand")
             
-        if(type(cmc) not in self.__cpps):
-            self.__cpps.setdefault(type(cmc), [])
+        if(type(cmc) not in self._cpps):
+            self._cpps.setdefault(type(cmc), [])
             self.all_cppc.setdefault(type(cmc), [])
 
-        self.__cpps[type(cmc)].append(cmc)
+        self._cpps[type(cmc)].append(cmc)
         self.all_cppc[type(cmc)].append(cmc)
         return cmc
 
@@ -212,22 +212,22 @@ class CPPCommandDct:
         if not issubclass(type(cmc_container), CPPCommandContainer):
             terminate("Can only add subclass of CPPCommandContainer")
             
-        if(type(cmc_container) not in self.__cpps):
-            self.__cpp_cs.setdefault(type(cmc_container), [])
+        if(type(cmc_container) not in self._cpps):
+            self._cpp_cs.setdefault(type(cmc_container), [])
             self.all_cppc.setdefault(type(cmc_container), [])
 
-        self.__cpp_cs[type(cmc_container)].append(cmc_container)
+        self._cpp_cs[type(cmc_container)].append(cmc_container)
         self.all_cppc[type(cmc_container)].append(cmc_container)
         return cmc_container
 
     def clear(self):
-        self.__cpps.clear()
-        self.__cpp_cs.clear()
+        self._cpps.clear()
+        self._cpp_cs.clear()
         self.all_cppc.clear()
 
     def __str__(self):
         ret = ""
-        for key, value in self.__cpps.items() : 
+        for key, value in self._cpps.items() : 
             ret += str(key.__name__) +":\n"
             ret += "\n".join(map(str,value)) + "\n\n"
 
