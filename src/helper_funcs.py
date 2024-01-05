@@ -10,6 +10,11 @@ def addButton(text:str, layout) -> QPushButton:
     layout.addWidget(newButton)
     return newButton
 
+def addButton_gridLayout(text:str, gridLayout : QGridLayout, gridRow : int, gridColumn : int) -> QPushButton:
+    newButton = QPushButton(text)
+    gridLayout.addWidget(newButton, gridRow, gridColumn)
+    return newButton        
+
 def addTextField(fieldName:str,placeholder:str, parentLayout) -> GuiData:
     
     # Create Label, input field widgets

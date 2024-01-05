@@ -47,11 +47,13 @@ class ProjectConfigurationData:
     publicLinkLibs :list = field(default_factory=list)
     privateLinkLibs:list = field(default_factory=list)
 
-    extraFeatures :list[FeatureToggle] = field(default_factory=list[FeatureToggle])
+    guiToggles          :list[GuiDataToggle] = field(default_factory=list[GuiDataToggle]) 
+    extraFeatures       :list[FeatureToggle] = field(default_factory=list[FeatureToggle])
     extraFeaturesShared :list[FeatureShareToggle] = field(default_factory=list[FeatureShareToggle])
     def initExtraFeatures(self):
         self.__initExtraFeature()
         self.__initExtraFeatureShared()
+        self.__initGuiToggleRequirments()
     def __initExtraFeature(self):
         for feature in self.extraFeatures:
             feature.functionWrapper()
@@ -59,6 +61,11 @@ class ProjectConfigurationData:
         for feature in self.extraFeaturesShared:
             for functionWrapper in feature.functionWrappers:
                 functionWrapper()
+
+    def __initGuiToggleRequirments(self):
+        for toggle in self.guiToggles:
+            if(toggle.getState() and toggle.requirement != None):
+                toggle.requirement()
 
     def getPathInTarget(self, targetInsidePath : str) -> str:
         return self.getTargetPath() + "/" + targetInsidePath
@@ -119,6 +126,22 @@ class ProjectConfigurationData:
         return featureGroupToggles        
 
 
+    def addExtraFeatureGroup_UserInputs(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, func:Callable[[QGridLayout,Tuple[UserInput]],None], *userInputHeaders : UserInput, requirement:Optional[Callable] = None) -> GuiDataToggle: 
+        groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
+        groupLayout = hlp.addHidableGroup(
+            groupParentLayout,
+            groupCheckBoxParentLayout,
+            groupName,
+            groupToggle
+        )
+                
+        self.addUserInput(groupLayout, func,*userInputHeaders)
+        groupToggle.requirement = requirement
+        self.guiToggles.append(groupToggle)        
+
+        return groupToggle
+
+
     #Properties 
     props :list = field(default_factory=list)
     def addProp_checkbox(self, label:str, cmakePropName:str,cmakePropValue:bool, parentLayout) -> PropToggle:
@@ -159,25 +182,47 @@ class ProjectConfigurationData:
         parentLayout.addLayout(layout_headerTop)
         parentLayout.addLayout(layout_headerInput)
 
-    def addCmakeToCppVar(self, name : str, val, parentLayout ):
+    def addUserInput(self, parentLayout, func:Callable[[QGridLayout,Tuple[UserInput]],None], *headers : UserInput):
+        layout_grid = QGridLayout()
+
+        columnCounter = 0
+        for header in headers:
+            layout_grid.addWidget(header.label,0,columnCounter)
+            columnCounter += 1
         
-        if name == "" or str(val) == "": 
-            return
+        columnCounter = 0
+        for header in headers:
+            layout_grid.addWidget(header.input, 1, columnCounter)
+            columnCounter += 1
+        
+        newButton = QPushButton("Add/Edit")
+        layout_grid.addWidget(newButton, 1, columnCounter)
+        newButton.clicked.connect(lambda: func(layout_grid,*headers))
+
+        parentLayout.addLayout(layout_grid)
+
+    def addCmakeToCppVar(self, gridLayout: QGridLayout, *args: UserInput ):
+        if len(args) != 2:
+            terminate("Function not design to take anything but 2 variadic arguments")
+        name  = args[0].getInputText()
+        value = args[1].getInputText()
+        if name == "" or value == "":
+            print("Nothing to add!") 
+            return            
 
         if name not in self.cmakeToCppVars:
-            cmakeCppvar = CmakeCppVarWidget(name, str(val))
-            newLayout = hlp.createQHBoxLayout()
+            cmakeCppvar = CmakeCppVarWidget(name, str(value))           
+            row = gridLayout.rowCount() +1
 
-            newLayout.addWidget(cmakeCppvar.nameWidget)
-            newLayout.addWidget(cmakeCppvar.valWidget)
+            gridLayout.addWidget(cmakeCppvar.nameWidget, row, 0)
+            gridLayout.addWidget(cmakeCppvar.valWidget, row, 1)
 
-            remButton = hlp.addButton("-", newLayout)
-            remButton.clicked.connect(lambda: self.remCmakeToCppVar(cmakeCppvar, remButton, newLayout))
+            remButton = hlp.addButton_gridLayout("-", gridLayout, row, 2)
+            remButton.clicked.connect(lambda: self.remCmakeToCppVar(cmakeCppvar, remButton, gridLayout))            
             
-            parentLayout.addLayout(newLayout)
             self.cmakeToCppVars[name] = cmakeCppvar
         else: 
-            self.cmakeToCppVars[name].valWidget.setText(str(val))
+            self.cmakeToCppVars[name].valWidget.setText(str(value))
 
     def remCmakeToCppVar(self, cmakeCppvar : CmakeCppVarWidget, remButton, layout):        
         self.cmakeToCppVars.pop(cmakeCppvar.nameWidget.text())

@@ -200,6 +200,27 @@ class ToggleShareData(ToggleData):
         self.requirement = requirement
 
 @dataclass
+class UserInput(GuiData):
+    label : QLabel
+    input: QLineEdit
+    def __init__(self, labelStr : str):
+        self.label = QLabel(labelStr)
+        self.input = QLineEdit(labelStr)
+
+    def setVariable(self, name:str, value):
+        self.label.setText(name)
+        self.input.setText(str(value))
+
+    def getVariable(self) -> tuple:
+        return (self.label.text(), self.input.text())
+
+    def getLabelText(self) -> tuple:
+        return self.label.text()
+    def getInputText(self) -> tuple:
+        return self.input.text()
+
+
+@dataclass
 class Container_FeatureShareToggle_FunctionWrapperList():
     featureShareToggle : FeatureShareToggle = field(default_factory=FeatureShareToggle)
     functions : list[Callable]  = field(default_factory=list[Callable])
