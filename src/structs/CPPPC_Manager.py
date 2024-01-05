@@ -99,14 +99,6 @@ class CPPPC_Manager:
 
         self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cppProperties())
 
-        #TODO: Only add this line if users checked use CMakeToCpp Bridge...
-        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_callFunction(
-            CMFUNC__add_cmake_inputs_to_targets, 
-            [
-                self.projDat.projectExecName_str(),
-            ])
-        )
-
         self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_targetLinkLibraries())            
 
         with open(self.cmakeListDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:
@@ -114,6 +106,12 @@ class CPPPC_Manager:
             
     def requireCMakeCppBridge(self):
         self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_includeCmakeFile(self.cmakeListDat.FILE_cmake_cpp_data))
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_callFunction(
+            CMFUNC__add_cmake_inputs_to_targets, 
+            [
+                self.projDat.projectExecName_str(),
+            ])
+        )
         self.__generateCMakeCppBridge()
 
     def __generateCMakeCppBridge(self):
