@@ -1,7 +1,7 @@
 from typing import Callable
 from .structs.GuiData import *
 from PyQt5.QtWidgets import QLabel, QLineEdit, QPushButton, QSpinBox, QFormLayout, QTextEdit, QCheckBox , QComboBox, QHBoxLayout,QFrame
-from PyQt5.QtWidgets import QVBoxLayout, QGroupBox
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore    import *
 
 

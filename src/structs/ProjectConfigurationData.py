@@ -5,6 +5,7 @@ from .CMakeVersionData import CMakeVersionData
 from .GuiData import *
 from .. import helper_funcs as hlp
 from .CMakeCommands import *
+from PyQt5.QtWidgets import *
 
 @dataclass
 class ProjectConfigurationData:     
