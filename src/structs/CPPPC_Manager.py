@@ -31,6 +31,9 @@ class CPPPC_Manager:
         print("Iniitializing default values") 
         self.runtimeInit()
 
+        print("Generating Directories")
+        self.__generateDirectories()
+
         print("Adding user Configurations")
         self.projDat.initExtraFeatures()
                    
@@ -67,48 +70,48 @@ class CPPPC_Manager:
         
         self.__placeholderAsBackup(self.projDat.entryPointFile.widget, self.projDat.entryPointFile.widget.placeholderText())
     
-    def __generateCMakeLists(self):
-
+    def __generateDirectories(self):
         if os.path.exists(self.projDat.getTargetPath()) and not self.projDat.overwriteProjectTargetDir.getState():
             print("Target Already exists")
             return
         else:
-            print("Target Will be Created")
             os.makedirs(self.cmakeListDat.targetDirPath, exist_ok=True)
             os.makedirs(self.cmakeListDat.getPathInTarget(self.cmakeListDat.srcDirPath),    exist_ok=True)
             os.makedirs(self.cmakeListDat.getPathInTarget(self.cmakeListDat.cmakeDirPath),  exist_ok=True)
 
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_min_version())
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_projectdetails())
+    def __generateCMakeLists(self):
+
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_min_version())
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_projectdetails())
+        
+        if(self.projDat.useProgram_ccache.getState()):
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.addCMakeCompilerLauncher("ccache"))
+
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_sourceDirVar())
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_sources())
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_headers())
+
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_addExecutable())
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStrHlp_addingProjectsTargetSources())
+        
+        if(self.projDat.useMeasureCompiletime.getState()):
+            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_compileTimeProperty())
+
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cppProperties())
+
+        #TODO: Only add this line if users checked use CMakeToCpp Bridge...
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_callFunction(
+            CMFUNC__add_cmake_inputs_to_targets, 
+            [
+                self.projDat.projectExecName_str(),
+            ])
+        )
+
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_targetLinkLibraries())            
+
+        with open(self.cmakeListDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:
+            file.write(self.cmakeListDat.genCMakeList())
             
-            if(self.projDat.useProgram_ccache.getState()):
-                self.cmakeListDat.addToCMakeList(self.cmakeListDat.addCMakeCompilerLauncher("ccache"))
-
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_sourceDirVar())
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_sources())
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_headers())
-
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_addExecutable())
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStrHlp_addingProjectsTargetSources())
-            
-            if(self.projDat.useMeasureCompiletime.getState()):
-                self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_compileTimeProperty())
-
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cppProperties())
-
-            #TODO: Only add this line if users checked use CMakeToCpp Bridge...
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_callFunction(
-                CMFUNC__add_cmake_inputs_to_targets, 
-                [
-                    self.projDat.projectExecName_str(),
-                ])
-            )
-
-            self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_targetLinkLibraries())            
-
-            with open(self.cmakeListDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:
-                file.write(self.cmakeListDat.genCMakeList())
-                
     def requireCMakeCppBridge(self):
         self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_includeCmakeFile(self.cmakeListDat.FILE_cmake_cpp_data))
         self.__generateCMakeCppBridge()
