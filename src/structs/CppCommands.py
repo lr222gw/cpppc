@@ -184,6 +184,15 @@ class CPPC_main(CPPCommandContainer):
     def __init__(self,CPP_args : CPPCK,*CPP_CKeyArgs):
         super().__init__(CPP_args, *CPP_CKeyArgs)
         self.commandName = "int main"
+    
+    def __str__(self):
+        return str.format(
+            "{}({})\n{{\n\t{}\n}}",
+            self.commandName,
+            ', '.join(map(str, self.baseArgs)),
+            ';\n\t'.join(map(str, self.containerContent) ) + ";" ,
+            "}}" 
+        )
 
 
 
