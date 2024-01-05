@@ -244,6 +244,8 @@ def addHidableGroup(
 
     # Assign the group widget to the frames layout
     frame_layout.addWidget(group_widget)
+    frame_layout.setStretch(0, 1)
+    frame_layout.setStretch(1, 1)
 
     # Add Checkbox to the provided Layout, used to toggle if hidden
     checkboxParentLayout.addWidget(checkbox.widget)
@@ -251,15 +253,32 @@ def addHidableGroup(
     # Add the frame Widget to the parent Layout to be displayed
     parentLayout.addWidget(frame_widget)    
 
+    # Wrap the group_layout in a scroll area
+    scroll_area = QScrollArea()
+    scroll_area.setWidgetResizable(True)
+    scroll_area.setWidget(group_widget)
+    
+    scroll_area.setMinimumSize(245,0)
+    
+
+    # Add the scroll area to the frame layout to make the group_layout scrollable
+    frame_layout.addWidget(scroll_area)
+
     # Set Frame visible based on initial value of checkbox 
-    showHideFrame(frame_widget, checkbox.getState())    
+    # showHideFrame(frame_widget, checkbox.getState())    
+    toggleHideShow_updGeoemtry(frame_widget, checkbox, scroll_area)    
 
     # Add checkbox toggle to frame    
     checkbox.registerConnection(
-        lambda: showHideFrame(frame_widget, checkbox.getState())
+        # lambda: showHideFrame(frame_widget, checkbox.getState())
+        lambda: toggleHideShow_updGeoemtry(frame_widget, checkbox, scroll_area)
     )   
-
+    
     return group_layout
+
+def toggleHideShow_updGeoemtry(frame_widget, checkbox,scroll_area):    
+    showHideFrame(frame_widget, checkbox.getState())
+    scroll_area.updateGeometry()
    
 def showHideFrame(frame :QFrame, condition:bool):    
     if condition:
