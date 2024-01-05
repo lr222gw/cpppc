@@ -15,8 +15,9 @@ class GuiData():
 @dataclass
 class GuiDataToggle(GuiData):
     widget: QCheckBox
-    def __init__(self, widget: QCheckBox ):
+    def __init__(self, widget: QCheckBox, requirement : Optional[Callable] = None ):
         self.widget = widget
+        self.requirement = requirement        
 
     def toggle(self):
         self.widget.setCheckState(not self.widget.isChecked())
@@ -113,7 +114,6 @@ class FunctionWrapper():
 @dataclass
 class Feature(ABC):    
     value : str
-    requirement : Callable = None
     functionWrapper : FunctionWrapper = field(default_factory=FunctionWrapper)
     featureName : str = "<MISSING NAME>"
     @abstractmethod
@@ -126,7 +126,6 @@ class Feature(ABC):
 @dataclass
 class FeatureShare(ABC):    
     value : str
-    requirement : Callable = None
     functionWrappers : list[FunctionWrapper] = field(default_factory=list)
     featureName : str = "<MISSING NAME>"
     @abstractmethod
