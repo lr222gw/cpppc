@@ -46,6 +46,9 @@ cmake_version_minor = hlp.addCmakeVersionBox("Minor:", cmakeVersion_data.minor, 
 cmake_version_patch = hlp.addCmakeVersionBox("Patch:", cmakeVersion_data.patch, layout_cmakeVersion)
 ProjConfDat.cmakeVersionData = cmakeVersion_data #TODO: Remember to update this when user change values...
 group_cmake.setLayout(layout_cmakeVersion)
+layout_cmakeVersion.setStretch(0,1)
+layout_cmakeVersion.setStretch(1,1)
+group_cmake.setMaximumHeight(100)
 
 
 
