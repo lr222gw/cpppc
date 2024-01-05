@@ -5,9 +5,10 @@ Simple GUI application written in Python aimed at setting up CMake based C++ Pro
 [comment]: <> (TODO: Insert !["Picture of the script"]\(md/picofscript "The script"\), rmv escape sequencing...)
 
 ## Requirements 
-- cmake : buildsystem generator
-- python : gui libs
-- **Feel free to create a github issue if I missed something**
+- cmake 
+- python
+- - PyQt : gui lib
+- **Feel free tohub issue if I missed something**
 
 ## Recommendations
 

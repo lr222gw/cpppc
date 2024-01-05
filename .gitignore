@@ -1,0 +1,4 @@
+src/__pycache__/*
+myProject/*
+src/structs/__pycache__/*
+src/dev/__pycache__/*
