@@ -37,7 +37,6 @@ class CPPPC_Manager:
         print("Creating Project")        
         self.projDat.toString()     #TODO: Junk?!
         self.__generateCMakeLists()
-        self.__generateCMakeCppBridge()
         self.__generateCPPFiles()
 
     def decideOrder(self):
@@ -85,20 +84,12 @@ class CPPPC_Manager:
             if(self.projDat.useProgram_ccache.getState()):
                 self.cmakeListDat.addToCMakeList(self.cmakeListDat.addCMakeCompilerLauncher("ccache"))
 
-            # if(projdata.useCmakeCppBridge.getState()): #TODO: FIX
-            if(True): #TODO: FIX
-                self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_includeCmakeFile(self.cmakeListDat.FILE_cmake_cpp_data))
-
             self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_sourceDirVar())
             self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_sources())
             self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_headers())
 
             self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_addExecutable())
             self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStrHlp_addingProjectsTargetSources())
-
-            # if(self.projDat.useSanitizers.getState()):
-            #     self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_compileSanitizers(self.projDat))
-            #     self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_linkSanitizers(self.projDat))
             
             if(self.projDat.useMeasureCompiletime.getState()):
                 self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_compileTimeProperty())
@@ -117,22 +108,21 @@ class CPPPC_Manager:
 
             with open(self.cmakeListDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:
                 file.write(self.cmakeListDat.genCMakeList())
-            #TODO: Move other file creation below creation of CMakeLists.txt 
-            
-    
+                
+    def requireCMakeCppBridge(self):
+        self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_includeCmakeFile(self.cmakeListDat.FILE_cmake_cpp_data))
+        self.__generateCMakeCppBridge()
+
     def __generateCMakeCppBridge(self):
-        # if(projdata.useCmakeCppBridge.getState()):     
-        if(True): #TODO FIX
+        self.__createCMakeFileOnDemand(
+            self.cmake_inputsDat, self.projDat.overwriteProjectTargetDir.getState(), 
+            self.cmake_inputsDat.FILE_cmake_cpp_data, 
+            self.cmake_inputsDat.genStr_FILE_cmake_cpp_data())
 
-            self.__createCMakeFileOnDemand(
-                self.cmake_inputsDat, self.projDat.overwriteProjectTargetDir.getState(), 
-                self.cmake_inputsDat.FILE_cmake_cpp_data, 
-                self.cmake_inputsDat.genStr_FILE_cmake_cpp_data())
-
-            self.__createCMakeFileOnDemand(
-                self.cmake_inputsDat, self.projDat.overwriteProjectTargetDir.getState(), 
-                self.cmake_inputsDat.FILE_cmake_inputs_h_in, 
-                self.cmake_inputsDat.genStr_FILE_cmake_inputs_h_in())
+        self.__createCMakeFileOnDemand(
+            self.cmake_inputsDat, self.projDat.overwriteProjectTargetDir.getState(), 
+            self.cmake_inputsDat.FILE_cmake_inputs_h_in, 
+            self.cmake_inputsDat.genStr_FILE_cmake_inputs_h_in())
 
     def __generateCPPFiles(self):
         self.cppDat.genStr_FILE_entrypoint()
