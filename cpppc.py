@@ -19,7 +19,8 @@ layout_projectName = QFormLayout()
 layout_cmakeVersion = QHBoxLayout()
 layout_targetProperties = QFormLayout()
 
-layout_rightside = QFormLayout()
+layout_2nd_column = QVBoxLayout()
+layout_3rd_column = QVBoxLayout()
 
 ProjConfDat = ProjectConfigurationData()
 cppc = CPPPC_Manager(ProjConfDat)
@@ -75,11 +76,11 @@ ProjConfDat.addProp_checkbox("Use Interprocedural Optimization",
 group_properties.setLayout(layout_targetProperties)
 
 ProjConfDat.addExtraFeatureGroup_UserInputs(
-    rootLayout,
+    layout_3rd_column,
     layout_projectName,
     "CMake vars to C++",
     "Use CMake to C++ Communcation",
-    True,
+    False,
     ProjConfDat.addCmakeToCppVar,
     UserInput("Variable Name"),
     UserInput("Value"),
@@ -89,7 +90,7 @@ ProjConfDat.addExtraFeatureGroup_UserInputs(
 if False : #Old version, still valid if a checkbox is not connected to more than one function
 
     ProjConfDat.addExtraFeatureGroup_checkbox(
-    layout_rightside,       
+    layout_2nd_column,       
     layout_projectName,
     "Sanitizer settings",   
     "Use Sanitizers",
@@ -106,7 +107,7 @@ if False : #Old version, still valid if a checkbox is not connected to more than
 g = cppc.cmakeListDat #Shorthand
 
 ProjConfDat.addExtraFeatureShareGroup_checkbox(
-    layout_rightside,       
+    layout_3rd_column,       
     layout_projectName,
     "Sanitizer settings",   
     "Use Sanitizers",
@@ -128,9 +129,8 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
     )    
 
 
-
-layout_rightside.addWidget(group_cmake)
-layout_rightside.addWidget(group_properties)
+layout_2nd_column.addWidget(group_cmake)
+layout_2nd_column.addWidget(group_properties)
 
 #TODO: GUI to select libs from system and files
 # ProjConfDat.publicLinkLibs = ["lib1", "lib2", "lib3"]
@@ -138,7 +138,8 @@ layout_rightside.addWidget(group_properties)
 
 
 rootLayout.addWidget(group_projdef)
-rootLayout.addLayout(layout_rightside)
+rootLayout.addLayout(layout_2nd_column)
+rootLayout.addLayout(layout_3rd_column)
 
 window.setLayout(rootLayout)
 window.show()
