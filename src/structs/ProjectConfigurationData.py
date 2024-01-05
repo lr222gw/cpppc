@@ -200,12 +200,11 @@ class ProjectConfigurationData:
         else: 
             self.cmakeToCppVars[name].valWidget.setText(str(value))
 
-    def remCmakeToCppVar(self, cmakeCppvar : CmakeCppVarWidget, remButton, layout):        
-        self.cmakeToCppVars.pop(cmakeCppvar.nameWidget.text())
-        layout.removeWidget(cmakeCppvar.nameWidget)
-        layout.removeWidget(cmakeCppvar.valWidget)
-        layout.removeWidget(remButton)
-
+    def remCmakeToCppVar(self, cmakeCppVar: CmakeCppVarWidget, remButton, layout : QGridLayout):    
+        cmakeCppVar.nameWidget.deleteLater()
+        cmakeCppVar.valWidget.deleteLater()
+        remButton.deleteLater()
+        self.cmakeToCppVars.pop(cmakeCppVar.nameWidget.text())
 
     def getTargetPath(self) -> str:
         path = self.projectTargetDir.widget.text() + "/" + self.projectName.widget.text()
