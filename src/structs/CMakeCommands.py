@@ -203,17 +203,17 @@ class CMC_cmake_minimum_required(CMakeCommand):
 @dataclass
 class CMakeCommandDct:
     all_cmc : dict = field(default_factory=dict)
-    __cmcs : dict = field(default_factory=dict)   # Commands
-    __cmc_cs : dict = field(default_factory=dict) # Command Containers, i.e. commands that has a body (such as if-statements)
+    _cmcs : dict = field(default_factory=dict)   # Commands
+    _cmc_cs : dict = field(default_factory=dict) # Command Containers, i.e. commands that has a body (such as if-statements)
     def add_CMC(self, cmc):
         if not issubclass(type(cmc), CMakeCommand):
             terminate("Can only add subclass of CMakeCommand")
             
-        if(type(cmc) not in self.__cmcs):
-            self.__cmcs.setdefault(type(cmc), [])
+        if(type(cmc) not in self._cmcs):
+            self._cmcs.setdefault(type(cmc), [])
             self.all_cmc.setdefault(type(cmc), [])
 
-        self.__cmcs[type(cmc)].append(cmc)
+        self._cmcs[type(cmc)].append(cmc)
         self.all_cmc[type(cmc)].append(cmc)
         return cmc
 
@@ -227,22 +227,22 @@ class CMakeCommandDct:
         if not issubclass(type(cmc_container), CMakeCommandContainer):
             terminate("Can only add subclass of CMakeCommandContainer")
             
-        if(type(cmc_container) not in self.__cmcs):
-            self.__cmc_cs.setdefault(type(cmc_container), [])
+        if(type(cmc_container) not in self._cmcs):
+            self._cmc_cs.setdefault(type(cmc_container), [])
             self.all_cmc.setdefault(type(cmc_container), [])
 
-        self.__cmc_cs[type(cmc_container)].append(cmc_container)
+        self._cmc_cs[type(cmc_container)].append(cmc_container)
         self.all_cmc[type(cmc_container)].append(cmc_container)
         return cmc_container
 
     def clear(self):
-        self.__cmcs.clear()
-        self.__cmc_cs.clear()
+        self._cmcs.clear()
+        self._cmc_cs.clear()
         self.all_cmc.clear()
 
     def __str__(self):
         ret = ""
-        for key, value in self.__cmcs.items() : 
+        for key, value in self._cmcs.items() : 
             ret += str(key.__name__) +":\n"
             ret += "\n".join(map(str,value)) + "\n\n"
 
