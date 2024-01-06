@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build_linux:
     runs-on: ubuntu-latest
-    
+  
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -24,20 +24,63 @@ jobs:
         pip install pyinstaller
         pip install pyqt5
 
-    - name: Build for Windows
+    - name: Build
       run: pyinstaller --onefile cpppc.py
-      if: runner.os == 'Windows'
-
-    - name: Build for macOS
-      run: pyinstaller --onefile cpppc.py
-      if: runner.os == 'macOS'
-
-    - name: Build for Linux
-      run: pyinstaller --onefile cpppc.py
-      if: runner.os == 'Linux'
-
-    - name: Archive artifacts
+    
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: executables
+        name: executable-linux
         path: dist/
+
+  build_windows:        
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        pip install pyinstaller
+        pip install pyqt5
+
+    - name: Build
+      run: pyinstaller --onefile cpppc.py
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: executable-windows
+        path: dist/
+
+  build_macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+    
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+    
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller
+          pip install pyqt5
+    
+      - name: Build
+        run: pyinstaller --onefile cpppc.py
+  
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+  
+        with:
+          name: executable-macos
+          path: dist/
+    
