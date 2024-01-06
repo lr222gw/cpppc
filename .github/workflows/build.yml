@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - build
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.8
+        python-version: 3.11
 
     - name: Install dependencies
       run: |
@@ -32,7 +33,7 @@ jobs:
       if: runner.os == 'macOS'
 
     - name: Build for Linux
-      run: pyinstaller cpppc.py
+      run: pyinstaller --onefile cpppc.py
       if: runner.os == 'Linux'
 
     - name: Archive artifacts
