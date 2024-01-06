@@ -1,0 +1,43 @@
+name: Build Executables
+
+on:
+  push:
+    branches:
+      - build
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        pip install pyinstaller
+        pip install pyqt5
+
+    - name: Build for Windows
+      run: pyinstaller --onefile cpppc.py
+      if: runner.os == 'Windows'
+
+    - name: Build for macOS
+      run: pyinstaller --onefile cpppc.py
+      if: runner.os == 'macOS'
+
+    - name: Build for Linux
+      run: pyinstaller --onefile cpppc.py
+      if: runner.os == 'Linux'
+
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: executables
+        path: dist/
