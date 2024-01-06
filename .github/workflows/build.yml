@@ -7,14 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build_linux:
     runs-on: ubuntu-latest
-    
-    strategy:
-        matrix:
-          os: [windows-latest, macos-latest, ubuntu-latest]
   
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -34,12 +29,39 @@ jobs:
     
 
     - name: Archive artifacts
-      run: zip -r executables-${{ matrix.os }}.zip dist/
+      run: zip -r executables-linux.zip dist/
     
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: executables-${{ matrix.os }}
-        path: executables-${{ matrix.os }}.zip
+        name: executables-linux
+        path: executables-linux.zip
 
+  build_windows:        
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        pip install pyinstaller
+        pip install pyqt5
+
+    - name: Build
+      run: pyinstaller --onefile cpppc.py
+    
+    - name: Archive artifacts
+      run: zip -r executables-windows.zip dist/
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: executables-windows
+        path: executables-windows.zip
