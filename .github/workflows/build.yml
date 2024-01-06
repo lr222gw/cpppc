@@ -58,10 +58,40 @@ jobs:
       run: pyinstaller --onefile cpppc.py
     
     - name: Archive artifacts
-      run: zip -r executables-windows.zip dist/
+      run: Compress-Archive -Path .\dist\* -DestinationPath executables-windows.zip
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: executables-windows
         path: executables-windows.zip
+
+  build_macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+    
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+    
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller
+          pip install pyqt5
+    
+      - name: Build
+        run: pyinstaller --onefile cpppc.py
+  
+      - name: Archive artifacts
+        run: zip -r executables-macos.zip dist/
+  
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+  
+        with:
+          name: executables-macos
+          path: executables-macos.zip
+    
