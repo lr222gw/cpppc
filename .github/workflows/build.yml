@@ -27,16 +27,11 @@ jobs:
     - name: Build
       run: pyinstaller --onefile cpppc.py
     
-
-    - name: Archive artifacts
-      run: zip -r executables-linux.zip dist/
-    
-
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: executables-linux
-        path: executables-linux.zip
+        name: executable-linux
+        path: dist/
 
   build_windows:        
     runs-on: windows-latest
@@ -57,14 +52,11 @@ jobs:
     - name: Build
       run: pyinstaller --onefile cpppc.py
     
-    - name: Archive artifacts
-      run: Compress-Archive -Path .\dist\* -DestinationPath executables-windows.zip
-    
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: executables-windows
-        path: executables-windows.zip
+        name: executable-windows
+        path: dist/
 
   build_macos:
     runs-on: macos-latest
@@ -85,13 +77,10 @@ jobs:
       - name: Build
         run: pyinstaller --onefile cpppc.py
   
-      - name: Archive artifacts
-        run: zip -r executables-macos.zip dist/
-  
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
   
         with:
-          name: executables-macos
-          path: executables-macos.zip
+          name: executable-macos
+          path: dist/
     
