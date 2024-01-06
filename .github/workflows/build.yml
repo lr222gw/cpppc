@@ -10,6 +10,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
+    strategy:
+        matrix:
+          os: [windows-latest, macos-latest, ubuntu-latest]
+  
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -24,17 +29,9 @@ jobs:
         pip install pyinstaller
         pip install pyqt5
 
-    - name: Build for Windows
+    - name: Build
       run: pyinstaller --onefile cpppc.py
-      if: runner.os == 'Windows'
-
-    - name: Build for macOS
-      run: pyinstaller --onefile cpppc.py
-      if: runner.os == 'macOS'
-
-    - name: Build for Linux
-      run: pyinstaller --onefile cpppc.py
-      if: runner.os == 'Linux'
+      if: matrix.os == runner.os
 
     - name: Archive artifacts
       uses: actions/upload-artifact@v4
