@@ -32,7 +32,7 @@ jobs:
       if: runner.os == 'macOS'
 
     - name: Build for Linux
-      run: pyinstaller --onefile cpppc.py
+      run: pyinstaller cpppc.py
       if: runner.os == 'Linux'
 
     - name: Archive artifacts
