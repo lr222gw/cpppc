@@ -16,6 +16,10 @@ CPPPC currently under development, upcoming features include:
 - Crossplatform support (Currently only tested on Linux)
 - and more...
 
+## Precompiled binaries 
+The easiest way to run the application is with the precompiled binaries from the [Releases page](https://github.com/lr222gw/cpppc/releases).
+
+Alternatively, you can follow the steps below to run the sourcecode!
 
 ## Prerequisites
 
@@ -23,7 +27,7 @@ Before using CPPPC, make sure you have the following installed:
 
 - [cmake](https://cmake.org/)
 - [python](https://www.python.org/)
-- [PyQt](https://riverbankcomputing.com/software/pyqt/) (GUI library) 
+- [PyQt5](https://riverbankcomputing.com/software/pyqt/) (GUI library) 
 
 ## Getting Started
 
