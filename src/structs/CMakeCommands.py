@@ -28,7 +28,7 @@ class CMakeCommandKeyArguments:
                     stringified_args.append(arg)
             self._args = stringified_args                
         else:             
-            self._args = args
+            self._args = args # type: ignore
     
     def __str__(self):
         return str.format(
@@ -64,7 +64,7 @@ class CMakeCommandKeyArguments_str(CMakeCommandKeyArguments):
         super().__init__(key, *self._args)        
 
     def stringifyArgs(self, args):
-        self._args = tuple("\""+arg+"\"" for arg in args)
+        self._args = tuple("\""+arg+"\"" for arg in args) # type: ignore
 
 @dataclass
 class CMakeCommandKeyArguments_FuncArgs(CMakeCommandKeyArguments):
@@ -99,15 +99,15 @@ CMCK_args = CMakeCommandKeyArguments_FuncArgs   # Ignores the key argument...
 @dataclass
 class CMakeCommand(metaclass=CMakeCommandMeta): #CMC for short
     commandName :str
-    commandArgVals : list = field(default_factory=list)
+    commandArgVals : list[CMCK] = field(default_factory=list[CMCK])
 
-    def add_commandArgVals(self, commandArgVals : list):
+    def add_commandArgVals(self, *commandArgVals : CMCK):
         if not isinstance(commandArgVals, tuple):
             terminate("args must be tuple")
-        self.commandArgVals = commandArgVals if all(isinstance(arg, CMakeCommandKeyArguments) or isinstance(arg, CMakeCommandKeyArguments_str) for arg in commandArgVals) else terminate("args must be a CMakeCommandKeyArguments, aka CMCK" )        
+        self.commandArgVals = list(commandArgVals) if all(isinstance(arg, CMakeCommandKeyArguments) or isinstance(arg, CMakeCommandKeyArguments_str) for arg in commandArgVals) else terminate("args must be a CMakeCommandKeyArguments, aka CMCK" )        
 
-    def __init__(self, *CMC_CKeyArgs ):        
-        self.add_commandArgVals(CMC_CKeyArgs)
+    def __init__(self, *CMC_CKeyArgs : CMCK ):        
+        self.add_commandArgVals(*CMC_CKeyArgs)
 
 
     def __str__(self):
@@ -120,23 +120,23 @@ class CMakeCommand(metaclass=CMakeCommandMeta): #CMC for short
 @dataclass
 class CMakeCommandContainer(metaclass=CMakeCommandMeta):
     commandName :str
-    baseArgs : CMakeCommandKeyArguments  = field(default_factory=CMakeCommandKeyArguments)
+    baseArgs : CMakeCommandKeyArguments # = field(default_factory=CMakeCommandKeyArguments())
     containerContent : list = field(default_factory=list)
 
-    def add_containerContent(self, containerContents : list): #TODO: Should be tuple! (?)
+    def add_containerContent(self, *containerContents : CMakeCommand):
         if not isinstance(containerContents, tuple):
             terminate("containerContents must be tuple")
-        self.containerContent = containerContents if all(isinstance(arg, CMakeCommand) for arg in containerContents) else terminate("args must be a CMakeCommand")        
+        self.containerContent = list(containerContents) if all(isinstance(arg, CMakeCommand) for arg in containerContents) else terminate("args must be a CMakeCommand")        
 
-    def __init__(self, CMC_args :CMakeCommandKeyArguments ,*CMC_cs ):
+    def __init__(self, CMC_args :CMakeCommandKeyArguments ,*CMC_cs :CMakeCommand):
         self.baseArgs = CMC_args
-        self.add_containerContent(CMC_cs)
+        self.add_containerContent(*CMC_cs)
 
     def __str__(self):
         return str.format(
             "{}({})\n\t{}\n{}()",
             self.commandName,
-            ' '.join(map(str, self.baseArgs)),
+            self.baseArgs.__str__(),
             ' '.join(map(str, self.containerContent)) if len(self.containerContent) < 3 else '\n\t'.join(map(str, self.containerContent)),
             "end" + self.commandName # NOTE: Might exist cases where the scope does not end with <key>() \n <body contents> \n end<key>() ...
         )
