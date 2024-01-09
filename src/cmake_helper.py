@@ -21,18 +21,10 @@ def getCMakeVersion():
         match = re.match(versions_regx, str(res.stdout))
         
         if(match):
-           major, minor, patch = match.groups()
-        #    print(f"test {res.stdout} -> {major}.{minor}.{patch}")
-           majorbox = QSpinBox()
-           majorbox.setValue(int(major))
-           minorbox = QSpinBox()
-           minorbox.setValue(int(minor))
-           patchbox = QSpinBox()
-           patchbox.setValue(int(patch))
-           cmakeVersonData = CMakeVersionData(majorbox,minorbox,patchbox)
-           return cmakeVersonData
+           major, minor, patch = match.groups()           
+           return CMakeVersionData(int(major),int(minor),int(patch))
         else:
-            print("Output from `cmake --version` have unexpected format.")
-            cmakeVersonData = CMakeVersionData(0, 0, 0)
-            return cmakeVersonData
-
+            print("Output from `cmake --version` have unexpected format.")            
+            return CMakeVersionData()
+    
+    return CMakeVersionData()
