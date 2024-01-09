@@ -139,6 +139,17 @@ layout_2nd_column.addWidget(group_properties)
 # ProjConfDat.publicLinkLibs = ["lib1", "lib2", "lib3"]
 # ProjConfDat.privateLinkLibs  = ["lib4", "lib5", "lib6"]
 
+ProjConfDat.addExtraFeatureGroup_UserInputs(
+    layout_3rd_column,
+    layout_projectName,
+    "Libraries",
+    "Use external Libraries",
+    True,
+    ProjConfDat.addLibraryComponent,
+    UserInput_checkbox("Public",False,rotation=-90),
+    UserInput("Libary Name"),
+    UserInput("Path to library"),    
+)
 
 rootLayout.addWidget(group_projdef)
 rootLayout.addLayout(layout_2nd_column)

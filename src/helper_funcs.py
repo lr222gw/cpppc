@@ -276,6 +276,12 @@ def addHidableGroup(
     
     return group_layout
 
+def variadicArgumentValidator(expectedNrOfArgs: int, *args) -> bool:
+    if len(args) != expectedNrOfArgs:
+        errMsg = "Function not design to take anything but "+str(expectedNrOfArgs)+" variadic arguments, got "+str(len(args))+"\n"
+        errMsg += "\t"+"\n\t".join(map(str, args) )
+        terminate(errMsg)
+
 def toggleHideShow_updGeoemtry(frame_widget, checkbox,scroll_area):    
     showHideFrame(frame_widget, checkbox.getState())
     scroll_area.updateGeometry()

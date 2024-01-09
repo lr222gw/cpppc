@@ -42,7 +42,10 @@ class ProjectConfigurationData:
     useCmakeCppBridge : GuiDataToggle = field(default= GuiDataToggle)
 
     cmakeToCppVars : dict = field(default_factory=dict)
+    
+    linkLibs_dict  : dict = field(default_factory=dict[library_inputWidget])
 
+    #Todo: Use Dictionarys rather than lists...
     publicLinkLibs :list = field(default_factory=list)
     privateLinkLibs:list = field(default_factory=list)
 
@@ -125,7 +128,7 @@ class ProjectConfigurationData:
         return featureGroupToggles
 
 
-    def addExtraFeatureGroup_UserInputs(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, func:Callable[[QGridLayout,Tuple[UserInput]],None], *userInputHeaders : UserInput, requirement:Optional[Callable] = None) -> GuiDataToggle: 
+    def addExtraFeatureGroup_UserInputs(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, func:Callable[[QGridLayout,*Tuple[Input,...]],None], *userInputHeaders : Input, requirement:Optional[Callable] = None) -> GuiDataToggle: 
         groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
         groupLayout = hlp.addHidableGroup(
             groupParentLayout,
@@ -160,26 +163,28 @@ class ProjectConfigurationData:
 
     def addUserInput(self, parentLayout, func:Callable[[QGridLayout,Tuple[UserInput]],None], *headers : UserInput):
         layout_grid = QGridLayout()
-
+        layout_grid.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeading)
+        
         columnCounter = 0
         for header in headers:
-            layout_grid.addWidget(header.label,0,columnCounter)
+            layout_grid.addWidget(header.label.labelView,0,columnCounter)            
+            layout_grid.setAlignment(header.label.labelView, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignLeft)
+            
             columnCounter += 1
         
         columnCounter = 0
         for header in headers:
-            layout_grid.addWidget(header.input, 1, columnCounter)
+            layout_grid.addWidget(header.input.getWidget(), 1, columnCounter)
             columnCounter += 1
         
         newButton = QPushButton("Add/Edit")
         layout_grid.addWidget(newButton, 1, columnCounter)
         newButton.clicked.connect(lambda: func(layout_grid,*headers))
-
+        
         parentLayout.addLayout(layout_grid)
 
     def addCmakeToCppVar(self, gridLayout: QGridLayout, *args: UserInput ):
-        if len(args) != 2:
-            terminate("Function not design to take anything but 2 variadic arguments")
+        hlp.variadicArgumentValidator(2, *args)
         name  = args[0].getInputText()
         value = args[1].getInputText()
         if name == "" or value == "":
@@ -187,11 +192,11 @@ class ProjectConfigurationData:
             return            
 
         if name not in self.cmakeToCppVars:
-            cmakeCppvar = CmakeCppVarWidget(name, str(value))           
+            cmakeCppvar = CmakeCppVar_inputWidget(name, str(value))           
             row = gridLayout.rowCount() +1
 
             gridLayout.addWidget(cmakeCppvar.nameWidget, row, 0)
-            gridLayout.addWidget(cmakeCppvar.valWidget, row, 1)
+            gridLayout.addWidget(cmakeCppvar.valWidget, row, 1)            
 
             remButton = hlp.addButton_gridLayout("-", gridLayout, row, 2)
             remButton.clicked.connect(lambda: self.remCmakeToCppVar(cmakeCppvar, remButton, gridLayout))            
@@ -200,11 +205,35 @@ class ProjectConfigurationData:
         else: 
             self.cmakeToCppVars[name].valWidget.setText(str(value))
 
-    def remCmakeToCppVar(self, cmakeCppVar: CmakeCppVarWidget, remButton, layout : QGridLayout):    
+    def remCmakeToCppVar(self, cmakeCppVar: CmakeCppVar_inputWidget, remButton, layout : QGridLayout):    
         cmakeCppVar.nameWidget.deleteLater()
         cmakeCppVar.valWidget.deleteLater()
         remButton.deleteLater()
         self.cmakeToCppVars.pop(cmakeCppVar.nameWidget.text())
+
+    def addLibraryComponent(self, gridLayout: QGridLayout, *args: Input):
+        hlp.variadicArgumentValidator(3, *args)
+            
+        publicUserInput : Input= args[0]
+        name_str  = args[1].getInputText()
+        value_str = args[2].getInputText()
+        if name_str == "" or value_str == "":
+            print("Nothing to add!") 
+            return    
+
+        if name_str not in self.linkLibs_dict:
+            libVar = library_inputWidget(name_str, str(value_str), publicUserInput.input.getState())           
+            row = gridLayout.rowCount() +1
+
+            gridLayout.addWidget(libVar.public.widget, row, 0)
+            gridLayout.addWidget(libVar.nameWidget, row, 1)
+            gridLayout.addWidget(libVar.valWidget, row, 2)
+
+            remButton = hlp.addButton_gridLayout("-", gridLayout, row, 3)
+        
+            self.linkLibs_dict[name_str] = libVar
+        else:
+            self.linkLibs_dict[name_str].valWidget.setText(str(value_str))
 
     def getTargetPath(self) -> str:
         path = self.projectTargetDir.widget.text() + "/" + self.projectName.widget.text()
