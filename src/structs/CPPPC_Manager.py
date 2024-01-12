@@ -130,19 +130,19 @@ class CPPPC_Manager:
         self.cppDat.createCppEntryPointFileOnDemand()
         
 
-    def __createCMakeFileOnDemand(self, cmakeFileDat :CMakeDataHelper, shouldOverwrite :bool, file : str, content :str ):
-        if os.path.exists(cmakeFileDat.getRelativeCMakeFilePath(file)) and not shouldOverwrite:
-            print(f"Target File ({cmakeFileDat.getRelativeCMakeFilePath(file)}) Already exists")
+    def __createCMakeFileOnDemand(self, cmakeFileDat :CMakeDataHelper, shouldOverwrite :bool, fileName : str, content :str ):
+        if os.path.exists(cmakeFileDat.getRelativeCMakeFilePath(fileName)) and not shouldOverwrite:
+            print(f"Target File ({cmakeFileDat.getRelativeCMakeFilePath(fileName)}) Already exists")
         else: 
-            with open(cmakeFileDat.getRelativeCMakeFilePath(file), "w") as file:                        
+            with open(cmakeFileDat.getRelativeCMakeFilePath(fileName), "w") as file:                        
                 file.write(content)    
 
-    def createFileOnDemand(self, file : str, content :str, shouldOverwrite :bool = False):
-        if os.path.exists(self.projDat.getPathInTarget(file)) and not shouldOverwrite:
-            print(f"Target File ({self.projDat.getPathInTarget(file)}) Already exists")
+    def createFileOnDemand(self, fileName : str, content :str, shouldOverwrite :bool = False):
+        if os.path.exists(self.projDat.getPathInTarget(fileName)) and not shouldOverwrite:
+            print(f"Target File ({self.projDat.getPathInTarget(fileName)}) Already exists")
         else: 
-            with open(self.projDat.getPathInTarget(file), "w") as file:                        
-                file.write(content)                
+            with open(self.projDat.getPathInTarget(fileName), "w") as file:                        
+                file.write(content)    
 
     def createSanitizerBlacklistOnDemand(self):
         blacklistfile = "### lines with one # are examples...\n"
