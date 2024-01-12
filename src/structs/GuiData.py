@@ -285,41 +285,7 @@ class Label():
         self.text_item.update()
         self.labelScene.update()
 
-
-
 T = TypeVar('T')
-class GenricTypeValueSetter(type):
-
-    def __new__(cls, name: str, bases: tuple, dct: dict, classType=None, isBase=False):
-
-
-        if classType != None:
-            if '__init__' in dct:
-                dct['__oldInit__'] = dct['__init__']
-
-            def custom_init(self, *args, **kwargs):
-                # super(self.__class__, self).__init__(*args, **kwargs)
-                super(self.__class__, self).__init__(*args)
-
-                super(self.__class__, self).initT(classType()) 
-                
-                if '__oldInit__' in dct:
-                    dct['__oldInit__'](self,  *args, **kwargs)
-
-            dct['__init__'] = custom_init
-        if not isBase and classType == None:
-            terminate("Missing `classType argument` in " +name 
-                    + " declaration. Adjust class signature like this: \n\tclass "  
-                    + name + "("
-                    + bases[0].__name__+"[<YourType>], classType=<YourType>): ")
-
-        new_class = super().__new__(cls, name, bases, dct)
-        super().__init__(new_class, name, bases, dct)
-
-        return new_class
-
-T = TypeVar('T')
-
 @dataclass
 class Input(Generic[T],GuiData, metaclass=GenricTypeValueSetter, classType=None, isBase=True):
     label : Label
