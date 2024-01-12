@@ -6,11 +6,25 @@ from PyQt5.QtWidgets import *
 import math
 from src.structs.GenericTypeValueSetterMetaClass import GenericTypeValueSetterMetaClass
 from ..dev.Terminate import terminate
+from ..dev.qt_helpers import *
 
 T = TypeVar("T")
 @dataclass
 class GuiData(Generic[T], metaclass=GenericTypeValueSetterMetaClass):
-    widget: T 
+
+    _widget : T
+
+    # Qt library works gives autocomplete if property, but not otherwise...
+    @property 
+    def widget(self) -> T:
+        return self._widget
+    @widget.setter
+    def widget(self, w : T):
+        self._widget = w 
+
+    def __init__(self, widget :Optional[T] = None):
+        if widget != None:
+            self.widget = widget
 
     def __initT(self, t):
         self.widget = t()
@@ -29,14 +43,14 @@ class GuiDataToggle(GuiData[QCheckBox], classType=QCheckBox, superRoot=GuiData):
         self.requirement = requirement        
 
     def toggle(self):
-        self.widget.setCheckState(not self.widget.isChecked())
+        self.widget.setCheckState(Qt.CheckState.Unchecked if self.widget.isChecked() else Qt.CheckState.Checked )
     def setState(self, value):
         self.widget.setChecked(value)            
     def getState(self):        
         return self.widget.isChecked()
 
 @dataclass
-class GuiDataComboBox(GuiData[QComboBox], classType=QComboBox, superRoot=GuiData):
+class GuiDataComboBox(GuiData[QComboBox], classType=QComboBox, superRoot=GuiData):      
     def getValue(self):        
         return self.widget.currentText()
     
@@ -70,7 +84,7 @@ class PropToggle(Prop, GuiDataToggle):
         return "ON" if self.widget.isChecked() else "OFF"
 
 @dataclass
-class PropComboBox(Prop, GuiDataComboBox):
+class PropComboBox(Prop,GuiDataComboBox):
     def setValue(self, value):
         self.widget.setCurrentIndex(value)
 
@@ -260,7 +274,7 @@ class Label():
         self.labelView.setFrameShape(QFrame.Shape.NoFrame)
         self.labelView.setStyleSheet("background: transparent")
         
-        self.labelView.setAlignment(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignLeft)        
+        self.labelView.setAlignment(combine_alignment_flags(Qt.AlignmentFlag.AlignBottom, Qt.AlignmentFlag.AlignLeft))
                 
         self.labelScene.addItem(self.text_item)
                 
@@ -364,5 +378,5 @@ class UserInput_checkbox(Input[GuiDataToggle], classType=GuiDataToggle, superRoo
 
 @dataclass
 class Container_FeatureShareToggle_FunctionWrapperList():
-    featureShareToggle : FeatureShareToggle = field(default_factory=FeatureShareToggle)
+    featureShareToggle : FeatureShareToggle
     functions : list[Callable]  = field(default_factory=list[Callable])

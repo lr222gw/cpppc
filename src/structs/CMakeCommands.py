@@ -90,6 +90,12 @@ class CMakeCommandMeta(type):
         if "__init__" not in dct:
             #sets the __init__ method of a subclass to be the same as the basclass (i.e. CMakeCommand)
             dct['__init__'] = bases[0].__init__
+        else: 
+            # If user write "skip" in docstring, then use baseclass constructor
+            import inspect
+            if inspect.getdoc(dct['__init__']) == "skip": 
+                dct['__init__'] = bases[0].__init__
+
             
         return super().__new__(cls, name, bases, dct)
 
@@ -98,7 +104,13 @@ CMCK_str = CMakeCommandKeyArguments_str         # Adds \"\" around strings
 CMCK_args = CMakeCommandKeyArguments_FuncArgs   # Ignores the key argument...
 @dataclass
 class CMakeCommand(metaclass=CMakeCommandMeta): #CMC for short
-    commandName :str
+    '''
+    Inheriting from CMakeCommand can skip 
+    initialization of __init__ function 
+    by providing "skip" as docstring 
+    for the __init__ function
+    '''
+    commandName :str = "<NO COMMAND>"
     commandArgVals : list[CMCK] = field(default_factory=list[CMCK])
 
     def add_commandArgVals(self, *commandArgVals : CMCK):
@@ -143,46 +155,70 @@ class CMakeCommandContainer(metaclass=CMakeCommandMeta):
 
 # Any class inheriting from CMakeCommand will be expected to have their classname start with "CMC_"
 @dataclass
-class CMC_set(CMakeCommand): pass
+class CMC_set(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+@dataclass
+class CMC_file(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_file(CMakeCommand): pass
+class CMC_include(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+        
+@dataclass
+class CMC_add_executable(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+@dataclass
+class CMC_project(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_include(CMakeCommand): pass
+class CMC_find_program(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+@dataclass
+class CMC_target_sources(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+@dataclass
+class CMC_target_compile_options(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_add_executable(CMakeCommand): pass
+class CMC_target_link_options(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_project(CMakeCommand): pass
+class CMC_target_link_libraries(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_find_program(CMakeCommand): pass
+class CMC_set_property(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_target_sources(CMakeCommand): pass
+class CMC_set_target_properties(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_target_compile_options(CMakeCommand): pass
+class CMC_findProgram(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_target_link_options(CMakeCommand): pass
-
-@dataclass
-class CMC_target_link_libraries(CMakeCommand): pass
-
-@dataclass
-class CMC_set_property(CMakeCommand): pass
-
-@dataclass
-class CMC_set_target_properties(CMakeCommand): pass
-
-@dataclass
-class CMC_findProgram(CMakeCommand): pass
-
-@dataclass
-class CMCC_if(CMakeCommandContainer): pass
+class CMCC_if(CMakeCommandContainer): 
+    def __init__(self, CMC_args :CMakeCommandKeyArguments ,*CMC_cs :CMakeCommand):
+        '''skip'''
 
 @dataclass
 class CMC_CALLFUNC(CMakeCommand):
@@ -192,6 +228,9 @@ class CMC_CALLFUNC(CMakeCommand):
 
 @dataclass
 class CMC_cmake_minimum_required(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+
     def __str__(self):
         return str.format(
             "{}({})",

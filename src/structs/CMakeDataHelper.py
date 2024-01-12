@@ -233,7 +233,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_if(self,condition, *body):
         return self.cmakeCommands.add_CMC_C(
             CMCC_if(
-                [CMCK(condition)],
+                CMCK(condition),
                 *body
             )
         ).__str__()
@@ -320,10 +320,10 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
 
     #TODO: Split into several functions
     def genStr_compileSanitizers(self, *args ) -> str:
-        return self.genStr_setTargetCompileOptions(args)
+        return self.genStr_setTargetCompileOptions(list(args))
         
     def genStr_linkSanitizers(self,*args) -> str:        
-        return self.genStr_setTargetLinkOptions(args)
+        return self.genStr_setTargetLinkOptions(list(args))
         
     def genStr_compileTimeProperty(self ) -> str:
         return self.genStr_setProperty("RULE_LAUNCH_COMPILE", "${CMAKE_COMMAND} -E time")

@@ -56,7 +56,7 @@ def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> GuiDataToggl
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
@@ -68,7 +68,7 @@ def addProp_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> PropTog
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
@@ -79,7 +79,7 @@ def addFeature_CheckBox(fieldName:str,value : str, defaultValue :bool, parentLay
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
@@ -90,7 +90,7 @@ def addFeatureShare_CheckBox(fieldName:str,value : str, defaultValue :bool, pare
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
     
     # Append widgets to parent layout
@@ -109,7 +109,7 @@ def strListFactory(func :Callable, parentCheckbox : GuiDataToggle, *args) -> Fun
 
 def strListShareFactory(parentCheckbox : GuiDataToggle, *args : Container_FeatureShareToggle_FunctionWrapperList) -> list[FunctionWrapper]:
 
-    funcCallDictionary :dict[list] = dict()
+    funcCallDictionary :dict[Callable[...,None], list[FeatureShareToggle], ] = dict()
     # Prepare dictionary
     for toggleFuncPair in args:                        
         for func in toggleFuncPair.functions:
@@ -127,15 +127,16 @@ def strListShareFactory(parentCheckbox : GuiDataToggle, *args : Container_Featur
         )
 
     return functionWrapperList
-def lambdaHelper(toggles, parentCheckbox)->list[str]:
-    valueList = list()
+def lambdaHelper(toggles, parentCheckbox)->tuple[str, ...]:
+    valueList :list[str] = list()
     for toggle in toggles:
         if toggle.getState() and parentCheckbox.getState():
             valueList.append(toggle.getValue())
             if toggle.requirement != None:
                 toggle.requirement()
     
-    return valueList 
+    a = tuple(valueList)
+    return a
 
 def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> GuiData:
     # Create Label, input field widgets
@@ -178,7 +179,7 @@ def createQHBoxLayout() -> QHBoxLayout:
 
 def createCheckBox(fieldName:str, defaultValue :bool) -> PropToggle:        
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
 
     return PropToggle(newCheckBox)    
@@ -276,7 +277,7 @@ def addHidableGroup(
     
     return group_layout
 
-def variadicArgumentValidator(expectedNrOfArgs: int, *args) -> bool:
+def variadicArgumentValidator(expectedNrOfArgs: int, *args):
     if len(args) != expectedNrOfArgs:
         errMsg = "Function not design to take anything but "+str(expectedNrOfArgs)+" variadic arguments, got "+str(len(args))+"\n"
         errMsg += "\t"+"\n\t".join(map(str, args) )

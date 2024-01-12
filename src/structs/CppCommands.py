@@ -28,7 +28,7 @@ class CPPCommandKeyArguments: #TODO: Check if we can reuse the CMakeCommandKeyAr
                     stringified_args.append(arg)
             self._args = stringified_args                
         else:             
-            self._args = args
+            self._args = list(args)
     
     def __str__(self):
         return str.format(
@@ -64,7 +64,7 @@ class CPPCommandKeyArguments_str(CPPCommandKeyArguments):
         super().__init__(key, *self._args)        
 
     def stringifyArgs(self, args):
-        self._args = tuple("\""+arg+"\"" for arg in args)
+        self._args = list("\""+arg+"\"" for arg in args)
 
 @dataclass
 class CPPCommandKeyArguments_FuncArgs(CPPCommandKeyArguments):
@@ -104,13 +104,13 @@ class CPPCommand(metaclass=CPPCommandMeta): #CPP for short
     commandArgVals : list = field(default_factory=list)
 
     def add_commandArgVals(self, commandArgVals : list):
-        if not isinstance(commandArgVals, tuple):
+        if not isinstance(commandArgVals, list):
             terminate("args must be tuple")
         self.commandArgVals = commandArgVals if all(isinstance(arg, CPPCK) or isinstance(arg, CPPCK_str) or isinstance(arg, CPPCK_args) for arg in commandArgVals) else \
         terminate("args must be a CPPCommandKeyArguments, aka CPPCK" )        
 
     def __init__(self, *CPP_CKeyArgs ):        
-        self.add_commandArgVals(CPP_CKeyArgs)
+        self.add_commandArgVals(list(CPP_CKeyArgs))
 
 
     def __str__(self):
@@ -123,23 +123,23 @@ class CPPCommand(metaclass=CPPCommandMeta): #CPP for short
 @dataclass
 class CPPCommandContainer(metaclass=CPPCommandMeta):
     commandName :str
-    baseArgs : CPPCK  = field(default_factory=CPPCK)
+    baseArgs : CPPCK 
     containerContent : list = field(default_factory=list)
 
-    def add_containerContent(self, containerContents : list): #TODO: Should be tuple! (?)
-        if not isinstance(containerContents, tuple):
+    def add_containerContent(self, containerContents : list):
+        if not isinstance(containerContents, list):
             terminate("containerContents must be tuple")
         self.containerContent = containerContents if all(isinstance(arg, CPPCommand) for arg in containerContents) else terminate("args must be a CPPCommand")        
 
     def __init__(self, CPP_args  ,*CMC_cs ):
         self.baseArgs = CPP_args
-        self.add_containerContent(CMC_cs)
+        self.add_containerContent(list(CMC_cs))
 
     def __str__(self):
         return str.format(
             "{}({})\n{{\n\t{}\n}}",
             self.commandName,
-            ', '.join(map(str, self.baseArgs)),
+            (', '.join(map(str, self.baseArgs)) if type(self.baseArgs) is list else self.baseArgs.__str__()),
             '; '.join(map(str, self.containerContent) ) + ";" if len(self.containerContent) < 3 else '\n\t'.join(map(str, self.containerContent)) + ";" ,
             "}}" 
         )
@@ -181,7 +181,7 @@ class CPP_CUSTOMLINE(CPPCommand):
         )
 
 class CPPC_main(CPPCommandContainer):
-    def __init__(self,CPP_args : CPPCK,*CPP_CKeyArgs):
+    def __init__(self,CPP_args : list[CPPCK],*CPP_CKeyArgs):
         super().__init__(CPP_args, *CPP_CKeyArgs)
         self.commandName = "int main"
     
@@ -189,7 +189,7 @@ class CPPC_main(CPPCommandContainer):
         return str.format(
             "{}({})\n{{\n\t{}\n}}",
             self.commandName,
-            ', '.join(map(str, self.baseArgs)),
+            (', '.join(map(str, self.baseArgs)) if type(self.baseArgs) is list else self.baseArgs.__str__()),
             ';\n\t'.join(map(str, self.containerContent) ) + ";" ,
             "}}" 
         )

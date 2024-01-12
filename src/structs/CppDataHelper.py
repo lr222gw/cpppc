@@ -29,7 +29,7 @@ class CppDataHelper():
         return cppfileStr
 
 
-    def createCppEntryPointFileOnDemand(self) -> str:
+    def createCppEntryPointFileOnDemand(self):
         if os.path.exists(self.cmakeDataHelper.getRelativeCppFilePath(self.projData.entryPointFile_str())) and not self.projData.overwriteProjectTargetDir.getState():
             print(f"Target File ({self.cmakeDataHelper.getRelativeCppFilePath(self.projData.entryPointFile_str())}) Already exists")
         else: 
