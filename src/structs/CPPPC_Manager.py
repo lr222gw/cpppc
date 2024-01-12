@@ -144,6 +144,16 @@ class CPPPC_Manager:
             with open(self.projDat.getPathInTarget(file), "w") as file:                        
                 file.write(content)                
 
+    def createSanitizerBlacklistOnDemand(self):
+        blacklistfile = "### lines with one # are examples...\n"
+        blacklistfile += "### Ignore exactly this function (the names are mangled)\n" 
+        blacklistfile += "# fun:MyFooBar\n" 
+        blacklistfile += "### Ignore MyFooBar(void) if it is in C++:\n" 
+        blacklistfile += "# fun:_Z8MyFooBarv\n" 
+        blacklistfile += "### Ignore all function containing MyFooBar\n" 
+        blacklistfile += "# fun:*MyFooBar*\n" 
+        self.createFileOnDemand("sanitizer_blacklist.txt", blacklistfile, self.projDat.overwriteProjectTargetDir.getState())
+
     def __placeholderAsBackup(self, widget, placeholder:str):
         if(widget.text() == ""):
             widget.setText(placeholder)

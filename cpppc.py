@@ -127,8 +127,7 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
         g.genStr_compileSanitizers),
     ToggleShareData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", False,
         g.genStr_linkSanitizers, g.genStr_compileSanitizers, 
-        requirement=lambda: cppc.createFileOnDemand("sanitizer_blacklist.txt", "test")
-        ),
+        requirement=lambda: cppc.createSanitizerBlacklistOnDemand())    
     )    
 
 
