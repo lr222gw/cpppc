@@ -263,7 +263,7 @@ class ProjectConfigurationData:
         libItem.valWidget.deleteLater()
         libItem.public.widget.deleteLater()
         remButton.deleteLater()
-        self.cmakeToCppVars.pop(libItem.nameWidget.text())
+        self.linkLibs_dict.pop(libItem.nameWidget.text())
 
     def getTargetPath(self) -> str:
         path = self.projectTargetDir.widget.text() + "/" + self.projectName.widget.text()
