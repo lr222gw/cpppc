@@ -1,25 +1,30 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, Generic, Tuple, Type, TypeVar,Optional
+from typing import Any, Callable, Generic, Tuple, TypeVar,Optional
 from PyQt5.QtCore    import *
 from PyQt5.QtWidgets import *
 import math
+from src.structs.GenericTypeValueSetterMetaClass import GenericTypeValueSetterMetaClass
 from ..dev.Terminate import terminate
 
-# NOTE: Class may be skipped if it remains this empty
+T = TypeVar("T")
 @dataclass
-class GuiData():
-    widget: QWidget
-    def registerConnection(self, func : Callable):
-        self.widget.clicked.connect(func)
+class GuiData(Generic[T], metaclass=GenericTypeValueSetterMetaClass):
+    widget: T 
 
-    def getWidget(self)->QWidget:
+    def __initT(self, t):
+        self.widget = t()
+
+    def registerConnection(self, func : Callable):
+        if isinstance(self.widget,QWidget):
+            self.widget.clicked.connect(func)
+
+    def getWidget(self)->T:
         return self.widget
 
 @dataclass
-class GuiDataToggle(GuiData):
-    widget: QCheckBox
-    def __init__(self, widget : QCheckBox = None, requirement : Optional[Callable] = None ):
+class GuiDataToggle(GuiData[QCheckBox], classType=QCheckBox, superRoot=GuiData):
+    def __init__(self, widget : Optional[QCheckBox] = None, requirement : Optional[Callable] = None ):
         self.widget = widget if widget != None else QCheckBox()
         self.requirement = requirement        
 
@@ -31,15 +36,13 @@ class GuiDataToggle(GuiData):
         return self.widget.isChecked()
 
 @dataclass
-class GuiDataComboBox(GuiData):
-    widget: QComboBox
+class GuiDataComboBox(GuiData[QComboBox], classType=QComboBox, superRoot=GuiData):
     def getValue(self):        
         return self.widget.currentText()
     
 @dataclass
-class GuiDataLineEdit(GuiData):
-    widget: QLineEdit
-    def __init__(self, widget : QLineEdit = None, requirement : Optional[Callable] = None ):
+class GuiDataLineEdit(GuiData[QLineEdit], classType=QLineEdit, superRoot=GuiData):
+    def __init__(self, widget : Optional[QLineEdit] = None, requirement : Optional[Callable] = None ):
         self.widget = widget if widget != None else QLineEdit()
         self.requirement = requirement        
     
@@ -49,13 +52,13 @@ class GuiDataLineEdit(GuiData):
         return self.widget.text()
 
 @dataclass
-class Prop(ABC):    
+class Prop():    
     cmake_propName : str = "<MISSING NAME>"
     @abstractmethod
     def setValue(self, value):
         pass
     @abstractmethod
-    def getValue(self) -> any:
+    def getValue(self) -> Any:
         pass
 
 @dataclass
@@ -68,8 +71,8 @@ class PropToggle(Prop, GuiDataToggle):
 
 @dataclass
 class PropComboBox(Prop, GuiDataComboBox):
-    def setValue(self, index):
-        self.widget.setCurrentIndex(index)
+    def setValue(self, value):
+        self.widget.setCurrentIndex(value)
 
     def getValue(self) -> str:
         return self.widget.currentText()
@@ -78,18 +81,17 @@ class PropComboBox(Prop, GuiDataComboBox):
 def __defaultFunc__(*args):
     terminate("Feature function not implemented")
 
-
-
 @dataclass
-class FunctionWrapper():
-    func : Callable[..., None]  = field(default=lambda *args:())
+class FunctionWrapper(): 
+    func : Callable[..., None]  = field(default=lambda *args:None)
     arg  : Callable[[],Tuple]  = field(default=lambda:())
         
     def __call__(self):
         self.func(*self.arg())
 
 @dataclass
-class Feature(ABC):    
+# class Feature(AbstractGenericTypeValueSetterMetaClass):    
+class Feature():    
     value : str
     functionWrapper : FunctionWrapper = field(default_factory=FunctionWrapper)
     featureName : str = "<MISSING NAME>"
@@ -97,11 +99,12 @@ class Feature(ABC):
     def setValue(self, value):
         pass
     @abstractmethod
-    def getValue(self) -> any:
+    def getValue(self) -> Any:
         pass
 
 @dataclass
-class FeatureShare(ABC):    
+# class FeatureShare(AbstractGenericTypeValueSetterMetaClass):    
+class FeatureShare():    
     value : str
     functionWrappers : list[FunctionWrapper] = field(default_factory=list)
     featureName : str = "<MISSING NAME>"
@@ -109,7 +112,7 @@ class FeatureShare(ABC):
     def setValue(self, value):
         pass
     @abstractmethod
-    def getValue(self) -> any:
+    def getValue(self) -> Any:
         pass
 
 @dataclass
@@ -136,7 +139,7 @@ class FeatureGroup(GuiDataToggle):
     def setValue(self, value):
         pass
     @abstractmethod
-    def getValue(self) -> any:
+    def getValue(self) -> Any:
         pass         
 
 @dataclass
@@ -147,7 +150,7 @@ class FeatureShareGroup(GuiDataToggle):
     def setValue(self, value):
         pass
     @abstractmethod
-    def getValue(self) -> any:
+    def getValue(self) -> Any:
         pass          
 
 @dataclass
@@ -173,7 +176,7 @@ class ToggleShareData(ToggleData):
         self.name = name
         self.val = val
         self.defaultValue = defaultValue
-        self.functionWrappers = args
+        self.functionWrappers = list(args)
         self.requirement = requirement
 
 @dataclass
@@ -287,14 +290,17 @@ class Label():
 
 T = TypeVar('T')
 @dataclass
-class Input(Generic[T],GuiData, metaclass=GenricTypeValueSetter, classType=None, isBase=True):
+class Input(GuiData[T], Generic[T]):
     label : Label
     input : T = T  # type: ignore
+
+    def __initT(self, t):
+        self.input = t
 
     def initT(self, t):
         self.input = t
 
-    def __init__(self, labelStr : str,  rotation : Optional[int] = 0):        
+    def __init__(self, labelStr : str, defaultState: bool = True,  rotation : Optional[int] = 0):        
         self.label = Label(labelStr, rotation) # type: ignore will never be `None`...
         # self.input :T = T_instance
 
@@ -311,11 +317,13 @@ class Input(Generic[T],GuiData, metaclass=GenricTypeValueSetter, classType=None,
     def getInputText(self) -> Any:pass
 
 @dataclass
-class UserInput(Input[GuiDataLineEdit], classType=GuiDataLineEdit):
+# class UserInput(Input[GuiDataLineEdit], classType=GuiDataLineEdit):
+# class UserInput(Input):
+class UserInput(Input[GuiDataLineEdit], classType=GuiDataLineEdit, superRoot=Input):
 
     def __init__(self, labelStr : str, rotation : Optional[int] = 0):        
         self.label = Label(labelStr, rotation) # type: ignore will never be `None`...
-        self.input :GuiDataLineEdit = GuiDataLineEdit()
+        # self.input :GuiDataLineEdit = GuiDataLineEdit()
                 
     def setVariable(self, name:str, value):        
         self.label.setText(name)
@@ -332,11 +340,10 @@ class UserInput(Input[GuiDataLineEdit], classType=GuiDataLineEdit):
     def __str__(self):
         return "UserInput:["+self.label.getText()+"]"
 
-class UserInput_checkbox(Input[GuiDataToggle], classType=GuiDataToggle):
+class UserInput_checkbox(Input[GuiDataToggle], classType=GuiDataToggle, superRoot=Input):
 
     def __init__(self, labelStr : str, defaultVal:bool,rotation : Optional[int] = 0):
         self.label = Label(labelStr, rotation)# type: ignore will never be `None`...
-        self.input = GuiDataToggle()
         self.input.setState(defaultVal)
 
     def setVariable(self, name:str, value : bool):
