@@ -21,6 +21,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     cmakelist_str : str = "#CMakeLists.txt created through CPPPC\n"
     # Directory Paths 
     targetDirPath   :str = "."
+    depsDirPath     :str = "deps"
     srcDirPath      :str = "src"
     cmakeDirPath    :str = "cmake"
     cmakeGenSrcDirPath: str = srcDirPath + "/generated" #TODO avoid hardcoding...
@@ -151,6 +152,9 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     
     def getPathInTarget(self, targetInsidePath : str) -> str:
         return self.targetDirPath + "/" + targetInsidePath
+    
+    def getLocalPathInDeps(self, targetInsidePath : str) -> str:
+        return self.depsDirPath + "/" + targetInsidePath
 
     def getSourcePaths(self) ->list:
         return [
@@ -260,8 +264,8 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         return self.cmakeCommands.add_CMC(
             CMC_target_link_libraries(
                 CMCK(self.projdata.projectExecName_str()),
-                CMCK("PUBLIC", self.projdata.publicLinkLibs),
-                CMCK("PRIVATE", self.projdata.privateLinkLibs)
+                CMCK("PUBLIC",  [name for name, lib in self.projdata.linkLibs_dict.items() if lib.getPublicVisibilitySpecifier()]),
+                CMCK("PRIVATE", [name for name, lib in self.projdata.linkLibs_dict.items() if not lib.getPublicVisibilitySpecifier()])
             )
         ).__str__()
 
@@ -304,6 +308,9 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
 
     def genStr_addExecutable(self):
         return self.cmakeCommands.add_CMC(CMC_add_executable(CMCK(self.projdata.projectExecName_str()))).__str__()
+    
+    def genStr_addSubdirectory(self, subdir:str):
+        return self.cmakeCommands.add_CMC(CMC_add_subdirectory(CMCK(subdir))).__str__()
 
     def genStr_file_globRecurse_ConfigureDepends(self, varName : str, dirs :list) -> str:                
         return self.cmakeCommands.add_CMC(

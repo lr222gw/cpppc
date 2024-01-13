@@ -49,6 +49,7 @@ class CPPPC_Manager:
         self.cmakeListDat.appendOrder(CMC_cmake_minimum_required)
         self.cmakeListDat.appendOrder(CMC_project)
         self.cmakeListDat.appendOrder(CMC_include)
+        self.cmakeListDat.appendOrder(CMC_add_subdirectory)
         self.cmakeListDat.appendOrder(CMC_set)
         self.cmakeListDat.appendOrder(CMC_find_program)
         self.cmakeListDat.appendOrder(CMCC_if)
@@ -79,6 +80,8 @@ class CPPPC_Manager:
             return
         else:
             os.makedirs(self.cmakeListDat.targetDirPath, exist_ok=True)
+            os.makedirs(self.projDat.getPathInTarget(self.cmakeListDat.srcDirPath),    exist_ok=True)
+            os.makedirs(self.projDat.getPathInTarget(self.cmakeListDat.cmakeDirPath),  exist_ok=True)
             os.makedirs(self.projDat.getPathInTarget(self.cmakeListDat.depsDirPath),   exist_ok=True)
 
     def __generateCMakeLists(self):
@@ -148,6 +151,11 @@ class CPPPC_Manager:
 
     def __setupLibraries(self):
         self.__fetchLibraries()
+        print("Setup Libraries")
+        for (name, lib) in self.projDat.linkLibs_dict.items():            
+            #lib.getLibraryPath(), name, self.projDat.getPathInTarget(self.cmakeListDat.depsDirPath)
+            self.cmakeListDat.genStr_addSubdirectory(self.cmakeListDat.getLocalPathInDeps(name))
+            
 
     def __fetchLibraries(self):
         print("Fetching libraries")

@@ -172,6 +172,10 @@ class CMC_include(CMakeCommand):
 class CMC_add_executable(CMakeCommand):
     def __init__(self, *CMC_CKeyArgs : CMCK):
         '''skip'''
+
+class CMC_add_subdirectory(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 @dataclass
 class CMC_project(CMakeCommand):
     def __init__(self, *CMC_CKeyArgs : CMCK):

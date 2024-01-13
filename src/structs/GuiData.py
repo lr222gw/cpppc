@@ -229,13 +229,16 @@ class library_inputWidget(InputWidget):
         super().__init__(name, val)
         self.public = GuiDataToggle(QCheckBox())
         self.public.setState(public)
+        self.nameWidget.setDisabled(True)
 
     def setPublicVisibilitySpecifier(self, isPublic : bool):
         self.public.setState(isPublic)
 
     def getPublicVisibilitySpecifier(self) -> bool:
         return self.public.getState()
-    pass
+    
+    def getLibraryPath(self) -> str:
+        return self.valWidget.text()
 
 @dataclass
 class Label():
