@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+
+from src.fetchers.Fetcher_github import fetchGithubRepo
 from .CMakeDataHelper import *
 from .CppDataHelper import *
 from .ProjectConfigurationData import *
@@ -39,6 +41,7 @@ class CPPPC_Manager:
                    
         print("Creating Project")        
         self.projDat.toString()     #TODO: Junk?!
+        self.__setupLibraries()
         self.__generateCMakeLists()
         self.__generateCPPFiles()
 
@@ -76,8 +79,7 @@ class CPPPC_Manager:
             return
         else:
             os.makedirs(self.cmakeListDat.targetDirPath, exist_ok=True)
-            os.makedirs(self.cmakeListDat.getPathInTarget(self.cmakeListDat.srcDirPath),    exist_ok=True)
-            os.makedirs(self.cmakeListDat.getPathInTarget(self.cmakeListDat.cmakeDirPath),  exist_ok=True)
+            os.makedirs(self.projDat.getPathInTarget(self.cmakeListDat.depsDirPath),   exist_ok=True)
 
     def __generateCMakeLists(self):
 
@@ -143,6 +145,15 @@ class CPPPC_Manager:
         else: 
             with open(self.projDat.getPathInTarget(fileName), "w") as file:                        
                 file.write(content)    
+
+    def __setupLibraries(self):
+        self.__fetchLibraries()
+
+    def __fetchLibraries(self):
+        print("Fetching libraries")
+        for (name, lib) in self.projDat.linkLibs_dict.items():            
+            fetchGithubRepo(lib.getLibraryPath(), name, self.projDat.getPathInTarget(self.cmakeListDat.depsDirPath))
+        print("All libraries fetched")
 
     def createSanitizerBlacklistOnDemand(self):
         blacklistfile = "### lines with one # are examples...\n"
