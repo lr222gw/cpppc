@@ -5,3 +5,4 @@ src/dev/__pycache__/*
 build/*
 dist/*
 src/fetchers/__pycache__/*
+src/parsers/__pycache__/*

@@ -49,7 +49,7 @@ class ProjectConfigurationData:
     guiToggles          :list[GuiDataToggle] 
     extraFeatures       :list[FeatureGroup | FeatureToggle] 
     extraFeaturesShared :list[FeatureShareGroup | FeatureShareToggle]
-
+    
     linkLibs_dict  : dict[str, library_inputWidget]
     #Todo: Use Dictionarys rather than lists...
     publicLinkLibs :list 

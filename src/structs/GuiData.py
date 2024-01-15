@@ -225,11 +225,12 @@ class CmakeCppVar_inputWidget(InputWidget):
 @dataclass
 class library_inputWidget(InputWidget):
     public: GuiDataToggle
+    targetName: Optional[str] 
     def __init__(self, name : str, val : str, public: bool):
         super().__init__(name, val)
         self.public = GuiDataToggle(QCheckBox())
         self.public.setState(public)
-        self.nameWidget.setDisabled(True)
+        self.nameWidget.setDisabled(True)        
 
     def setPublicVisibilitySpecifier(self, isPublic : bool):
         self.public.setState(isPublic)

@@ -106,15 +106,15 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStrHlp_generateHeaderFileInBuildDir(self, targetVar) -> str: 
         ret = tidy_cmake_string(
             self.genStr_configureFile(
-                pathify([self.cmakeDirPath,self.FILE_cmake_inputs_h_in]),
-                pathify([CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h])
+                pathify_list([self.cmakeDirPath,self.FILE_cmake_inputs_h_in]),
+                pathify_list([CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h])
                 ),
                 0
                 )
         ret += tidy_cmake_string(
             self.genStr_targetIncludeDirectories(
                 str.format("${{{}}}",targetVar),
-                pathify([CMAKE_CURRENT_SOURCE_DIR, self.cmakeGenSrcDirPath])
+                pathify_list([CMAKE_CURRENT_SOURCE_DIR, self.cmakeGenSrcDirPath])
                 ),
                 0
                 )
@@ -123,7 +123,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
             self.genStr_targetSources(                
                 str.format("${{{}}}",targetVar),
                 [
-                    pathify([CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h])
+                    pathify_list([CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h])
                 ]
             ),0
             
@@ -144,8 +144,9 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         self.srcDirPath     = "src"
         self.cmakeDirPath   = "cmake"
 
-    def addToCMakeList(self, string : str):
-        self.cmakelist_str += string + "\n\n"
+    #TODO: Remove
+    def addToCMakeList(self, string : str): pass #Deprecated
+        # self.cmakelist_str += string + "\n\n"
 
     def getCMakeListStr(self) -> str:
         return self.cmakelist_str
@@ -186,7 +187,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_includeCmakeFile(self, cmakeFile : str) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_include(
-                CMCK_args(pathify([self.cmakeDirPath, cmakeFile]))
+                CMCK_args(pathify_list([self.cmakeDirPath, cmakeFile]))
             )
         ).__str__()
 
@@ -264,8 +265,8 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         return self.cmakeCommands.add_CMC(
             CMC_target_link_libraries(
                 CMCK(self.projdata.projectExecName_str()),
-                CMCK("PUBLIC",  [name for name, lib in self.projdata.linkLibs_dict.items() if lib.getPublicVisibilitySpecifier()]),
-                CMCK("PRIVATE", [name for name, lib in self.projdata.linkLibs_dict.items() if not lib.getPublicVisibilitySpecifier()])
+                CMCK("PUBLIC",  [lib.targetName for lib in self.projdata.linkLibs_dict.values() if lib.getPublicVisibilitySpecifier()]),
+                CMCK("PRIVATE", [lib.targetName for lib in self.projdata.linkLibs_dict.values() if not lib.getPublicVisibilitySpecifier()])
             )
         ).__str__()
 
@@ -355,5 +356,8 @@ def tidy_cmake_string(string :str, linesToSkip:int = 1)->str:
     
     return ret
 
-def pathify(strings :list) -> str:
+def pathify_list(strings :list) -> str:
         return "/".join(strings)    
+
+def pathify(*args :str) -> str:
+        return "/".join(args)

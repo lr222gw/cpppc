@@ -1,10 +1,20 @@
 from dataclasses import dataclass, field
+import enum
+import glob
+from src.cmake_helper import configureCmakeProjectWithGraphviz, getLibraryTargetFromPCFile
+from src.parsers.CMakeParsing import  getLibraryTargets
 
 from src.fetchers.Fetcher_github import fetchGithubRepo
 from .CMakeDataHelper import *
 from .CppDataHelper import *
 from .ProjectConfigurationData import *
 import os
+
+class LibrarySetupType(enum.Enum):
+    Undefined   = 0
+    BareBores   = 1
+    CMakeBased  = 2
+    MakeBased   = 3
 
 @dataclass
 class CPPPC_Manager:
@@ -147,15 +157,78 @@ class CPPPC_Manager:
             print(f"Target File ({self.projDat.getPathInTarget(fileName)}) Already exists")
         else: 
             with open(self.projDat.getPathInTarget(fileName), "w") as file:                        
-                file.write(content)    
+                file.write(content)
 
     def __setupLibraries(self):
         self.__fetchLibraries()
         print("Setup Libraries")
-        for (name, lib) in self.projDat.linkLibs_dict.items():            
-            #lib.getLibraryPath(), name, self.projDat.getPathInTarget(self.cmakeListDat.depsDirPath)
-            self.cmakeListDat.genStr_addSubdirectory(self.cmakeListDat.getLocalPathInDeps(name))
+        for (name, lib) in self.projDat.linkLibs_dict.items():
+
+            localLibPath = self.cmakeListDat.getLocalPathInDeps(name)
+            targetLibPath = self.cmakeListDat.getPathInTarget(localLibPath) #TODO: Might not work if user use another directory than '.' for target dir...
             
+            librarySetupType = self.__detectLibrarySetupType(name, lib)
+            if librarySetupType == LibrarySetupType.CMakeBased:
+                # step 1: Configure Project!  => Generate with --graphwiz to temp/t.dot
+                configureCmakeProjectWithGraphviz(targetLibPath)
+
+                self.cmakeListDat.genStr_addSubdirectory(localLibPath)
+                
+                if self.__checkWildcardFileExists(pathify(targetLibPath,"*.pc")):
+                    # Alt 1:    check if *.pc was generated, use data from that OR *-targets.cmake 
+                    pcFilePath = self.__getWildcardFile(pathify(targetLibPath,"*.pc"))
+                    targetName = getLibraryTargetFromPCFile(pcFilePath)
+                    lib.targetName = targetName
+                    
+                if lib.targetName == None :
+                    # Alt 2:  Parse CMakeLists.txt, look for add_library; Consider Interface/Alias  
+                        # => Create Library ? 
+                        # => Add Library ? 
+                        # => Add Include directories
+                    libTargets = getLibraryTargets(targetLibPath)
+                    #TODO! Let user pick which targets to include, if more than one...
+                    lib.targetName = libTargets[0]
+                    
+
+            elif librarySetupType == LibrarySetupType.MakeBased:
+                pass 
+            elif librarySetupType == LibrarySetupType.BareBores:
+
+                # Analyze: 
+                    # 1: Glob recurse on All files, 
+
+                # Type 1 header only: What is in the root? are there only header files No include or Src dir? 
+                                
+                # Type 3 headers + source: Is there a src dir, is there a include dir? is there a headers dir? *Go through common directory names : src, source, sources, sourcefiles, include, inc, includes*
+                print("TODO Fix Barebones")
+                
+            else:
+                terminate("LibrarySetupType is undefined!")
+            
+        
+    def __detectLibrarySetupType(self, name:str, lib: library_inputWidget) -> LibrarySetupType:
+        detectedType : LibrarySetupType = LibrarySetupType.BareBores
+        libraryPath = self.cmakeListDat.getLocalPathInDeps(name)
+        if self.__checkFileExists(self.cmakeListDat.getPathInTarget(pathify(libraryPath, "CMakeLists.txt"))):
+            detectedType = LibrarySetupType.CMakeBased
+        elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(pathify(libraryPath, "Makefile"))):
+            detectedType = LibrarySetupType.MakeBased
+
+        return detectedType
+    def __checkFileExists(self, pathToFile: str) -> bool:
+        return os.path.exists(pathToFile)
+        
+    def __checkWildcardFileExists(self, pathToFile: str) -> bool:
+        matches = glob.glob(pathToFile)
+        if len(matches) > 1: 
+            terminate("Function only design to handle cases where there's one result from wildcard")
+        return os.path.exists(matches[0])
+    
+    def __getWildcardFile(self, pathToFile: str) -> str:
+        matches = glob.glob(pathToFile)
+        if len(matches) > 1: 
+            terminate("Function only design to handle cases where there's one result from wildcard")
+        return matches[0]
 
     def __fetchLibraries(self):
         print("Fetching libraries")
