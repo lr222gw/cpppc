@@ -1,14 +1,22 @@
+from enum import Enum
 from typing import Tuple
 from dataclasses import dataclass, field
 from typing import Callable
+
+from src.structs import ProjectConfigurationDat
+from src.structs.PersistantDataManager import PersistantDataManager
 from .CMakeVersionData import CMakeVersionData
 from .GuiData import *
 from .. import helper_funcs as hlp
 from .CMakeCommands import *
 from PyQt5.QtWidgets import *
+from enum import StrEnum
+
+class DirectoryKeys(StrEnum):
+    LOCAL_LIB_DIR  = "localLibDir"
 
 @dataclass
-class ProjectConfigurationData:     
+class ProjectConfigurationGUI:     
 
     projectName :       GuiData
     def projectName_str(self) -> str:
@@ -37,14 +45,14 @@ class ProjectConfigurationData:
 
     useMeasureCompiletime : GuiDataToggle
 
-    useCmakeCppBridge : GuiDataToggle
+    useCmakeCppBridge : GuiDataToggle #TODO: Remove, deprecated?
 
-    cmakeToCppVars : dict 
+    cmakeToCppVars : dict[str, CmakeCppVar_inputWidget]  #TODO: specify type
     
     cmakeVersionData:  CMakeVersionData
 
     #Properties 
-    props :list
+    props :list[Prop]
 
     guiToggles          :list[GuiDataToggle] 
     extraFeatures       :list[FeatureGroup | FeatureToggle] 
@@ -54,6 +62,8 @@ class ProjectConfigurationData:
     #Todo: Use Dictionarys rather than lists...
     publicLinkLibs :list 
     privateLinkLibs:list 
+
+    directoryDictionary : dict[str,str]
 
     def __init__(self):
         self.projectName : GuiData                          = GuiData()
@@ -65,16 +75,17 @@ class ProjectConfigurationData:
         self.useProgram_ccache : GuiDataToggle              = GuiDataToggle()
         self.useMeasureCompiletime : GuiDataToggle          = GuiDataToggle()
         self.useCmakeCppBridge : GuiDataToggle              = GuiDataToggle()
-        self.cmakeToCppVars : dict                          = dict()
-        self.linkLibs_dict : dict[str, library_inputWidget] = dict[str, library_inputWidget]()
+        self.cmakeToCppVars : dict[str, CmakeCppVar_inputWidget]    = dict[str, CmakeCppVar_inputWidget]()
+        self.linkLibs_dict : dict[str, library_inputWidget]         = dict[str, library_inputWidget]()
         self.props                                          = list()
-        self.guiToggles          :list[GuiDataToggle]        = list[GuiDataToggle]()        
+        self.guiToggles          :list[GuiDataToggle]       = list[GuiDataToggle]()        
         self.extraFeatures       :list[FeatureGroup      | FeatureToggle]        = list[FeatureGroup      | FeatureToggle]()
         self.extraFeaturesShared :list[FeatureShareGroup | FeatureShareToggle]   = list[FeatureShareGroup | FeatureShareToggle]()
         #Todo: Use Dictionarys rather than lists...
         self.cmakeVersionData:  CMakeVersionData = CMakeVersionData()
-        self.publicLinkLibs :list = list()
-        self.privateLinkLibs:list = list()
+        self.publicLinkLibs :list               = list()
+        self.privateLinkLibs:list               = list()
+        self.directoryDictionary : dict[str,str]= dict[str,str]()
 
     def initExtraFeatures(self):
         self.__initExtraFeature()
@@ -92,6 +103,61 @@ class ProjectConfigurationData:
         for toggle in self.guiToggles:
             if(toggle.getState() and toggle.requirement != None):
                 toggle.requirement()
+
+    def getData(self):
+
+        def getNewIfNone(var, varType: type):
+            if var == None: 
+                return varType()
+            else:
+                return var
+
+        linkLibs_public  = list[str]()
+        linkLibs_private = list[str]()
+        linkLibs : dict[str,tuple[str,bool, list[str],TargetDatas]]= dict[str,tuple[str,bool, list[str],TargetDatas]]()
+        for lib_key, lib_input in self.linkLibs_dict.items(): #TODO: Try to utilize TargetDatas instead of TargetNames
+            if lib_input.getPublicVisibilitySpecifier() == True:
+                if lib_input.selectedTargets != None:
+                    linkLibs[lib_key] = (
+                        lib_input.getLibraryPath(),
+                        True, 
+                        getNewIfNone(lib_input.selectedTargets, list[str]), 
+                        getNewIfNone(lib_input.targetDatas, TargetDatas)
+                        ) 
+                    linkLibs_public.extend(lib_input.selectedTargets)
+                else: 
+                    linkLibs[lib_key] = (lib_input.getLibraryPath(), True, list(), getNewIfNone(lib_input.targetDatas, TargetDatas))
+            else:                 
+                if lib_input.selectedTargets != None:
+                    linkLibs[lib_key] = (
+                        lib_input.getLibraryPath(), 
+                        False, 
+                        getNewIfNone(lib_input.selectedTargets, list[str]), 
+                        getNewIfNone(lib_input.targetDatas, TargetDatas)
+                        )
+                    linkLibs_private.extend(lib_input.selectedTargets)
+                else: 
+                    linkLibs[lib_key] = (lib_input.getLibraryPath(), False, list(),getNewIfNone(lib_input.targetDatas, TargetDatas))
+        
+        return ProjectConfigurationDat.ProjectConfigurationData(
+            projectName               =self.projectName_str(),
+            projectTargetDir          =self.projectTargetDir_str(),
+            projectExecName           =self.projectExecName_str(),
+            projectDesc               =self.projectDesc_str(),
+            entryPointFile            =self.entryPointFile_str(),
+            overwriteProjectTargetDir =self.overwriteProjectTargetDir.getState(),
+            useProgram_ccache         =self.useProgram_ccache.getState(),
+            useMeasureCompiletime     =self.useMeasureCompiletime.getState(),
+            cmakeVersionData          = (self.cmakeVersionData.get_major(), self.cmakeVersionData.get_minor(),self.cmakeVersionData.get_patch()),
+            cmakeToCppVars            = dict([(key, cmakeCpp_input.getVariable()) for key, cmakeCpp_input in self.cmakeToCppVars.items()]),
+            linkLibs                  =linkLibs,
+            linkLibs_public           =linkLibs_public,
+            linkLibs_private          =linkLibs_private,
+            props                     =dict([(prop.cmake_propName, prop.getValue()) for prop in self.props]),
+        )
+    
+    def getUserProvidedLocalLibsPath(self):
+        return self.directoryDictionary[DirectoryKeys.LOCAL_LIB_DIR]
 
     def getPathInTarget(self, targetInsidePath : str) -> str:
         return self.getTargetPath() + "/" + targetInsidePath
@@ -152,7 +218,7 @@ class ProjectConfigurationData:
         return featureGroupToggles
 
 
-    def addExtraFeatureGroup_UserInputs(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, func:Callable[[QGridLayout,Input],None], *userInputHeaders : Input, requirement:Optional[Callable] = None) -> GuiDataToggle: 
+    def addExtraFeatureGroup_UserInputs(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, func:Callable[[QGridLayout,Input],None], *userInputHeaders : Input, requirement:Optional[Callable] = None) -> Tuple[QVBoxLayout,QVBoxLayout]: 
         groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
         groupLayout = hlp.addHidableGroup(
             groupParentLayout,
@@ -160,12 +226,17 @@ class ProjectConfigurationData:
             groupName,
             groupToggle
         )
-                
-        self.addUserInput(groupLayout, func,*userInputHeaders)
+        
+        superlayoutTop = QVBoxLayout()
+        superlayout_bottom = QVBoxLayout()
+
+        groupLayout.addLayout(superlayoutTop)        
+        groupLayout.addLayout(superlayout_bottom)
+
+        self.addUserInput(superlayout_bottom, func,*userInputHeaders)
         groupToggle.requirement = requirement
         self.guiToggles.append(groupToggle)        
-
-        return groupToggle
+        return (superlayoutTop,superlayout_bottom)
     
     def addProp_checkbox(self, label:str, cmakePropName:str,cmakePropValue:bool, parentLayout) -> PropToggle:
         datToggle = hlp.addProp_CheckBox(label,cmakePropValue,parentLayout)
@@ -204,6 +275,40 @@ class ProjectConfigurationData:
         
         parentLayout.addLayout(layout_grid)
 
+    def addLocalLibraryBrowseDialog(self, buttonText:str, parentLayout: (QHBoxLayout|QVBoxLayout)):
+        if not DirectoryKeys.LOCAL_LIB_DIR in self.directoryDictionary.keys() : 
+            self.directoryDictionary[DirectoryKeys.LOCAL_LIB_DIR] = PersistantDataManager().getuserLocalLibPath()
+
+        def browse(selected_directory_label : QLineEdit):
+            options = QFileDialog.Options()
+            options |= QFileDialog.ShowDirsOnly | QFileDialog.DontUseNativeDialog
+
+            scanLibraryDir = QFileDialog()
+            
+            self.directoryDictionary[DirectoryKeys.LOCAL_LIB_DIR] = QFileDialog.getExistingDirectory(scanLibraryDir,"Select Directory", options=options)
+            PersistantDataManager().userLocalLibPath = self.directoryDictionary[DirectoryKeys.LOCAL_LIB_DIR]
+            selected_directory_label.setText(f"Selected Directory: {self.directoryDictionary[DirectoryKeys.LOCAL_LIB_DIR]}")
+
+
+        initalText = f'Selected Directory: {self.directoryDictionary[DirectoryKeys.LOCAL_LIB_DIR]}'
+        self.addBrowseDirectoryDialog_customBrowse(buttonText, DirectoryKeys.LOCAL_LIB_DIR,initalText, browse, parentLayout)
+
+    def addBrowseDirectoryDialog_customBrowse(self, buttonText:str, directoryKey:str, initialText:str, browsefunc:Callable, parentLayout: (QHBoxLayout|QVBoxLayout)):
+        select_button = QPushButton(buttonText)
+        select_button.setMaximumWidth(100)
+        selected_directory_label = QLineEdit()
+        selected_directory_label.setText(initialText)
+        selected_directory_label.setDisabled(True)
+
+        select_button.clicked.connect(lambda: browsefunc(selected_directory_label))
+
+        directoryButtonLabelLayout = QHBoxLayout()
+        dirLabelLayout = QHBoxLayout()
+        dirLabelLayout.addWidget(selected_directory_label)
+        directoryButtonLabelLayout.addWidget(selected_directory_label)
+        directoryButtonLabelLayout.addWidget(select_button)
+        parentLayout.addLayout(directoryButtonLabelLayout)
+
     def addCmakeToCppVar(self, gridLayout: QGridLayout, *args: Input ):
         hlp.variadicArgumentValidator(2, *args)
         name  = args[0].getInputText()
@@ -233,35 +338,39 @@ class ProjectConfigurationData:
         self.cmakeToCppVars.pop(cmakeCppVar.nameWidget.text())
 
     def addLibraryComponent(self, gridLayout: QGridLayout, *args: Input):
-        hlp.variadicArgumentValidator(3, *args)
+        hlp.variadicArgumentValidator(4, *args)
             
-        publicUserInput : Input= args[0]
-        name_str  = args[1].getInputText()
-        value_str = args[2].getInputText()
+        remoteUserInput : Input= args[0]
+        publicUserInput : Input= args[1]
+        name_str  = args[2].getInputText()
+        value_str = args[3].getInputText()
         if name_str == "" or value_str == "":
             print("Nothing to add!") 
             return    
 
         if name_str not in self.linkLibs_dict:
-            libVar = library_inputWidget(name_str, str(value_str), publicUserInput.input.getState())           
+            libVar = library_inputWidget(name_str, str(value_str), publicUserInput.input.getState(),remoteUserInput.input.getState())
             row = gridLayout.rowCount() +1
             
-            gridLayout.addWidget(libVar.public.widget, row, 0)
-            gridLayout.addWidget(libVar.nameWidget, row, 1)
-            gridLayout.addWidget(libVar.valWidget, row, 2)
+            gridLayout.addWidget(libVar.remote.widget, row, 0)
+            gridLayout.addWidget(libVar.public.widget, row, 1)
+            gridLayout.addWidget(libVar.nameWidget, row, 2)
+            gridLayout.addWidget(libVar.valWidget, row, 3)
 
-            remButton = hlp.addButton_gridLayout("-", gridLayout, row, 3)
+            remButton = hlp.addButton_gridLayout("-", gridLayout, row, 4)
             remButton.clicked.connect(lambda: self.remLibraryComponent(libVar, remButton, gridLayout))            
         
             self.linkLibs_dict[name_str] = libVar
         else:
             self.linkLibs_dict[name_str].valWidget.setText(str(value_str))
             self.linkLibs_dict[name_str].public.setState(publicUserInput.input.getState())
+            self.linkLibs_dict[name_str].remote.setState(remoteUserInput.input.getState())
 
     def remLibraryComponent(self, libItem: library_inputWidget, remButton, layout : QGridLayout):    
         libItem.nameWidget.deleteLater()
         libItem.valWidget.deleteLater()
         libItem.public.widget.deleteLater()
+        libItem.remote.widget.deleteLater()
         remButton.deleteLater()
         self.linkLibs_dict.pop(libItem.nameWidget.text())
 

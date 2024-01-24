@@ -1,8 +1,17 @@
+import enum
 import re
 import textwrap
-from .ProjectConfigurationData import ProjectConfigurationData
+
+#from src.structs.GuiData import library_inputWidget
+from .ProjectConfigurationData import ProjectConfigurationGUI
+from .ProjectConfigurationDat import ProjectConfigurationData
 from dataclasses import dataclass, field
 from .CMakeCommands import *
+
+class LibraryType(enum.StrEnum):
+    INTERFACE   = "INTERFACE"
+    SHARED      = "SHARED"
+    STATIC      = "STATIC"
 
 CMVAR__SOURCE_DIR : str   = "_SOURCE_DIR"
 CMVAR__SOURCES    : str   = "_SOURCES"
@@ -36,17 +45,19 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
 
     cmakeCommands : CMakeCommandDct= field(default_factory=CMakeCommandDct)
 
+    projdata_OLD : ProjectConfigurationGUI = field(default_factory=ProjectConfigurationGUI)
     projdata : ProjectConfigurationData = field(default_factory=ProjectConfigurationData)
 
-    def __init__(self, projdata :ProjectConfigurationData):
-        self.projdata = projdata
+    def __init__(self):
+        self.projdata = ProjectConfigurationData()
         self.cmakeVars = dict()
         self.cmakeFuncs = dict()
         self.cmakeToCppVars = dict()
         self.cmakeCommands = CMakeCommandDct()
 
 
-    def runtimeInit(self):
+    def runtimeInit(self, projdata : ProjectConfigurationData):
+        self.projdata = projdata
         self.setTargetDirPaths(self.projdata.getTargetPath())
         self.cmakeVars.clear()
         self.cmakeFuncs.clear()
@@ -98,12 +109,12 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         ret += self.genStr_function(CMFUNC__add_cmake_inputs_to_targets, 
             [targetArg],
             [
-                self.genStrHlp_generateHeaderFileInBuildDir(targetArg)
+                self.genStrHlp_generateHeaderFileInBuildDir(False, targetArg) #TODO: Uncertain if False is the best default value...
             ]
         )        
         return ret    
 
-    def genStrHlp_generateHeaderFileInBuildDir(self, targetVar) -> str: 
+    def genStrHlp_generateHeaderFileInBuildDir(self, isPublic : bool,  targetVar) -> str: 
         ret = tidy_cmake_string(
             self.genStr_configureFile(
                 pathify_list([self.cmakeDirPath,self.FILE_cmake_inputs_h_in]),
@@ -114,6 +125,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         ret += tidy_cmake_string(
             self.genStr_targetIncludeDirectories(
                 str.format("${{{}}}",targetVar),
+                isPublic,
                 pathify_list([CMAKE_CURRENT_SOURCE_DIR, self.cmakeGenSrcDirPath])
                 ),
                 0
@@ -172,17 +184,17 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         ]
 
     def initCmakeVars(self):        
-        self.cmakeVars[CMVAR__SOURCE_DIR] = self.projdata.projectName_str() + CMVAR__SOURCE_DIR
-        self.cmakeVars[CMVAR__SOURCES]    = self.projdata.projectName_str() + CMVAR__SOURCES
-        self.cmakeVars[CMVAR__HEADERS]    = self.projdata.projectName_str() + CMVAR__HEADERS
+        self.cmakeVars[CMVAR__SOURCE_DIR] = self.projdata.projectName + CMVAR__SOURCE_DIR
+        self.cmakeVars[CMVAR__SOURCES]    = self.projdata.projectName + CMVAR__SOURCES
+        self.cmakeVars[CMVAR__HEADERS]    = self.projdata.projectName + CMVAR__HEADERS
         
         self.cmakeToCppVars[CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR] = CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR
         for name, val in self.projdata.cmakeToCppVars.items() :
-            self.cmakeToCppVars[val.getVariable()[0]] = val.getVariable()[1]
+            self.cmakeToCppVars[val[0]] = val[1]
 
 
     def initCmakeFuncs(self):
-        self.cmakeFuncs[CMVAR__SOURCE_DIR] = self.projdata.projectName_str() + CMVAR__SOURCE_DIR        
+        self.cmakeFuncs[CMVAR__SOURCE_DIR] = self.projdata.projectName + CMVAR__SOURCE_DIR        
 
     def genStr_includeCmakeFile(self, cmakeFile : str) -> str:
         return self.cmakeCommands.add_CMC(
@@ -211,7 +223,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_setProperty(self, propertyName:str, propertyValue:str) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_set_property(
-                CMCK("TARGET", self.projdata.projectExecName_str()),
+                CMCK("TARGET", self.projdata.projectExecName),
                 CMCK("PROPERTY"),
                 CMCK_str(propertyName, propertyValue)
             )
@@ -247,7 +259,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_setTargetCompileOptions(self, options:list) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_target_compile_options(
-                CMCK(self.projdata.projectExecName_str()),
+                CMCK(self.projdata.projectExecName),
                 CMCK("PRIVATE", CM_generatorExpressionConditional("CXX_COMPILER_ID:Clang", *options))
             )
         ).__str__()
@@ -256,7 +268,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_setTargetLinkOptions(self, options:list) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_target_link_options(
-                CMCK(self.projdata.projectExecName_str()),
+                CMCK(self.projdata.projectExecName),
                 CMCK("PRIVATE", CM_generatorExpressionConditional("CXX_COMPILER_ID:Clang", *options))
             )
         ).__str__()
@@ -264,9 +276,9 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_targetLinkLibraries(self) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_target_link_libraries(
-                CMCK(self.projdata.projectExecName_str()),
-                CMCK("PUBLIC",  [lib.targetName for lib in self.projdata.linkLibs_dict.values() if lib.getPublicVisibilitySpecifier()]),
-                CMCK("PRIVATE", [lib.targetName for lib in self.projdata.linkLibs_dict.values() if not lib.getPublicVisibilitySpecifier()])
+                CMCK(self.projdata.projectExecName),
+                CMCK("PUBLIC",  [lib for lib in self.projdata.linkLibs_public]), 
+                CMCK("PRIVATE", [lib for lib in self.projdata.linkLibs_private]) 
             )
         ).__str__()
 
@@ -278,8 +290,14 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
             )
         ).__str__()
 
-    def genStr_targetIncludeDirectories(self, target:str, dirPath :str) ->str : 
-        return f"target_include_directories({target} PRIVATE {dirPath})"
+    def genStr_targetIncludeDirectories(self, target:str, isPublic:bool, *dirPaths :str) ->str : 
+        return self.cmakeCommands.add_CMC(
+            CMC_target_include_directories(
+                CMCK(target),
+                CMCK("PUBLIC" if isPublic else "PRIVATE", *dirPaths)
+            )
+        ).__str__()
+    
 
     def genStr_cmake_sourceDirVar(self) -> str:
         return f"{self.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(self.srcDirPath))}"
@@ -293,22 +311,25 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_cmake_min_version(self) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_cmake_minimum_required(
-                CMCK("VERSION", self.projdata.cmakeVersionData.get_major(), self.projdata.cmakeVersionData.get_minor(), self.projdata.cmakeVersionData.get_patch()),                
+                CMCK("VERSION", self.projdata.cmakeVersionData[0], self.projdata.cmakeVersionData[1], self.projdata.cmakeVersionData[2]),
             )
         ).__str__()
 
     def genStr_cmake_projectdetails(self)->str:
         return self.cmakeCommands.add_CMC(
                 CMC_project(
-                    CMCK(self.projdata.projectName_str()),
+                    CMCK(self.projdata.projectName),
                     CMCK("VERSION", "0.0.1"), #TODO: Let User set VERSION
-                    CMCK_str("DESCRIPTION", self.projdata.projectDesc_str()),
+                    CMCK_str("DESCRIPTION", self.projdata.projectDesc),
                     CMCK("LANGUAGES", "CXX C") #TODO: Let user set LANGUAGES
                 )
             ).__str__()
 
     def genStr_addExecutable(self):
-        return self.cmakeCommands.add_CMC(CMC_add_executable(CMCK(self.projdata.projectExecName_str()))).__str__()
+        return self.cmakeCommands.add_CMC(CMC_add_executable(CMCK(self.projdata.projectExecName))).__str__()
+    
+    def genStr_addLibrary(self, libraryType : LibraryType):            
+        return self.cmakeCommands.add_CMC(CMC_add_library(CMCK(self.projdata.projectExecName, libraryType))).__str__()
     
     def genStr_addSubdirectory(self, subdir:str):
         return self.cmakeCommands.add_CMC(CMC_add_subdirectory(CMCK(subdir))).__str__()
@@ -322,7 +343,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
 
     def genStrHlp_addingProjectsTargetSources(self)->str:
         return tidy_cmake_string(
-            self.genStr_targetSources(self.projdata.projectExecName_str(), [str.format("${{{}}}",self.cmakeVars[CMVAR__SOURCES])] )
+            self.genStr_targetSources(self.projdata.projectExecName, [str.format("${{{}}}",self.cmakeVars[CMVAR__SOURCES])] )
 
         )
 
@@ -339,7 +360,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_cppProperties(self) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_set_target_properties(
-                CMCK(self.projdata.projectExecName_str()),
+                CMCK(self.projdata.projectExecName),
                 CMCK(
                     "PROPERTIES", 
                     propifyList(self.projdata.props)

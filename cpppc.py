@@ -5,9 +5,12 @@ from PyQt5.QtGui import *
 
 from src.structs.GuiData import *
 from src.structs.CMakeVersionData import CMakeVersionData
-from src.structs.ProjectConfigurationData import ProjectConfigurationData
+from src.structs.PersistantDataManager import PersistantDataManager, prepareStorage
+from src.structs.ProjectConfigurationData import ProjectConfigurationGUI
 import src.cmake_helper as  cmake_helper
 from src.structs.CPPPC_Manager import CPPPC_Manager
+
+prepareStorage()
 
 app = QApplication([])
 app.setStyleSheet("QPushButton { color: magenta; }")
@@ -16,13 +19,14 @@ app.setStyleSheet("QPushButton { color: magenta; }")
 window = QWidget()
 rootLayout = QHBoxLayout()
 layout_projectName = QFormLayout()
+layout_actionButtons = QHBoxLayout()
 layout_cmakeVersion = QHBoxLayout()
 layout_targetProperties = QFormLayout()
 
 layout_2nd_column = QVBoxLayout()
 layout_3rd_column = QVBoxLayout()
 
-ProjConfDat = ProjectConfigurationData()
+ProjConfDat = ProjectConfigurationGUI()
 cppc = CPPPC_Manager(ProjConfDat)
 
 # Declare Project Name
@@ -52,8 +56,13 @@ group_cmake.setMaximumHeight(100)
 
 
 
-createProjectButton = hlp.addButton("Create", layout_projectName)
+createProjectButton = hlp.addButton("Create", layout_actionButtons)
 createProjectButton.clicked.connect(lambda: cppc.createProject())
+
+configureLibsButton = hlp.addButton("Configure Libraries", layout_actionButtons)
+configureLibsButton.clicked.connect(lambda: cppc.configureLibraries(layout_projectName))
+
+layout_projectName.addRow(layout_actionButtons)
 
 # TODO: Replace with addProp_* functions
 ProjConfDat.overwriteProjectTargetDir = hlp.addCheckBox("Overwrite", False, layout_projectName)
@@ -83,7 +92,7 @@ ProjConfDat.addExtraFeatureGroup_UserInputs(
     layout_projectName,
     "CMake vars to C++",
     "Use CMake to C++ Communcation",
-    False,
+    True, #False, #TODO:CHANGEBACK
     ProjConfDat.addCmakeToCppVar,
     UserInput("Variable Name"),
     UserInput("Value"),
@@ -114,7 +123,7 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
     layout_projectName,
     "Sanitizer settings",   
     "Use Sanitizers",
-    False,
+    True, #False, #TODO:CHANGEBACK
     ToggleShareData("Debug", "g", True, 
         g.genStr_linkSanitizers, g.genStr_compileSanitizers),
     ToggleShareData("Sanitize Adress,Leak and Undef", "fsanitize=address,leak,undefined", True,
@@ -125,7 +134,7 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
         g.genStr_linkSanitizers),
     ToggleShareData("Recover adress", "fsanitize-recover=address", True,
         g.genStr_compileSanitizers),
-    ToggleShareData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", False,
+    ToggleShareData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", True, #False, #TODO:CHANGEBACK
         g.genStr_linkSanitizers, g.genStr_compileSanitizers, 
         requirement=lambda: cppc.createSanitizerBlacklistOnDemand())    
     )    
@@ -134,20 +143,23 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
 layout_2nd_column.addWidget(group_cmake)
 layout_2nd_column.addWidget(group_properties)
 
-#TODO: GUI to select libs from system and files
-# ProjConfDat.publicLinkLibs = ["lib1", "lib2", "lib3"]
-# ProjConfDat.privateLinkLibs  = ["lib4", "lib5", "lib6"]
 
-ProjConfDat.addExtraFeatureGroup_UserInputs(
+libraryLayout = ProjConfDat.addExtraFeatureGroup_UserInputs(
     layout_3rd_column,
     layout_projectName,
     "Libraries",
     "Use external Libraries",
     True,
     ProjConfDat.addLibraryComponent,
+    UserInput_checkbox("Remote",False,rotation=-90),
     UserInput_checkbox("Public",False,rotation=-90),
     UserInput("Libary Name"),
     UserInput("Path to library"),    
+)
+
+ProjConfDat.addLocalLibraryBrowseDialog(
+    'Browse \nLocal Libs',
+    libraryLayout[0]
 )
 
 rootLayout.addWidget(group_projdef)
@@ -157,3 +169,4 @@ rootLayout.addLayout(layout_3rd_column)
 window.setLayout(rootLayout)
 window.show()
 app.exec()
+PersistantDataManager().save_config_to_file()

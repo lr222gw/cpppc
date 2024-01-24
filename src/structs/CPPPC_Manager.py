@@ -1,10 +1,16 @@
 from dataclasses import dataclass, field
 import enum
 import glob
-from src.cmake_helper import configureCmakeProjectWithGraphviz, getLibraryTargetFromPCFile
-from src.parsers.CMakeParsing import  getLibraryTargets
+from pathlib import Path
+
+from numpy import inner
+from src.cmake_helper import configureCmakeProjectDependency, getLibraryTargetFromPCFile
+from src.fetchers.Fetcher_local import getInstalledLib, fetchLocalLib
+from src.generators.CMakeLibGenerator import cmakeifyLib
+from src.parsers.CMakeParsing import  collectFilePaths, gatherTargetsFromConfigFiles, getLibraryTargets, parseLib
 
 from src.fetchers.Fetcher_github import fetchGithubRepo
+from src.structs.PersistantDataManager import DepDat, PersistantDataManager, getCpppcDir
 from .CMakeDataHelper import *
 from .CppDataHelper import *
 from .ProjectConfigurationData import *
@@ -14,32 +20,35 @@ class LibrarySetupType(enum.Enum):
     Undefined   = 0
     BareBores   = 1
     CMakeBased  = 2
-    MakeBased   = 3
+    InstalledCMake  = 3
+    MakeBased   = 4
 
 @dataclass
 class CPPPC_Manager:
     cmakeListDat    : CMakeDataHelper
     cmake_inputsDat : CMakeDataHelper
     cppDat          : CppDataHelper
-    projDat         : ProjectConfigurationData
+    projDat         : ProjectConfigurationGUI
+    projDat_data    : ProjectConfigurationData
     
     
-    def __init__(self, projdat : ProjectConfigurationData):
+    def __init__(self, projdat : ProjectConfigurationGUI):
         self.projDat = projdat        
-        self.cmakeListDat       = CMakeDataHelper(self.projDat)
-        self.cmake_inputsDat    = CMakeDataHelper(self.projDat)
+        self.cmakeListDat       = CMakeDataHelper()
+        self.cmake_inputsDat    = CMakeDataHelper()        
         self.cppDat             = CppDataHelper(self.projDat, self.cmakeListDat)
+        self.projDat_data       = ProjectConfigurationData()
         self.decideOrder()
 
     def runtimeInit(self):        
         self.__setDefaultValues()
-        self.cmakeListDat.runtimeInit()
-        self.cmake_inputsDat.runtimeInit()
+        self.projDat_data = self.projDat.getData()
+        self.cmakeListDat.runtimeInit(self.projDat_data)
+        self.cmake_inputsDat.runtimeInit(self.projDat_data)
         self.cppDat.runtimeInit()
         self.decideOrder()        
         
-
-    def createProject(self):     
+    def __prepareRequiredStructure(self):
         print("Iniitializing default values") 
         self.runtimeInit()
 
@@ -48,12 +57,18 @@ class CPPPC_Manager:
 
         print("Adding user Configurations")
         self.projDat.initExtraFeatures()
-                   
-        print("Creating Project")        
-        self.projDat.toString()     #TODO: Junk?!
+
+    def createProject(self):     
+
+        self.__prepareRequiredStructure()
+
+        print("Setting up libraries")
         self.__setupLibraries()
+        print("Creating Project")                
+        self.projDat_data.update(self.projDat.getData()) #Update data inside...
+        PersistantDataManager().addData(self.projDat_data)
         self.__generateCMakeLists()
-        self.__generateCPPFiles()
+        self.__generateCPPFiles()        
 
     def decideOrder(self):
         self.cmakeListDat.appendOrder(CMC_cmake_minimum_required)
@@ -98,6 +113,9 @@ class CPPPC_Manager:
 
         self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_min_version())
         self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_cmake_projectdetails())
+
+        # TODO: Generate a check for non-local libraries, i.e. libraries the user needs to install
+        #       If any of these are missing, cancel configuration and message the user! 
         
         if(self.projDat.useProgram_ccache.getState()):
             self.cmakeListDat.addToCMakeList(self.cmakeListDat.addCMakeCompilerLauncher("ccache"))
@@ -168,32 +186,69 @@ class CPPPC_Manager:
             targetLibPath = self.cmakeListDat.getPathInTarget(localLibPath) #TODO: Might not work if user use another directory than '.' for target dir...
             
             librarySetupType = self.__detectLibrarySetupType(name, lib)
-            if librarySetupType == LibrarySetupType.CMakeBased:
+
+            extraData = parseLib(os.path.basename(lib.getLibraryPath()))
+
+            if librarySetupType == LibrarySetupType.InstalledCMake:
+                # lib.targetNames = getInstalledLib(lib.getLibraryPath())     #TODO: Check if this can be replaced...
+                lib.targetDatas = parseLib(lib.getLibraryPath())
+                # TODO: Add Support for Windows and MacOS...            
+                
+            elif librarySetupType == LibrarySetupType.CMakeBased:
                 # step 1: Configure Project!  => Generate with --graphwiz to temp/t.dot
-                configureCmakeProjectWithGraphviz(targetLibPath)
+                configPath = configureCmakeProjectDependency(targetLibPath)
 
                 self.cmakeListDat.genStr_addSubdirectory(localLibPath)
-                
-                if self.__checkWildcardFileExists(pathify(targetLibPath,"*.pc")):
-                    # Alt 1:    check if *.pc was generated, use data from that OR *-targets.cmake 
-                    pcFilePath = self.__getWildcardFile(pathify(targetLibPath,"*.pc"))
-                    targetName = getLibraryTargetFromPCFile(pcFilePath)
-                    lib.targetName = targetName
+                if not PersistantDataManager().checkDependencyExist(os.path.abspath(targetLibPath)):
+
+                    if True :  #CHECK IF WE CAN REMOVE
+                        if configPath != None and self.__checkWildcardFileExists(pathify(configPath,"*.pc")):
+                            # Alt 1:    check if *.pc was generated, use data from that OR *-targets.cmake 
+                            pcFilePath = self.__getWildcardFile(pathify(configPath,"*.pc"))
+                            targetName = getLibraryTargetFromPCFile(pcFilePath)
+                            if targetName != None:
+                                lib.selectedTargets = [targetName]                            
+                            
+                        if lib.selectedTargets == None :
+                            # Alt 2:  Parse CMakeLists.txt, look for add_library; Consider Interface/Alias  
+                                # => Create Library ? 
+                                # => Add Library ? 
+                                # => Add Include directories
+                            libTargets = getLibraryTargets(targetLibPath)
+
+                            #TODO! Let user pick which targets to include, if more than one...
+                            lib.selectedTargets = libTargets
+                            # lib.targetNames = libTargets[0]
+
+                    cmakedirPath = os.path.abspath(os.path.join(targetLibPath,"cmake" ))
+                    finder_tempPath = Path.joinpath(getCpppcDir(), "temp_lib")
                     
-                if lib.targetName == None :
-                    # Alt 2:  Parse CMakeLists.txt, look for add_library; Consider Interface/Alias  
-                        # => Create Library ? 
-                        # => Add Library ? 
-                        # => Add Include directories
-                    libTargets = getLibraryTargets(targetLibPath)
-                    #TODO! Let user pick which targets to include, if more than one...
-                    lib.targetName = libTargets[0]
+                    # Copy necesary files to search through 
+                    confFiles =collectFilePaths([os.path.join(targetLibPath,"CMakeLists.txt" )],[cmakedirPath])
+                    targetDatas = gatherTargetsFromConfigFiles(confFiles, finder_tempPath.absolute().__str__())                      #NEW
+                    lib.targetDatas = targetDatas
+
+                    if lib.selectedTargets != None: 
+                        PersistantDataManager().addDependencyData(DepDat(os.path.abspath(targetLibPath),lib.selectedTargets, lib.targetDatas))
+                    else: 
+                        WarnUser(f"Could not find targets for dependency at {os.path.abspath(targetLibPath)}")
+                else:
+                    tempDat = PersistantDataManager().getDependencyData(os.path.abspath(targetLibPath))
+                    lib.selectedTargets = tempDat.targets
+                    lib.targetDatas = tempDat.targetDatas
                     
 
             elif librarySetupType == LibrarySetupType.MakeBased:
                 pass 
             elif librarySetupType == LibrarySetupType.BareBores:
+                targetname, cmakeListFile = cmakeifyLib(targetLibPath)
+                lib.selectedTargets = [targetname]
 
+                if lib.selectedTargets != None: 
+                    TEMP= TargetDatas([targetname],[],[],[]) #TODO, make sure that cmakeifyLib returns keyWords...
+                    PersistantDataManager().addDependencyData(DepDat(os.path.abspath(targetLibPath),lib.selectedTargets, TEMP))
+                else: 
+                    WarnUser(f"Could not find targets for dependency at {os.path.abspath(targetLibPath)}")
                 # Analyze: 
                     # 1: Glob recurse on All files, 
 
@@ -209,7 +264,11 @@ class CPPPC_Manager:
     def __detectLibrarySetupType(self, name:str, lib: library_inputWidget) -> LibrarySetupType:
         detectedType : LibrarySetupType = LibrarySetupType.BareBores
         libraryPath = self.cmakeListDat.getLocalPathInDeps(name)
-        if self.__checkFileExists(self.cmakeListDat.getPathInTarget(pathify(libraryPath, "CMakeLists.txt"))):
+        
+        installedLibs = getInstalledLib(lib.getLibraryPath())
+        if len(installedLibs) > 0:
+            detectedType = LibrarySetupType.InstalledCMake
+        elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(pathify(libraryPath, "CMakeLists.txt"))):
             detectedType = LibrarySetupType.CMakeBased
         elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(pathify(libraryPath, "Makefile"))):
             detectedType = LibrarySetupType.MakeBased
@@ -222,7 +281,7 @@ class CPPPC_Manager:
         matches = glob.glob(pathToFile)
         if len(matches) > 1: 
             terminate("Function only design to handle cases where there's one result from wildcard")
-        return os.path.exists(matches[0])
+        return os.path.exists(matches[0]) if len(matches) != 0 else False
     
     def __getWildcardFile(self, pathToFile: str) -> str:
         matches = glob.glob(pathToFile)
@@ -230,12 +289,98 @@ class CPPPC_Manager:
             terminate("Function only design to handle cases where there's one result from wildcard")
         return matches[0]
 
-    def __fetchLibraries(self):
+    def __fetchLibraries(self):        
         print("Fetching libraries")
         for (name, lib) in self.projDat.linkLibs_dict.items():            
-            fetchGithubRepo(lib.getLibraryPath(), name, self.projDat.getPathInTarget(self.cmakeListDat.depsDirPath))
+
+            if lib.remote.getState():
+                # Analyze Path type, local path or Url-> github/ other
+                # if github path, use github fetch 
+                fetchGithubRepo(lib.getLibraryPath(), name, self.projDat.getPathInTarget(self.cmakeListDat.depsDirPath))
+            else: 
+                fetchLocalLib(lib.getLibraryPath(), name, self.projDat.getUserProvidedLocalLibsPath(), self.projDat.getPathInTarget(self.cmakeListDat.depsDirPath))
+
+
         print("All libraries fetched")
 
+    def configureLibraries(self, layout_projectName):
+        parentL = QHBoxLayout()
+        layout = hlp.addFloatingWindow(parentL, "Library Configuration")
+        self.projDat_data.update(self.projDat.getData())
+        self.__prepareRequiredStructure()
+        self.__setupLibraries() 
+        self.projDat_data.update(self.projDat.getData())
+        if self.projDat_data.linkLibs != None:
+            grid = QGridLayout()
+            
+            currentRow = 0
+            groupCount = 0
+            for libDirName, libdat in self.projDat_data.linkLibs.items():
+                group = QGroupBox()
+                innerGrid = QGridLayout()
+                libName = libdat[0]
+                publ    = libdat[1] 
+                targetDat    = libdat[3]                 
+
+                libLabel = QLabel()
+                libLabel.setText(libName)              
+
+                libs_lineEdit = QLineEdit()
+                def toggleLib(targetName, libs_lineEdit):
+                    lib_lineLibs = [lib.strip() for lib in libs_lineEdit.text().strip().split(",")if lib != ""]                
+                    if targetName.strip() in lib_lineLibs: 
+                        lib_lineLibs.remove(targetName.strip())
+                    else: 
+                        lib_lineLibs.append(targetName)
+                    libs_lineEdit.setText(", ".join(lib_lineLibs))
+
+                
+                innerGrid.addWidget(libLabel,currentRow,0)
+                currentRow+=1
+                
+                MAX_TARGETS_PER_ROW = 4
+
+                targetTypes = [
+                    ("STATIC",targetDat.STATIC),
+                    ("SHARED",targetDat.SHARED),
+                    ("INTERFACE",targetDat.INTERFACE) ,
+                    ("possibleTargets",targetDat.possibleTargets)
+                ]
+            
+                for targetType in targetTypes:
+
+                    currentTargetType = QLabel()
+                    currentTargetType.setText(str.format("\t{}:",targetType[0]))
+                    subGrid = QGridLayout()
+                    
+                    innerGrid.addWidget(currentTargetType,currentRow,0)
+                    innerGrid.addLayout(subGrid, currentRow, 1)
+                    targetCounter = 0
+                    for target in targetType[1]:
+                        
+                        newButton = QPushButton(target)
+
+                        column = targetCounter%MAX_TARGETS_PER_ROW
+                        subGrid.addWidget(newButton, currentRow, column)
+
+                        currentRow += math.floor((column+1)/MAX_TARGETS_PER_ROW)
+                        newButton.clicked.connect(lambda checked, target=target, libs_lineEdit=libs_lineEdit:toggleLib(target,libs_lineEdit))
+                        targetCounter +=1
+                                                            
+                    currentRow+=1
+                
+                selectedTargets = QLabel()
+                selectedTargets.setText("\tSelected Targets:")
+                
+                innerGrid.addWidget(selectedTargets,currentRow,0)
+                innerGrid.addWidget(libs_lineEdit,currentRow,1)                
+                currentRow += 1
+                group.setLayout(innerGrid)
+                groupCount += 1
+                grid.addWidget(group)
+                
+            layout.addLayout(grid)
+                
     def createSanitizerBlacklistOnDemand(self):
         blacklistfile = "### lines with one # are examples...\n"
         blacklistfile += "### Ignore exactly this function (the names are mangled)\n" 

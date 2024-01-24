@@ -1,5 +1,5 @@
 from .structs import GuiData as d
-from .structs.ProjectConfigurationData import ProjectConfigurationData
+from .structs.ProjectConfigurationData import ProjectConfigurationGUI
 from .structs.CppDataHelper import CppDataHelper
 from . import cmake_helper as hlp_cmake
 from PyQt5.QtWidgets import QMessageBox, QTextEdit

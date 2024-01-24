@@ -292,3 +292,45 @@ def showHideFrame(frame :QFrame, condition:bool):
         frame.show()
     else: 
         frame.hide()
+
+def addFloatingWindow(
+    parentLayout,
+    groupTitle:str
+) -> QVBoxLayout:
+
+    # Create A frame, needed to make the layout/content collapsable
+    frame_widget = QFrame()
+
+    # Create new Layout for collapsable content, assign to frame widget
+    frame_layout = QVBoxLayout()
+    frame_widget.setLayout(frame_layout)
+    
+    # Create A Group
+    group_widget = QGroupBox(title=groupTitle)
+
+    # new Layout for button and collapsable content, assign to group widget
+    group_layout = QVBoxLayout()
+    group_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    group_widget.setLayout(group_layout)
+
+    # Assign the group widget to the frames layout
+    frame_layout.addWidget(group_widget)
+    frame_layout.setStretch(0, 1)
+    frame_layout.setStretch(1, 1)
+
+    # Add the frame Widget to the parent Layout to be displayed
+    parentLayout.addWidget(frame_widget)    
+
+    frame_widget.show()
+
+    # Wrap the group_layout in a scroll area
+    scroll_area = QScrollArea()
+    scroll_area.setWidgetResizable(True)
+    scroll_area.setWidget(group_widget)
+    
+    scroll_area.setMinimumSize(245,0)
+
+    # Add the scroll area to the frame layout to make the group_layout scrollable
+    frame_layout.addWidget(scroll_area)
+
+    return group_layout

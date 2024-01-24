@@ -5,6 +5,7 @@ from PyQt5.QtCore    import *
 from PyQt5.QtWidgets import *
 import math
 from src.structs.GenericTypeValueSetterMetaClass import GenericTypeValueSetterMetaClass
+from src.structs.PersistantDataManager import TargetDatas
 from ..dev.Terminate import terminate
 from ..dev.qt_helpers import *
 
@@ -208,7 +209,7 @@ class InputWidget():
         self.nameWidget.setText(name)
         self.valWidget.setText(str(value))
 
-    def getVariable(self) -> tuple:
+    def getVariable(self) -> tuple[str,str]:
         return (self.nameWidget.text(), self.valWidget.text())  
     
     
@@ -225,12 +226,18 @@ class CmakeCppVar_inputWidget(InputWidget):
 @dataclass
 class library_inputWidget(InputWidget):
     public: GuiDataToggle
-    targetName: Optional[str] 
-    def __init__(self, name : str, val : str, public: bool):
+    remote: GuiDataToggle
+    selectedTargets: Optional[list[str]] 
+    targetDatas: Optional[TargetDatas]
+    def __init__(self, name : str, val : str, public: bool, remote : bool):
         super().__init__(name, val)
         self.public = GuiDataToggle(QCheckBox())
         self.public.setState(public)
-        self.nameWidget.setDisabled(True)        
+        self.remote = GuiDataToggle(QCheckBox())
+        self.remote.setState(remote)
+        self.nameWidget.setDisabled(True)
+        self.selectedTargets = None
+        self.targetDatas = None
 
     def setPublicVisibilitySpecifier(self, isPublic : bool):
         self.public.setState(isPublic)

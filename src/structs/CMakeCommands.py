@@ -173,6 +173,11 @@ class CMC_add_executable(CMakeCommand):
     def __init__(self, *CMC_CKeyArgs : CMCK):
         '''skip'''
 
+@dataclass
+class CMC_add_library(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+
 class CMC_add_subdirectory(CMakeCommand):
     def __init__(self, *CMC_CKeyArgs : CMCK):
         '''skip'''
@@ -187,6 +192,11 @@ class CMC_find_program(CMakeCommand):
         '''skip'''
 @dataclass
 class CMC_target_sources(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+        
+@dataclass
+class CMC_target_include_directories(CMakeCommand): 
     def __init__(self, *CMC_CKeyArgs : CMCK):
         '''skip'''
 @dataclass
@@ -295,10 +305,10 @@ class CMakeCommandDct:
 def CM_generatorExpressionConditional(condition:str, *args) -> str:
     return str.format("$<$<{}>: \n\t\t{}>",condition, "-" + '\n\t\t-'.join(map(str, args)) if len(args)> 0 else "")
 
-def propifyList(propList):
+def propifyList(propDict : dict[str,str]):
     padding = 1
-    maxSpace=max(len(arg.cmake_propName) + padding for arg in propList)
-    return [prop.cmake_propName.ljust(maxSpace) + str(prop.getValue()) for prop in propList]
+    maxSpace=max(len(key) + padding for key, val in propDict.items())
+    return [key.ljust(maxSpace) + str(val) for key, val in propDict.items()]
 
 def CMVAR_REF(varName :str) -> str: 
     """
