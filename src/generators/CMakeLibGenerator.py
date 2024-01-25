@@ -107,6 +107,10 @@ def cmakeifyLib(libDirPath: str) -> tuple[str, CMakeDataHelper]:
     if len(sourceFiles) == 0:
         headerOnlyLib = True
     
+    if headerOnlyLib and len(headerFiles) == 0:
+        terminate("Provided library path does not contain header or source files!")
+        #TODO: Replace terminate with WarnUser
+
     cmakelist.genStr_cmake_min_version()
     cmakelist.genStr_cmake_projectdetails()
 
