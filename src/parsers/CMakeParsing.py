@@ -223,7 +223,16 @@ def __getFinderCmakeOutput_installed(name:str):
     with finderCMakeFile.open("w") as file:
         file.write(f"cmake_minimum_required(VERSION 3.28.0)\n")
         file.write("project(find_dummy)\n")
-        file.write(f"find_package({name} REQUIRED)\n")
+        file.write(f"find_package({name})\n")
+        file.write(f"if(NOT ${{{name}_FOUND}})\n")
+        file.write(f"\tfind_package({name.upper()})\n")
+        file.write(f"\tif(NOT ${{{name.upper()}_FOUND}})\n")
+        file.write(f"\t\tfind_package({name.lower()})\n")
+        file.write(f"\t\tif(NOT ${{{name.lower()}_FOUND}})\n")
+        file.write(f"\t\t\tmessage(FATAL_ERROR \"Could Not find Library '{name}'\")\n")
+        file.write(f"\t\tendif()\n")
+        file.write(f"\tendif()\n")
+        file.write(f"endif()\n")
         file.write(f"message(\"###LibraryData###\")\n")
         
         _writelibdat(file,name)
