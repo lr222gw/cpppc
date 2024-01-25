@@ -3,11 +3,9 @@ import enum
 import glob
 from pathlib import Path
 
-from numpy import inner
-from src.cmake_helper import configureCmakeProjectDependency, getLibraryTargetFromPCFile
 from src.fetchers.Fetcher_local import getInstalledLib, fetchLocalLib
 from src.generators.CMakeLibGenerator import cmakeifyLib
-from src.parsers.CMakeParsing import  collectFilePaths, gatherTargetsFromConfigFiles, getLibraryTargets, parseLib
+from src.parsers.CMakeParsing import  collectFilePaths, collectGeneratedConfigs, gatherTargetsFromConfigFiles, parseLib
 
 from src.fetchers.Fetcher_github import fetchGithubRepo
 from src.structs.PersistantDataManager import DepDat, PersistantDataManager, getCpppcDir
@@ -196,36 +194,17 @@ class CPPPC_Manager:
                 # TODO: Add Support for Windows and MacOS...            
                 
             elif librarySetupType == LibrarySetupType.CMakeBased:
-                # step 1: Configure Project!  => Generate with --graphwiz to temp/t.dot
-                configPath = configureCmakeProjectDependency(targetLibPath)
 
                 self.cmakeListDat.genStr_addSubdirectory(localLibPath)
                 if not PersistantDataManager().checkDependencyExist(os.path.abspath(targetLibPath)):
 
-                    if True :  #CHECK IF WE CAN REMOVE
-                        if configPath != None and self.__checkWildcardFileExists(pathify(configPath,"*.pc")):
-                            # Alt 1:    check if *.pc was generated, use data from that OR *-targets.cmake 
-                            pcFilePath = self.__getWildcardFile(pathify(configPath,"*.pc"))
-                            targetName = getLibraryTargetFromPCFile(pcFilePath)
-                            if targetName != None:
-                                lib.selectedTargets = [targetName]                            
-                            
-                        if lib.selectedTargets == None :
-                            # Alt 2:  Parse CMakeLists.txt, look for add_library; Consider Interface/Alias  
-                                # => Create Library ? 
-                                # => Add Library ? 
-                                # => Add Include directories
-                            libTargets = getLibraryTargets(targetLibPath)
-
-                            #TODO! Let user pick which targets to include, if more than one...
-                            lib.selectedTargets = libTargets
-                            # lib.targetNames = libTargets[0]
-
                     cmakedirPath = os.path.abspath(os.path.join(targetLibPath,"cmake" ))
                     finder_tempPath = Path.joinpath(getCpppcDir(), "temp_lib")
                     
-                    # Copy necesary files to search through 
-                    confFiles =collectFilePaths([os.path.join(targetLibPath,"CMakeLists.txt" )],[cmakedirPath])
+                    # Copy necesary files to search through                     
+                    confFiles = collectGeneratedConfigs(targetLibPath) 
+                    confFiles.extend(collectFilePaths([os.path.join(targetLibPath,"CMakeLists.txt" )],[cmakedirPath]))
+
                     targetDatas = gatherTargetsFromConfigFiles(confFiles, finder_tempPath.absolute().__str__())                      #NEW
                     lib.targetDatas = targetDatas
 
@@ -281,13 +260,13 @@ class CPPPC_Manager:
     def __checkFileExists(self, pathToFile: str) -> bool:
         return os.path.exists(pathToFile)
         
-    def __checkWildcardFileExists(self, pathToFile: str) -> bool:
+    def __checkWildcardFileExists(self, pathToFile: str) -> bool: # TODO: Unused helper Func, consider deprecate
         matches = glob.glob(pathToFile)
         if len(matches) > 1: 
             terminate("Function only design to handle cases where there's one result from wildcard")
         return os.path.exists(matches[0]) if len(matches) != 0 else False
     
-    def __getWildcardFile(self, pathToFile: str) -> str:
+    def __getWildcardFile(self, pathToFile: str) -> str:  # TODO: Unused helper Func, consider deprecate
         matches = glob.glob(pathToFile)
         if len(matches) > 1: 
             terminate("Function only design to handle cases where there's one result from wildcard")

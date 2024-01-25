@@ -37,8 +37,7 @@ def getCMakeVersion():
     return CMakeVersionData()
 
 
-#TODO: Remove graphviz part, cannot get anything out of parsing it
-def configureCmakeProjectDependency(projectPath:str) -> Optional[str]:
+def configureCmakeProjectDependency(projectPath:str) -> Optional[str]: # TODO: Consider Deprecate, not used anymore. Might reuse some cache ideas...
     configPath = path.join(projectPath, DIR_CMAKE_DEPENDENCY_CPPPC_DATA)
     configFilePath = path.join(projectPath, DIR_CMAKE_DEPENDENCY_CPPPC_DATA, FILE_CPPPC_DEPENDENT_DATA)
     try:     
@@ -58,7 +57,7 @@ def configureCmakeProjectDependency(projectPath:str) -> Optional[str]:
     return configPath
     
 
-def getLibraryTargetFromPCFile(pcFilePath:str) -> Optional[str]:
+def getLibraryTargetFromPCFile(pcFilePath:str) -> Optional[str]: #Not used anymore, Consider deprecate
     try:
         with open(pcFilePath, "r") as pcFile:
             libTarget =  [re.findall(r"-l(\S*)",line) for line in pcFile if 'Libs' in line]

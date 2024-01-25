@@ -1,4 +1,5 @@
 from enum import StrEnum
+from genericpath import exists
 import os
 from pathlib import Path
 import pathlib
@@ -28,7 +29,7 @@ def __derefernce(dict, var):
     else: 
         return var
 
-def getLibraryTargets(libPath:str):
+def getLibraryTargets(libPath:str): # TODO: Unused, consider deprecate
     
     cmakevars = __getCMakeVarDefinitions(__pathify(libPath,"CMakeLists.txt"))
     targets = list[str]()
@@ -248,19 +249,21 @@ def __getFinderCmakeOutput_installed(name:str):
     
     shutil.rmtree(finder_tempPath.absolute().__str__())
     return output
-
-def __getFinderCmakeOutput_local(name:str, pathInDeps:str):
+ 
+def __getFinderCmakeOutput_local(name:str, includeFiles:list[str]): #TODO: Consider if we need this... Might be worth it for some libraries! S
     finderCMakeFile    = Path.joinpath(getCpppcDir(), "CMakeLists.txt")
     finder_tempPath    = Path.joinpath(getCpppcDir(), "temp")
     finder_libTempPath = Path.joinpath(finder_tempPath, "templib")
     includes=""
-    for file in os.listdir(pathInDeps):
-        includes += f"include({os.path.join(pathInDeps,file)})\n"
+
+    for file in includeFiles:
+        # includes += f"include({os.path.join(includeFiles,file)})\n"
+        includes += f"include({file})\n"
     Path.touch(finderCMakeFile)
     with finderCMakeFile.open("w") as file:
         file.write(f"cmake_minimum_required(VERSION 3.28.0)\n") #TODO: Not hardcode version... fetch users instead
         file.write("project(find_dummy)\n")
-        file.write(f"add_subdirectory({finder_libTempPath.absolute().__str__()})\n")
+        file.write(f"add_subdirectory({finder_libTempPath.absolute().__str__()})\n") #TODO: Make sure this works, might need to include isntead, as before
         file.write(f"message(\"###LibraryData###\")\n")
         
         _writelibdat(file,name)
@@ -272,7 +275,11 @@ def __getFinderCmakeOutput_local(name:str, pathInDeps:str):
         file.write(str.format("message(STATUS \"${{_variableName}} = ${{${{_variableName}}}}\")\n"))
         file.write(str.format("endforeach()\n"))
     
-    shutil.copytree(os.path.abspath(pathInDeps),finder_libTempPath.absolute().__str__())
+    # shutil.copytree(os.path.abspath(includeFiles),finder_libTempPath.absolute().__str__())
+    pathlib.Path(finder_libTempPath.absolute().__str__()).mkdir(exist_ok=True, parents=True)
+    for f in includeFiles:
+        shutil.copyfile(f,os.path.join(finder_libTempPath.absolute().__str__(),os.path.basename(f)))
+
     output = subprocess.run(["cmake", "--debug-find", f"{finderCMakeFile.absolute().__str__()}", f"-B {finder_tempPath.absolute().__str__()}"] ,text=True, capture_output=True)
     
     shutil.rmtree(finder_tempPath.absolute().__str__())
@@ -304,6 +311,31 @@ def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg
         return (pathMatch[0], CmakeFindType.Module, msgDatDict)
 
     return (None,CmakeFindType.undef, msgDatDict)
+
+def collectGeneratedConfigs(libPath):
+    finder_tempPath    = Path.joinpath(getCpppcDir(), "temp")
+    finder_libparse    = Path.joinpath(getCpppcDir(), "libparse")
+
+    libPath = Path(libPath)
+    output = subprocess.run(["cmake", "--fresh",f"-S {libPath.absolute().__str__()}", f"-B {finder_tempPath.absolute().__str__()}"] ,text=True, capture_output=True)
+    exports = finder_tempPath / "CMakeFiles" / "Export"
+    allExports :list[Path] = []
+    if exports.exists():
+        allExports = [file for dir in exports.iterdir() if dir.is_dir() for file in dir.iterdir()]
+    confs = [f for f in finder_tempPath.glob("*.cmake")]
+    if len(confs) > 0: 
+        allExports.extend(confs)
+    libCmakeText = libPath / "CMakeLists.txt"
+    if libCmakeText.exists(): 
+        allExports.append(libCmakeText)
+
+    if finder_libparse.exists():
+        shutil.rmtree(finder_libparse.absolute().__str__())
+    finder_libparse.mkdir(parents=True,exist_ok=True)
+    for f in allExports:
+        shutil.copyfile(f,os.path.join(finder_libparse.absolute().__str__(),f.name))
+
+    return [f.absolute().__str__() for f in allExports]
 
 
 def collectFilePaths(filesToInclude: list[str], dirsToCollectFrom: list[str])->list[str]:
@@ -345,7 +377,19 @@ def gatherTargetsFromConfigFiles(configFiles:list[str], workpath:str)->TargetDat
     #Remove entries from PossibleTargets if known type
     targets["PossibleTargets"] = [t for t in targets["PossibleTargets"] if not __existsInDictionary(targets,t,skipPossibleTargets=True)]
 
-    return TargetDatas(targets["PossibleTargets"], targets["SHARED"], targets["STATIC"], targets["INTERFACE"])
+    # Remove duplicates
+    targets_cleaned:dict[str,list[str]] = dict()
+    targets_cleaned.setdefault("PossibleTargets", list[str]())
+    targets_cleaned.setdefault("SHARED", list[str]())
+    targets_cleaned.setdefault("STATIC", list[str]())
+    targets_cleaned.setdefault("INTERFACE", list[str]())
+    for k, v in targets.items(): 
+        if k in ["PossibleTargets", "SHARED", "STATIC", "INTERFACE"]:
+            for vv in targets[k]:
+                if not vv in targets_cleaned[k]:
+                    targets_cleaned[k].append(vv)
+
+    return TargetDatas(targets_cleaned["PossibleTargets"], targets_cleaned["SHARED"], targets_cleaned["STATIC"], targets_cleaned["INTERFACE"])
 
 
 def __printResults(targets : TargetDatas):
@@ -374,14 +418,14 @@ def __printResults(targets : TargetDatas):
                 print(str.format("\t{}",i))
     
 
-def parseLib(name : str, confPath: Optional[str] = None) -> TargetDatas: 
+def parseLib(name : str, confFilePaths: Optional[list[str]] = None) -> TargetDatas: 
     foundLib=True
 
     output:subprocess.CompletedProcess[str]
-    if confPath == None:
+    if confFilePaths == None:
         output = __getFinderCmakeOutput_installed(name)
     else:
-        output = __getFinderCmakeOutput_local(name, confPath)
+        output = __getFinderCmakeOutput_local(name, confFilePaths)
 
     p = __getCmakeConfPath(name, output)
     thePath = p[0]
