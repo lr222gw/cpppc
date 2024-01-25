@@ -187,6 +187,7 @@ class CPPPC_Manager:
             
             librarySetupType = self.__detectLibrarySetupType(name, lib)
 
+            # TODO: Move into each case...
             extraData = parseLib(os.path.basename(lib.getLibraryPath()))
 
             if librarySetupType == LibrarySetupType.InstalledCMake:
@@ -258,11 +259,12 @@ class CPPPC_Manager:
                 print("TODO Fix Barebones")
                 
             else:
-                terminate("LibrarySetupType is undefined!")
+                
+                WarnUser(str.format("Provided library is not installed or has a faulty path! \n\tName: {}\n\tPath: {}",name,lib.getLibraryPath()))
             
         
     def __detectLibrarySetupType(self, name:str, lib: library_inputWidget) -> LibrarySetupType:
-        detectedType : LibrarySetupType = LibrarySetupType.BareBores
+        detectedType : LibrarySetupType = LibrarySetupType.Undefined
         libraryPath = self.cmakeListDat.getLocalPathInDeps(name)
         
         installedLibs = getInstalledLib(lib.getLibraryPath())
@@ -272,6 +274,8 @@ class CPPPC_Manager:
             detectedType = LibrarySetupType.CMakeBased
         elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(pathify(libraryPath, "Makefile"))):
             detectedType = LibrarySetupType.MakeBased
+        elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(libraryPath)):
+            detectedType = LibrarySetupType.BareBores
 
         return detectedType
     def __checkFileExists(self, pathToFile: str) -> bool:
