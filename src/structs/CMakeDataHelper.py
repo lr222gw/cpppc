@@ -277,8 +277,8 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         return self.cmakeCommands.add_CMC(
             CMC_target_link_libraries(
                 CMCK(self.projdata.projectExecName),
-                CMCK("PUBLIC",  [lib for lib in self.projdata.linkLibs_public]), 
-                CMCK("PRIVATE", [lib for lib in self.projdata.linkLibs_private]) 
+                CMCK("PUBLIC",  [l for k,v in self.projdata.linkLibs_public.items()  for l in v]), 
+                CMCK("PRIVATE", [l for k,v in self.projdata.linkLibs_private.items() for l in v]) 
             )
         ).__str__()
 

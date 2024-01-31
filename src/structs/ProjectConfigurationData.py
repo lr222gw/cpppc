@@ -112,8 +112,8 @@ class ProjectConfigurationGUI:
             else:
                 return var
 
-        linkLibs_public  = list[str]()
-        linkLibs_private = list[str]()
+        linkLibs_public  = dict[str,list[str]]()
+        linkLibs_private = dict[str,list[str]]()
         linkLibs : dict[str,tuple[str,bool, list[str],TargetDatas]]= dict[str,tuple[str,bool, list[str],TargetDatas]]()
         for lib_key, lib_input in self.linkLibs_dict.items(): #TODO: Try to utilize TargetDatas instead of TargetNames
             if lib_input.getPublicVisibilitySpecifier() == True:
@@ -124,7 +124,7 @@ class ProjectConfigurationGUI:
                         getNewIfNone(lib_input.selectedTargets, list[str]), 
                         getNewIfNone(lib_input.targetDatas, TargetDatas)
                         ) 
-                    linkLibs_public.extend(lib_input.selectedTargets)
+                    linkLibs_public[lib_key] = lib_input.selectedTargets
                 else: 
                     linkLibs[lib_key] = (lib_input.getLibraryPath(), True, list(), getNewIfNone(lib_input.targetDatas, TargetDatas))
             else:                 
@@ -135,7 +135,7 @@ class ProjectConfigurationGUI:
                         getNewIfNone(lib_input.selectedTargets, list[str]), 
                         getNewIfNone(lib_input.targetDatas, TargetDatas)
                         )
-                    linkLibs_private.extend(lib_input.selectedTargets)
+                    linkLibs_private[lib_key] = (lib_input.selectedTargets)
                 else: 
                     linkLibs[lib_key] = (lib_input.getLibraryPath(), False, list(),getNewIfNone(lib_input.targetDatas, TargetDatas))
         

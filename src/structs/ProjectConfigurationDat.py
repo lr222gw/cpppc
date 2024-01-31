@@ -40,8 +40,8 @@ class ProjectConfigurationData():
     _cmakeVersionData:Optional[  tuple[int,int,int]]       = None
     _cmakeToCppVars :Optional[ dict[str,tuple[str,str]] ]  = None
     _linkLibs : Optional[dict[str,tuple[str,bool, list[str],TargetDatas]]] = None
-    _linkLibs_public  :Optional[ list[str]]                = None
-    _linkLibs_private  :Optional[ list[str]]               = None
+    _linkLibs_public   :Optional[ dict[str,list[str]]]              = None
+    _linkLibs_private  :Optional[ dict[str,list[str]]]              = None
     _props :Optional[ dict[str,str|bool|int]]                       = None
 
     def __init__(self, 
@@ -56,8 +56,8 @@ class ProjectConfigurationData():
                 cmakeVersionData:Optional[  tuple[int,int,int]]       = None,
                 cmakeToCppVars :Optional[ dict[str,tuple[str,str]] ]  = None,
                 linkLibs: Optional[dict[str,tuple[str,bool, list[str],TargetDatas]]]  = None, 
-                linkLibs_public  :Optional[ list[str]]                = None,
-                linkLibs_private  :Optional[ list[str]]               = None,
+                linkLibs_public  :Optional[dict[str,list[str]]]       = None,
+                linkLibs_private  :Optional[dict[str,list[str]]]      = None,
                 props :Optional[ dict[str,str|bool|int]]              = None
                  ):
         self.projectName               =projectName
@@ -149,14 +149,15 @@ class ProjectConfigurationData():
     @linkLibs.setter
     def linkLibs(self, v):
         self._linkLibs =v 
+
     @property
-    def linkLibs_public(self)->list[str]:
+    def linkLibs_public(self)->dict[str,list[str]]:
         return self.__getVar(self._linkLibs_public)
     @linkLibs_public.setter
     def linkLibs_public(self, v):
         self._linkLibs_public =v 
     @property
-    def linkLibs_private(self)->list[str]:
+    def linkLibs_private(self)->dict[str,list[str]]:
         return self.__getVar(self._linkLibs_private)
     @linkLibs_private.setter
     def linkLibs_private(self, v):

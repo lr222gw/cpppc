@@ -34,8 +34,10 @@ def cmakeifyLib(libDirPath: str) -> tuple[str, CMakeDataHelper]:
         cmakeVersionData           = (3,28,0),# TODO: fix  hardcode...
         cmakeToCppVars             = dict[str,tuple[str,str]](),
         linkLibs                   = dict[str,tuple[str,bool, list[str],TargetDatas]](), 
-        linkLibs_public            = list[str](),
-        linkLibs_private           = list[str](),
+        # linkLibs_public            = list[str](),
+        # linkLibs_private           = list[str](),
+        linkLibs_public            = dict[str,list[str]](),
+        linkLibs_private           = dict[str,list[str]](),
         props                      = dict[str,str|bool|int]()
     )    
 
