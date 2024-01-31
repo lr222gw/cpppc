@@ -78,10 +78,28 @@ class ProjectConfigurationData():
         self.props                     =props
     
     def update(self, updatedInstance):
-        for attr_name in dir(self):
-            if not attr_name.startswith('_') and hasattr(updatedInstance, attr_name):
-                setattr(self, attr_name, getattr(updatedInstance, attr_name))
 
+        self.projectName               =updatedInstance.projectName
+        self.projectTargetDir          =updatedInstance.projectTargetDir
+        self.projectExecName           =updatedInstance.projectExecName
+        self.projectDesc               =updatedInstance.projectDesc
+        self.entryPointFile            =updatedInstance.entryPointFile
+        self.overwriteProjectTargetDir =updatedInstance.overwriteProjectTargetDir
+        self.useProgram_ccache         =updatedInstance.useProgram_ccache
+        self.useMeasureCompiletime     =updatedInstance.useMeasureCompiletime
+        self.cmakeVersionData          =updatedInstance.cmakeVersionData
+        self.cmakeToCppVars            =updatedInstance.cmakeToCppVars
+        self.linkLibs                  =updatedInstance.linkLibs
+        self.linkLibs_public           =updatedInstance.linkLibs_public
+        self.linkLibs_private          =updatedInstance.linkLibs_private
+        self.props                     =updatedInstance.props
+
+
+        for libkey, userSelectedTargets in self._linkLibs_public_override.items(): 
+            self.linkLibs_public[libkey] = userSelectedTargets
+        for libkey, userSelectedTargets in self._linkLibs_private_override.items(): 
+            self.linkLibs_private[libkey] = userSelectedTargets
+            
     @property
     def projectName(self)->str :
         return self.__getVar(self._projectName)
