@@ -99,10 +99,12 @@ def __getLibraryTargets_cmakefile(cmakef:str) -> dict[str,list[str]]: #TODO: Ren
                if not match[1] in m:
                     m.setdefault(match[1],list[str]())
                m[match[1]].append(__derefernce(cmakevars,match[0]))
-            elif match[1] != "": 
+            elif match[1] != "" and match[2] != "": 
                 if not match[2] in m:
                     m.setdefault(match[2],list[str]())
                 m[match[2]].append(__derefernce(cmakevars,match[1]))
+            elif match[1] != "" and match[0] == "" and match[2] == "":                
+                m["STATIC"].append(__derefernce(cmakevars,match[1]))
 
         for p in possibleTargetMatches: 
             # If its a reference, add it only if we can get its value        
