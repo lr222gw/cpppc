@@ -110,6 +110,9 @@ def prepareStorage():
     data_dir.mkdir(parents=True, exist_ok=True)
     global DIR_HISTORY_CPPPC 
     DIR_HISTORY_CPPPC = data_dir.absolute().__str__()
+    temp = data_dir / "temp"
+    if temp.exists():
+        shutil.rmtree(temp.absolute().__str__())
 
 def getCpppcDir()->Path:
     from pathlib import Path
