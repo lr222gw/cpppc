@@ -9,12 +9,14 @@ class TargetDatas():
     STATIC: list[str]
     INTERFACE: list[str]
     keyWords : Optional[dict[str,str]]
-    def __init__(self, possibleTargets: list[str] = [], SHARED: list[str] = [], STATIC: list[str] = [], INTERFACE: list[str] = [], keyWords : Optional[dict[str,str]] = None): 
+    includes : Optional[list[str]]
+    def __init__(self, possibleTargets: list[str] = [], SHARED: list[str] = [], STATIC: list[str] = [], INTERFACE: list[str] = [], keyWords : Optional[dict[str,str]] = None, includes : Optional[list[str]] = None): 
         self.possibleTargets  = possibleTargets
         self.SHARED           = SHARED
         self.STATIC           = STATIC
         self.INTERFACE        = INTERFACE
         self.keyWords         = keyWords
+        self.includes         = includes
         
 class DepDat():
     path : str

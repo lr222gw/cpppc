@@ -1,6 +1,7 @@
 import json
 from os import path
 from pathlib import Path
+import shutil
 from typing import Optional
 from src.dev.Terminate import terminate
 from src.structs.ProjectConfigurationDat import *
@@ -68,7 +69,8 @@ class PersistantDataManager():
                             tempDependenciesDirs[entry]["targetDatas"]["SHARED"],
                             tempDependenciesDirs[entry]["targetDatas"]["STATIC"],
                             tempDependenciesDirs[entry]["targetDatas"]["INTERFACE"],
-                            tempDependenciesDirs[entry]["targetDatas"]["keyWords"]
+                            keyWords = tempDependenciesDirs[entry]["targetDatas"]["keyWords"],
+                            includes = tempDependenciesDirs[entry]["targetDatas"]["includes"]
                             
                         )
                     )

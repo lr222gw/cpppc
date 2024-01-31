@@ -67,7 +67,7 @@ def __existsInDictionary(m,p, skipPossibleTargets:Optional[bool] = False):
     
     return False
     
-def __getLibraryTargets_cmakefile(cmakef:str) -> dict[str,list[str]]:
+def __getLibraryTargets_cmakefile(cmakef:str) -> dict[str,list[str]]: #TODO: Rename function if it will do more than fetching targets...
     
     cmakevars = __getCMakeVarDefinitions(cmakef)
 
@@ -78,11 +78,21 @@ def __getLibraryTargets_cmakefile(cmakef:str) -> dict[str,list[str]]:
         
         matches = re.findall(add_library_rgx, contents)
         possibleTargetMatches = re.findall(possibleTargets_rgx, contents)
+        
+        includeMatches = re.findall(r"(?m)((?!(?:\w|\s)*[#\n]).*(?:target_include_directories)\(([^\s]+))", contents)
+
         m = dict[str,list[str]]()
         m["PossibleTargets"] = list[str]()
         m["SHARED"] = list[str]()
         m["STATIC"] = list[str]()
         m["INTERFACE"] = list[str]()
+        m["Includes"] = list[str]()
+
+        temp_incl = [i[1] for i in includeMatches if len(i) == 2 ]        
+        for i in temp_incl: 
+            if not i in m["Includes"]:
+                m["Includes"].append(i)
+        
         
         for match in matches :
             if match[0] != "":
@@ -383,13 +393,14 @@ def gatherTargetsFromConfigFiles(configFiles:list[str], workpath:str)->TargetDat
     targets_cleaned.setdefault("SHARED", list[str]())
     targets_cleaned.setdefault("STATIC", list[str]())
     targets_cleaned.setdefault("INTERFACE", list[str]())
+    targets_cleaned.setdefault("Includes", list[str]())
     for k, v in targets.items(): 
-        if k in ["PossibleTargets", "SHARED", "STATIC", "INTERFACE"]:
+        if k in ["PossibleTargets", "SHARED", "STATIC", "INTERFACE", "Includes"]:
             for vv in targets[k]:
                 if not vv in targets_cleaned[k]:
                     targets_cleaned[k].append(vv)
 
-    return TargetDatas(targets_cleaned["PossibleTargets"], targets_cleaned["SHARED"], targets_cleaned["STATIC"], targets_cleaned["INTERFACE"])
+    return TargetDatas(targets_cleaned["PossibleTargets"], targets_cleaned["SHARED"], targets_cleaned["STATIC"], targets_cleaned["INTERFACE"], includes=targets_cleaned["Includes"])
 
 
 def __printResults(targets : TargetDatas):
