@@ -185,9 +185,6 @@ class CPPPC_Manager:
             
             librarySetupType = self.__detectLibrarySetupType(name, lib)
 
-            # TODO: Move into each case...
-            extraData = parseLib(os.path.basename(lib.getLibraryPath()))
-
             if librarySetupType == LibrarySetupType.InstalledCMake:
                 # lib.targetNames = getInstalledLib(lib.getLibraryPath())     #TODO: Check if this can be replaced...
                 lib.targetDatas = parseLib(lib.getLibraryPath())
