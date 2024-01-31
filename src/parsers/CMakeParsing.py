@@ -267,6 +267,14 @@ def __getFinderCmakeOutput_local(name:str, includeFiles:list[str]): #TODO: Consi
     finder_tempPath    = Path.joinpath(getCpppcDir(), "temp")
     finder_libTempPath = Path.joinpath(finder_tempPath, "templib")
     includes=""
+    theConf = ""
+    theConfPath = ""
+    for f in includeFiles:
+        basename = os.path.basename(f)
+        r = basename.find("Config.cmake")
+        if r != -1:
+            theConf = basename[0:r]
+            theConfPath = f.split(theConf)[0]
 
     for file in includeFiles:
         # includes += f"include({os.path.join(includeFiles,file)})\n"
@@ -275,7 +283,7 @@ def __getFinderCmakeOutput_local(name:str, includeFiles:list[str]): #TODO: Consi
     with finderCMakeFile.open("w") as file:
         file.write(f"cmake_minimum_required(VERSION 3.28.0)\n") #TODO: Not hardcode version... fetch users instead
         file.write("project(find_dummy)\n")
-        file.write(f"add_subdirectory({finder_libTempPath.absolute().__str__()})\n") #TODO: Make sure this works, might need to include isntead, as before
+        file.write(f"find_package({theConf} PATHS {theConfPath} NO_DEFAULT_PATH)") #TODO: Make sure this works, might need to include isntead, as before
         file.write(f"message(\"###LibraryData###\")\n")
         
         _writelibdat(file,name)
@@ -297,7 +305,7 @@ def __getFinderCmakeOutput_local(name:str, includeFiles:list[str]): #TODO: Consi
     shutil.rmtree(finder_tempPath.absolute().__str__())
     return output 
 
-def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg:Optional[bool]=False) -> tuple[Optional[str], CmakeFindType, dict[str,str]]: 
+def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg:Optional[bool]=True) -> tuple[Optional[str], CmakeFindType, dict[str,str]]: 
     
     if printdbg:
         print(output.__str__().encode("utf-8").decode('unicode-escape'))
