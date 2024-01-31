@@ -46,6 +46,9 @@ class ProjectConfigurationData():
     _linkLibs_private  :Optional[ dict[str,list[str]]]              = None
     _props :Optional[ dict[str,str|bool|int]]                       = None
 
+    _linkLibs_public_override   :dict[str,list[str]]
+    _linkLibs_private_override  :dict[str,list[str]]
+
     def __init__(self, 
                 projectName:Optional[ str ]                           = None,
                 projectTargetDir:Optional[ str ]                      = None,
@@ -76,6 +79,8 @@ class ProjectConfigurationData():
         self.linkLibs_public           =linkLibs_public
         self.linkLibs_private          =linkLibs_private
         self.props                     =props
+        self._linkLibs_public_override  = dict[str,list[str]]()
+        self._linkLibs_private_override = dict[str,list[str]]() 
     
     def update(self, updatedInstance):
 

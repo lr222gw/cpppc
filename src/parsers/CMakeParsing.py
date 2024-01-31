@@ -324,12 +324,17 @@ def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg
 
     return (None,CmakeFindType.undef, msgDatDict)
 
-def collectGeneratedConfigs(libPath):
+def collectGeneratedConfigs(libPath,printdbg:Optional[bool]=True): 
+        
     finder_tempPath    = Path.joinpath(getCpppcDir(), "temp")
     finder_libparse    = Path.joinpath(getCpppcDir(), "libparse")
 
     libPath = Path(libPath)
     output = subprocess.run(["cmake", "--fresh",f"-S {libPath.absolute().__str__()}", f"-B {finder_tempPath.absolute().__str__()}"] ,text=True, capture_output=True)
+    
+    if printdbg:
+        print(output.__str__().encode("utf-8").decode('unicode-escape'))
+    
     exports = finder_tempPath / "CMakeFiles" / "Export"
     allExports :list[Path] = []
     if exports.exists():
