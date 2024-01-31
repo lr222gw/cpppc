@@ -3,7 +3,6 @@ from genericpath import exists
 import os
 from pathlib import Path
 import pathlib
-#from posixpath import abspath
 import re
 import shutil
 import subprocess
