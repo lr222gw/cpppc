@@ -203,7 +203,7 @@ class CPPPC_Manager:
                     
                     # Copy necesary files to search through                     
                     confFiles = collectGeneratedConfigs(targetLibPath) 
-                    confFiles.extend(collectFilePaths([os.path.join(targetLibPath,"CMakeLists.txt" )],[cmakedirPath]))
+                    confFiles.extend(collectFilePaths([],[cmakedirPath]))
 
                     targetDatas = gatherTargetsFromConfigFiles(confFiles, finder_tempPath.absolute().__str__())                      #NEW
                     lib.targetDatas = targetDatas
