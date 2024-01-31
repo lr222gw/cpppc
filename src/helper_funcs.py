@@ -28,11 +28,12 @@ def addTextField(fieldName:str,placeholder:str, parentLayout) -> GuiData:
 
     return GuiData(newLineEdit)
 
-def addTextBoxField(fieldName:str, parentLayout) -> GuiData:
+def addTextBoxField(fieldName:str, parentLayout, height:Optional[int]=50) -> GuiData:
     
     # Create Label, input field widgets
     newFieldLabel=QLabel(text=fieldName)
     newLineEdit=QTextEdit()
+    newLineEdit.setFixedHeight(height) # type: ignore : has default value
 
     # Append widgets to parent layout
     parentLayout.addWidget(newFieldLabel)
@@ -225,18 +226,22 @@ def addHidableGroup(
     parentLayout,
     checkboxParentLayout,
     groupTitle:str,
-    checkbox :GuiDataToggle
+    checkbox :GuiDataToggle,
+    minWdith: Optional[int] = None,
+    minHeight:Optional[int] = None
 ) -> QVBoxLayout:
+    minWdith  = minWdith  or 400 #Default values
+    minHeight = minHeight or 0   #Default values
 
     # Create A frame, needed to make the layout/content collapsable
     frame_widget = QFrame()
-
+    
     # Create new Layout for collapsable content, assign to frame widget
     frame_layout = QVBoxLayout()
     frame_widget.setLayout(frame_layout)
     
     # Create A Group
-    group_widget = QGroupBox(title=groupTitle)
+    group_widget = QGroupBox(title=groupTitle)    
 
     # new Layout for button and collapsable content, assign to group widget
     group_layout = QVBoxLayout()
@@ -259,7 +264,9 @@ def addHidableGroup(
     scroll_area.setWidgetResizable(True)
     scroll_area.setWidget(group_widget)
     
-    scroll_area.setMinimumSize(245,0)
+    scroll_area.setMinimumSize(
+        minWdith,   
+        minHeight)  
     
 
     # Add the scroll area to the frame layout to make the group_layout scrollable
@@ -296,7 +303,7 @@ def showHideFrame(frame :QFrame, condition:bool):
 def addFloatingWindow(
     parentLayout,
     groupTitle:str
-) -> QVBoxLayout:
+) -> tuple[QVBoxLayout, QGroupBox]:
 
     # Create A frame, needed to make the layout/content collapsable
     frame_widget = QFrame()
@@ -304,6 +311,7 @@ def addFloatingWindow(
     # Create new Layout for collapsable content, assign to frame widget
     frame_layout = QVBoxLayout()
     frame_widget.setLayout(frame_layout)
+    frame_widget.resize(800,500)
     
     # Create A Group
     group_widget = QGroupBox(title=groupTitle)
@@ -333,4 +341,4 @@ def addFloatingWindow(
     # Add the scroll area to the frame layout to make the group_layout scrollable
     frame_layout.addWidget(scroll_area)
 
-    return group_layout
+    return group_layout,group_widget

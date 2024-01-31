@@ -154,7 +154,8 @@ libraryLayout = ProjConfDat.addExtraFeatureGroup_UserInputs(
     UserInput_checkbox("Remote",False,rotation=-90),
     UserInput_checkbox("Public",False,rotation=-90),
     UserInput("Libary Name"),
-    UserInput("Path to library"),    
+    UserInput("Path to library"),   
+    minHeight=225 
 )
 
 ProjConfDat.addLocalLibraryBrowseDialog(

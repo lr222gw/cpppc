@@ -218,18 +218,33 @@ class ProjectConfigurationGUI:
         return featureGroupToggles
 
 
-    def addExtraFeatureGroup_UserInputs(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, func:Callable[[QGridLayout,Input],None], *userInputHeaders : Input, requirement:Optional[Callable] = None) -> Tuple[QVBoxLayout,QVBoxLayout]: 
+    def addExtraFeatureGroup_UserInputs(
+            self, 
+            groupParentLayout, 
+            groupCheckBoxParentLayout, 
+            groupName : str, 
+            checkBoxName : str, 
+            defaultState:bool, 
+            func:Callable[[QGridLayout,Input],None], 
+            *userInputHeaders : Input, 
+            requirement:Optional[Callable] = None,
+            minWidth:Optional[int]  = None ,
+            minHeight:Optional[int] = None
+            ) -> Tuple[QVBoxLayout,QVBoxLayout]: 
+        
         groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
         groupLayout = hlp.addHidableGroup(
             groupParentLayout,
             groupCheckBoxParentLayout,
             groupName,
-            groupToggle
+            groupToggle,
+            minWdith=minWidth,
+            minHeight=minHeight
         )
         
         superlayoutTop = QVBoxLayout()
         superlayout_bottom = QVBoxLayout()
-
+        
         groupLayout.addLayout(superlayoutTop)        
         groupLayout.addLayout(superlayout_bottom)
 
