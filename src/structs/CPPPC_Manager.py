@@ -285,81 +285,293 @@ class CPPPC_Manager:
 
     def configureLibraries(self, layout_projectName):
         parentL = QHBoxLayout()
-        layout = hlp.addFloatingWindow(parentL, "Library Configuration")
+        layout, groupWidget = hlp.addFloatingWindow(parentL, "Library Configuration")
         self.projDat_data.update(self.projDat.getData())
         self.__prepareRequiredStructure()
         self.__setupLibraries() 
         self.projDat_data.update(self.projDat.getData())
         if self.projDat_data.linkLibs != None:
             grid = QGridLayout()
-            
+
+            FOLD_SYMBOL   = "►"    # Unicode symbol for fold arrow
+            UNFOLD_SYMBOL = "▼"    # Unicode symbol for unfold arrow
+
             currentRow = 0
             groupCount = 0
             for libDirName, libdat in self.projDat_data.linkLibs.items():
-                group = QGroupBox()
+                libraryGroup = QGroupBox()                
+
                 innerGrid = QGridLayout()
                 libName = libdat[0]
                 publ    = libdat[1] 
+                defTargets   = libdat[2] 
                 targetDat    = libdat[3]                 
 
                 libLabel = QLabel()
-                libLabel.setText(libName)              
-
-                libs_lineEdit = QLineEdit()
-                def toggleLib(targetName, libs_lineEdit):
-                    lib_lineLibs = [lib.strip() for lib in libs_lineEdit.text().strip().split(",")if lib != ""]                
-                    if targetName.strip() in lib_lineLibs: 
-                        lib_lineLibs.remove(targetName.strip())
-                    else: 
-                        lib_lineLibs.append(targetName)
-                    libs_lineEdit.setText(", ".join(lib_lineLibs))
-
+                libLabel.setText(libName)                              
                 
                 innerGrid.addWidget(libLabel,currentRow,0)
                 currentRow+=1
-                
-                MAX_TARGETS_PER_ROW = 4
 
-                targetTypes = [
+                def hide(group : QGroupBox, label :QLabel):                    
+                    if not group.isHidden():
+                        label.setText(f"{FOLD_SYMBOL} "+label.text()[1:])
+                        group.setHidden(True)
+                    else :
+                        group.setHidden(False)
+                        label.setText(f"{UNFOLD_SYMBOL} "+label.text()[1:])
+
+
+                linking_group = QGroupBox()
+                linking_group.setHidden(True)
+                linking_group_label = QLabel()
+
+                selectedFoldStatus = FOLD_SYMBOL
+                numOfTargets = self.__getNumberOfTargets(targetDat)
+                if numOfTargets > 0:
+                    selectedFoldStatus = UNFOLD_SYMBOL
+                    linking_group.setHidden(False)
+
+                linking_group_label.setText(f"{selectedFoldStatus} <a href=\"linking_group\">Select Library Targets through parsed Target names</a> [{numOfTargets} Found]")
+                linking_group_label.linkActivated.connect(lambda checked, group=linking_group, label=linking_group_label : hide(group, label))
+                linking_group.setFlat(True)
+                
+                linking_group_layout = QVBoxLayout()
+                linking_group.setLayout(linking_group_layout)
+                
+                self.addconf_libraryLinking(currentRow, defTargets ,targetDat, publ, linking_group_layout, libDirName)
+                
+                keyword_group = QGroupBox()
+                keyword_group.setHidden(True)
+                selectedFoldStatus = FOLD_SYMBOL
+                numOfTargets = self.__getNumberOfKeywords(targetDat)
+                if numOfTargets > 0:
+                    selectedFoldStatus = UNFOLD_SYMBOL
+                    keyword_group.setHidden(False)
+
+                keyword_group_label = QLabel()
+                keyword_group_label.setText(f"{selectedFoldStatus} <a href=\"keyword_group\">Select Library and Includes through parsed Keywords</a>  [{numOfTargets} Found]")
+                keyword_group_label.linkActivated.connect(lambda checked, group=keyword_group, label=keyword_group_label : hide(group,label))
+                include_group_layout = QVBoxLayout()
+                keyword_group.setLayout(include_group_layout)
+                keyword_group.setFlat(True)
+                self.addconf_includes(currentRow, targetDat, include_group_layout)
+                
+                
+                innerGrid.addWidget(keyword_group_label)
+                innerGrid.addWidget(keyword_group)
+                innerGrid.addWidget(linking_group_label)
+                innerGrid.addWidget(linking_group)
+                libraryGroup.setLayout(innerGrid)
+                groupCount += 1
+                grid.addWidget(libraryGroup)
+                
+            layout.addLayout(grid)
+
+    def __getNumberOfTargets(self, targetDatas:TargetDatas):
+        targetTypes = [
+                    targetDatas.STATIC,
+                    targetDatas.SHARED,
+                    targetDatas.INTERFACE,
+                    targetDatas.possibleTargets
+                ]
+        return sum( len(current) for current in targetTypes)
+    
+    def __getNumberOfKeywords(self, targetDatas:TargetDatas):
+        
+        return 0 if targetDatas.keyWords == None else len(targetDatas.keyWords.items())
+
+    def addconf_includes(self, currentRow, targetDat, include_group_layout):
+        includes_lineEdit = QLineEdit()
+        libs_lineEdit = QLineEdit()
+        def toggleLibInclude(includeName, lineEdit):
+            lineEdit_list = [lib.strip() for lib in lineEdit.text().strip().split(",")if lib != ""]                
+            if includeName.strip() in lineEdit_list: 
+                lineEdit_list.remove(includeName.strip())
+            else: 
+                lineEdit_list.append(includeName)
+            lineEdit.setText(", ".join(lineEdit_list))
+
+
+        MAX_VARS_PER_ROW = 2
+        keywordList :list[str] = [k for k in targetDat.keyWords.keys()] if targetDat.keyWords != None else []
+        if targetDat.includes != None:
+            for m in targetDat.includes: 
+                if not m in keywordList:
+                    keywordList.append(m)
+
+        keyWords = [
+                    ("Identifed CMake\nProject Variables",keywordList),
+                ]
+            
+        for keyWordDict in keyWords:        
+            targetTypeGroup = QGroupBox()
+            targetTypeGroupLayout = QGridLayout()
+            targetTypeGroup.setLayout(targetTypeGroupLayout)
+            include_group_layout.addWidget(targetTypeGroup)
+
+            currentTargetType = QLabel()
+            currentTargetType.setText(str.format("{}:",keyWordDict[0]))
+            subGrid = QGridLayout()
+
+            targetTypeGroupLayout.addWidget(currentTargetType,currentRow,0)                    
+            currentRow += 1
+
+            targetTypeGroupLayout.addLayout(subGrid, currentRow, 0)
+
+            targetCounter = 0
+            if keyWordDict[1] == None or len(keyWordDict[1]) == 0:
+                no_identified_targets = QLabel()
+                no_identified_targets.setText("No Identified CMake Project Variables")
+                subGrid.addWidget(no_identified_targets, currentRow, 0)
+                            
+            else : 
+                BUTTON_WIDTH = 50
+                def addHeader(currentRow : int, column : int):
+                    varLayoutHeader = QGridLayout()
+                    varButtonLayoutHeader = QHBoxLayout()
+                    titleHeader = QLabel("Identified Keyword")
+                    incHeader = QLabel("Add\nInclude")
+                    libHeader = QLabel("Add\nLibrary")
+                    titleHeader.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    incHeader.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    libHeader.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    incHeader.setMaximumWidth(BUTTON_WIDTH)           
+                    libHeader.setMaximumWidth(BUTTON_WIDTH)           
+                    varLayoutHeader.addWidget(titleHeader,currentRow, 0)
+                    varLayoutHeader.addLayout(varButtonLayoutHeader,currentRow, 1)
+                    varButtonLayoutHeader.addWidget(incHeader)
+                    varButtonLayoutHeader.addWidget(libHeader)
+                    
+                    subGrid.addLayout(varLayoutHeader,currentRow, column)                    
+                    
+                headerColumn = 0
+                while headerColumn <  MAX_VARS_PER_ROW:
+                    addHeader(currentRow, headerColumn)
+                    headerColumn +=1
+                currentRow += 1
+                
+                for target in keyWordDict[1]:
+                    varLayout = QGridLayout()                    
+                    varButtonLayout = QHBoxLayout()                                        
+                    
+                    varLabel = QLabel(target)
+                    varLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    var_inc_button = QPushButton("+/-")
+                    var_inc_button.setMaximumWidth(BUTTON_WIDTH)
+                    var_lib_button = QPushButton("+/-")
+                    var_lib_button.setMaximumWidth(BUTTON_WIDTH)
+                    varButtonLayout.addWidget(var_inc_button)
+                    varButtonLayout.addWidget(var_lib_button)                    
+                                
+                    column = targetCounter%MAX_VARS_PER_ROW
+
+                    varLayout.addWidget(varLabel, currentRow,0)
+                    varLayout.addLayout(varButtonLayout,currentRow,1)
+                    subGrid.addLayout(varLayout,currentRow, column)
+
+                    currentRow += math.floor((column+1)/MAX_VARS_PER_ROW)
+
+                    var_inc_button.clicked.connect(lambda checked, target=target, includes_lineEdit=includes_lineEdit:toggleLibInclude(target,includes_lineEdit))
+                    var_lib_button.clicked.connect(lambda checked, target=target, libs_lineEdit=libs_lineEdit:toggleLibInclude(target,libs_lineEdit))
+                    targetCounter +=1
+                                                            
+            currentRow+=1
+
+        selectedIncludes = QLabel()
+        selectedIncludes.setText("Selected Includes:")
+        include_group_layout.addWidget(selectedIncludes)
+        include_group_layout.addWidget(includes_lineEdit)           
+        currentRow += 1
+        selectedLibraries = QLabel()
+        selectedLibraries.setText("Selected Libraries:")
+        include_group_layout.addWidget(selectedLibraries)           
+        include_group_layout.addWidget(libs_lineEdit)           
+        currentRow += 1
+
+    def addconf_libraryLinking(self, currentRow:int,defSelectedTarget:list[str] ,targetDat:TargetDatas,public:bool, linking_group_layout, libDirName:str):
+        linkTargets_lineEdit = QLineEdit()
+        templist :list[str] = []
+        
+        
+        if len(self.projDat_data._linkLibs_public_override) > 0:
+            if libDirName in self.projDat_data._linkLibs_public_override:
+                templist.extend(self.projDat_data._linkLibs_public_override[libDirName])
+        if len(self.projDat_data._linkLibs_private_override) > 0: 
+            if libDirName in self.projDat_data._linkLibs_private_override:
+                templist.extend(self.projDat_data._linkLibs_private_override[libDirName])
+
+        if len(templist) == 0: 
+            templist = defSelectedTarget
+        linkTargets_lineEdit.setText(",".join(t for t in templist))
+
+        def toggleLibTarget(targetName, libs_lineEdit):
+            lib_lineLibs = [lib.strip() for lib in libs_lineEdit.text().strip().split(",")if lib != ""]                
+            if targetName.strip() in lib_lineLibs: 
+                lib_lineLibs.remove(targetName.strip())
+            else: 
+                lib_lineLibs.append(targetName)
+            libs_lineEdit.setText(", ".join(lib_lineLibs))
+
+
+        MAX_TARGETS_PER_ROW = 4
+
+        targetTypes = [
                     ("STATIC",targetDat.STATIC),
                     ("SHARED",targetDat.SHARED),
                     ("INTERFACE",targetDat.INTERFACE) ,
-                    ("possibleTargets",targetDat.possibleTargets)
+                    ("Possible\nTargets",targetDat.possibleTargets)
                 ]
             
-                for targetType in targetTypes:
+        for targetType in targetTypes:
+            targetTypeGroup = QGroupBox()
+            targetTypeGroupLayout = QGridLayout()
+            targetTypeGroup.setLayout(targetTypeGroupLayout)
+            linking_group_layout.addWidget(targetTypeGroup)
 
-                    currentTargetType = QLabel()
-                    currentTargetType.setText(str.format("\t{}:",targetType[0]))
-                    subGrid = QGridLayout()
-                    
-                    innerGrid.addWidget(currentTargetType,currentRow,0)
-                    innerGrid.addLayout(subGrid, currentRow, 1)
-                    targetCounter = 0
-                    for target in targetType[1]:
+            currentTargetType = QLabel()
+            currentTargetType.setText(str.format("{}:",targetType[0]))
+            subGrid = QGridLayout()
+
+            targetTypeGroupLayout.addWidget(currentTargetType,currentRow,0)                    
+            targetTypeGroupLayout.setColumnStretch(1,10)
+            targetTypeGroupLayout.setColumnMinimumWidth(0,65)
+            targetTypeGroupLayout.addLayout(subGrid, currentRow, 1)
+            targetCounter = 0
+            if len(targetType[1]) == 0: 
+                no_identified_targets = QLabel()
+                no_identified_targets.setText("No Identified Target")
+                subGrid.addWidget(no_identified_targets, currentRow, 0)
                         
-                        newButton = QPushButton(target)
+            else: 
+                for target in targetType[1]:
+                    toggleTargetButton = QPushButton(target)
 
-                        column = targetCounter%MAX_TARGETS_PER_ROW
-                        subGrid.addWidget(newButton, currentRow, column)
+                    column = targetCounter%MAX_TARGETS_PER_ROW
+                    subGrid.addWidget(toggleTargetButton, currentRow, column)
 
-                        currentRow += math.floor((column+1)/MAX_TARGETS_PER_ROW)
-                        newButton.clicked.connect(lambda checked, target=target, libs_lineEdit=libs_lineEdit:toggleLib(target,libs_lineEdit))
-                        targetCounter +=1
+                    currentRow += math.floor((column+1)/MAX_TARGETS_PER_ROW)
+                    toggleTargetButton.clicked.connect(lambda checked, target=target, libs_lineEdit=linkTargets_lineEdit:toggleLibTarget(target,libs_lineEdit))
+                    targetCounter +=1
                                                             
-                    currentRow+=1
-                
-                selectedTargets = QLabel()
-                selectedTargets.setText("\tSelected Targets:")
-                
-                innerGrid.addWidget(selectedTargets,currentRow,0)
-                innerGrid.addWidget(libs_lineEdit,currentRow,1)                
-                currentRow += 1
-                group.setLayout(innerGrid)
-                groupCount += 1
-                grid.addWidget(group)
-                
-            layout.addLayout(grid)
+            currentRow+=1
+
+        selectedTargets = QLabel()
+        selectedTargets.setText("Selected Targets:")
+
+        def onEditFinish(lineEdit :QLineEdit, libName:str, public:bool):
+            if (public):
+                self.projDat_data._linkLibs_public_override[libName] = [lib.strip() for lib in lineEdit.text().strip().split(",") if lib != ""]
+            else:
+                self.projDat_data._linkLibs_private_override[libName] = [lib.strip() for lib in lineEdit.text().strip().split(",") if lib != ""]
+
+        linkTargets_lineEdit.textChanged.connect(
+            lambda checked, lineEdit=linkTargets_lineEdit ,libname=libDirName, publ=public: onEditFinish(lineEdit, libname,publ)
+        )
+        
+        linking_group_layout.addWidget(selectedTargets)
+        linking_group_layout.addWidget(linkTargets_lineEdit)
+        currentRow += 1
                 
     def createSanitizerBlacklistOnDemand(self):
         blacklistfile = "### lines with one # are examples...\n"
