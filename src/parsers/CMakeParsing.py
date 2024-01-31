@@ -349,10 +349,14 @@ def collectGeneratedConfigs(libPath,printdbg:Optional[bool]=True):
     if finder_libparse.exists():
         shutil.rmtree(finder_libparse.absolute().__str__())
     finder_libparse.mkdir(parents=True,exist_ok=True)
+    movedExports:list[str] =[]
     for f in allExports:
         shutil.copyfile(f,os.path.join(finder_libparse.absolute().__str__(),f.name))
+        movedExports.append(os.path.join(finder_libparse.absolute().__str__(),f.name))
 
-    return [f.absolute().__str__() for f in allExports]
+    shutil.rmtree(finder_tempPath.absolute().__str__())
+
+    return movedExports
 
 
 def collectFilePaths(filesToInclude: list[str], dirsToCollectFrom: list[str])->list[str]:
