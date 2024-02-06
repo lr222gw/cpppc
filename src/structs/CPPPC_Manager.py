@@ -340,7 +340,11 @@ class CPPPC_Manager:
                 linking_group_layout = QVBoxLayout()
                 linking_group.setLayout(linking_group_layout)
                 
-                self.addconf_libraryLinking(currentRow, defTargets ,targetDat, publ, linking_group_layout, libDirName)
+                allLibs = self.__prepareAllDefinedLibs(defTargets,libDirName)
+
+                libs_1 = QLineEdit()
+                libs_2 = QLineEdit()
+                self.addconf_libraryLinking(libs_1, [libs_2],allLibs,currentRow, targetDat, publ, linking_group_layout, libDirName)
                 
                 keyword_group = QGroupBox()
                 keyword_group.setHidden(True)
@@ -356,7 +360,7 @@ class CPPPC_Manager:
                 include_group_layout = QVBoxLayout()
                 keyword_group.setLayout(include_group_layout)
                 keyword_group.setFlat(True)
-                self.addconf_includes(currentRow, targetDat, include_group_layout)
+                self.addconf_includes(libs_2, [libs_1], allLibs, currentRow, targetDat, publ, include_group_layout, libDirName)
                 
                 
                 innerGrid.addWidget(keyword_group_label)
@@ -382,16 +386,31 @@ class CPPPC_Manager:
         
         return 0 if targetDatas.keyWords == None else len(targetDatas.keyWords.items())
 
-    def addconf_includes(self, currentRow, targetDat, include_group_layout):
+    def addconf_includes(self,libs_lineEdit:QLineEdit,allLibsLineEdits:list[QLineEdit], allLibs:list[str], currentRow, targetDat, public:bool, include_group_layout, libDirName:str):
         includes_lineEdit = QLineEdit()
-        libs_lineEdit = QLineEdit()
-        def toggleLibInclude(includeName, lineEdit):
+
+        libs_lineEdit.setText(",".join(t for t in allLibs))
+
+        def toggleLib(includeName, lineEdit):
             lineEdit_list = [lib.strip() for lib in lineEdit.text().strip().split(",")if lib != ""]                
             if includeName.strip() in lineEdit_list: 
                 lineEdit_list.remove(includeName.strip())
+                
             else: 
                 lineEdit_list.append(includeName)
             lineEdit.setText(", ".join(lineEdit_list))
+            for le in allLibsLineEdits:
+                le.setText(", ".join(lineEdit_list))
+            
+
+        def toggleInclude(includeName, lineEdit):
+            lineEdit_list = [lib.strip() for lib in lineEdit.text().strip().split(",")if lib != ""]                
+            if includeName.strip() in lineEdit_list: 
+                lineEdit_list.remove(includeName.strip())
+                
+            else: 
+                lineEdit_list.append(includeName)
+            lineEdit.setText(", ".join(lineEdit_list))            
 
 
         MAX_VARS_PER_ROW = 2
@@ -473,11 +492,22 @@ class CPPPC_Manager:
 
                     currentRow += math.floor((column+1)/MAX_VARS_PER_ROW)
 
-                    var_inc_button.clicked.connect(lambda checked, target=target, includes_lineEdit=includes_lineEdit:toggleLibInclude(target,includes_lineEdit))
-                    var_lib_button.clicked.connect(lambda checked, target=target, libs_lineEdit=libs_lineEdit:toggleLibInclude(target,libs_lineEdit))
+                    var_inc_button.clicked.connect(lambda checked, target=target, includes_lineEdit=includes_lineEdit:toggleInclude(target,includes_lineEdit))
+                    var_lib_button.clicked.connect(lambda checked, target=target, libs_lineEdit=libs_lineEdit:toggleLib(target,libs_lineEdit))
                     targetCounter +=1
                                                             
             currentRow+=1
+
+
+        def onLibEditFinish(lineEdit :QLineEdit, libName:str, public:bool):
+            if (public):
+                self.projDat_data._linkLibs_public_override[libName] = [lib.strip() for lib in lineEdit.text().strip().split(",") if lib != ""]
+            else:
+                self.projDat_data._linkLibs_private_override[libName] = [lib.strip() for lib in lineEdit.text().strip().split(",") if lib != ""]
+
+        libs_lineEdit.textChanged.connect(
+            lambda checked, lineEdit=libs_lineEdit ,libname=libDirName, publ=public: onLibEditFinish(lineEdit, libname,publ)
+        )
 
         selectedIncludes = QLabel()
         selectedIncludes.setText("Selected Includes:")
@@ -490,21 +520,24 @@ class CPPPC_Manager:
         include_group_layout.addWidget(libs_lineEdit)           
         currentRow += 1
 
-    def addconf_libraryLinking(self, currentRow:int,defSelectedTarget:list[str] ,targetDat:TargetDatas,public:bool, linking_group_layout, libDirName:str):
-        linkTargets_lineEdit = QLineEdit()
-        templist :list[str] = []
+    def __prepareAllDefinedLibs(self,defSelectedTarget:list[str],libDirName:str) -> list[str]:
+        usersLibs :list[str] = []
         
         
         if len(self.projDat_data._linkLibs_public_override) > 0:
             if libDirName in self.projDat_data._linkLibs_public_override:
-                templist.extend(self.projDat_data._linkLibs_public_override[libDirName])
+                usersLibs.extend(self.projDat_data._linkLibs_public_override[libDirName])
         if len(self.projDat_data._linkLibs_private_override) > 0: 
             if libDirName in self.projDat_data._linkLibs_private_override:
-                templist.extend(self.projDat_data._linkLibs_private_override[libDirName])
+                usersLibs.extend(self.projDat_data._linkLibs_private_override[libDirName])
 
-        if len(templist) == 0: 
-            templist = defSelectedTarget
-        linkTargets_lineEdit.setText(",".join(t for t in templist))
+        if len(usersLibs) == 0: 
+            usersLibs = defSelectedTarget
+        return usersLibs
+
+    def addconf_libraryLinking(self, linkTargets_lineEdit:QLineEdit,allLibsLineEdits:list[QLineEdit], allLibs:list[str],currentRow:int,targetDat:TargetDatas,public:bool, linking_group_layout, libDirName:str):
+
+        linkTargets_lineEdit.setText(",".join(t for t in allLibs))
 
         def toggleLibTarget(targetName, libs_lineEdit):
             lib_lineLibs = [lib.strip() for lib in libs_lineEdit.text().strip().split(",")if lib != ""]                
@@ -513,6 +546,8 @@ class CPPPC_Manager:
             else: 
                 lib_lineLibs.append(targetName)
             libs_lineEdit.setText(", ".join(lib_lineLibs))
+            for le in allLibsLineEdits:
+                le.setText(", ".join(lib_lineLibs))
 
 
         MAX_TARGETS_PER_ROW = 4
