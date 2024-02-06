@@ -35,12 +35,13 @@ class CPPPC_Manager:
         self.cmakeListDat       = CMakeDataHelper()
         self.cmake_inputsDat    = CMakeDataHelper()        
         self.cppDat             = CppDataHelper(self.projDat, self.cmakeListDat)
-        self.projDat_data       = ProjectConfigurationData()
+        self.__setDefaultValues()
+        self.projDat_data       = self.projDat.getData()
         self.decideOrder()
 
     def runtimeInit(self):        
         self.__setDefaultValues()
-        self.projDat_data = self.projDat.getData()
+        self.projDat_data.update(self.projDat.getData())
         self.cmakeListDat.runtimeInit(self.projDat_data)
         self.cmake_inputsDat.runtimeInit(self.projDat_data)
         self.cppDat.runtimeInit()

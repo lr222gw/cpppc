@@ -28,6 +28,15 @@ def addTextField(fieldName:str,placeholder:str, parentLayout) -> GuiData:
 
     return GuiData(newLineEdit)
 
+def placeTextField(textDat:GuiData[QLineEdit],label:QLabel, fieldName:str,placeholder:str, parentLayout):
+    
+    label.setText(fieldName)    
+    textDat.widget.setPlaceholderText(placeholder)
+
+    # Append widgets to parent layout
+    parentLayout.addWidget(label)
+    parentLayout.addWidget(textDat.widget)    
+
 def addTextBoxField(fieldName:str, parentLayout, height:Optional[int]=50) -> GuiData:
     
     # Create Label, input field widgets
@@ -40,6 +49,18 @@ def addTextBoxField(fieldName:str, parentLayout, height:Optional[int]=50) -> Gui
     parentLayout.addWidget(newLineEdit)
 
     return GuiData(newLineEdit)
+
+def placeTextBoxField(textDat:GuiData[QTextEdit],label:QLabel, fieldName:str,placeholder:str, parentLayout, height:Optional[int]=50):
+    
+    # Create Label, input field widgets
+    label.setText(fieldName)
+    textDat.widget.setFixedHeight(height) # type: ignore : has default value
+    textDat.widget.setPlaceholderText(placeholder)
+
+    # Append widgets to parent layout
+    parentLayout.addWidget(label)
+    parentLayout.addWidget(textDat.widget)
+
 
 def addSpinBox(fieldName:str, parentLayout) -> GuiData:
     

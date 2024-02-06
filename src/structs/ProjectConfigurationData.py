@@ -66,11 +66,11 @@ class ProjectConfigurationGUI:
     directoryDictionary : dict[str,str]
 
     def __init__(self):
-        self.projectName : GuiData                          = GuiData()
-        self.projectTargetDir : GuiData                     = GuiData()
-        self.projectExecName : GuiData                      = GuiData()
-        self.projectDesc : GuiData                          = GuiData()
-        self.entryPointFile : GuiData                       = GuiData()
+        self.projectName : GuiData                          = GuiData[QLineEdit](QLineEdit())
+        self.projectTargetDir : GuiData                     = GuiData[QLineEdit](QLineEdit())
+        self.projectExecName : GuiData                      = GuiData[QLineEdit](QLineEdit())
+        self.projectDesc : GuiData                          = GuiData[QTextEdit](QTextEdit())
+        self.entryPointFile : GuiData                       = GuiData[QLineEdit](QLineEdit())
         self.overwriteProjectTargetDir : GuiDataToggle      = GuiDataToggle()
         self.useProgram_ccache : GuiDataToggle              = GuiDataToggle()
         self.useMeasureCompiletime : GuiDataToggle          = GuiDataToggle()
@@ -86,6 +86,34 @@ class ProjectConfigurationGUI:
         self.publicLinkLibs :list               = list()
         self.privateLinkLibs:list               = list()
         self.directoryDictionary : dict[str,str]= dict[str,str]()
+
+    labels = dict[Callable,QLabel]()
+    def __createNewIfEmpty(self,ownerFunc:Callable)->QLabel:
+        if ownerFunc in self.labels.keys():
+            return self.labels[ownerFunc]
+        else:
+            self.labels[ownerFunc] = QLabel()
+            return self.labels[ownerFunc]
+
+    def setProjectName(self, labelName:str,placeHolderText:str,layout):
+        label = self.__createNewIfEmpty(self.setProjectName)
+        hlp.placeTextField(self.projectName,label,labelName,placeHolderText,layout)
+
+    def setProjectTargetDir(self, labelName:str,placeHolderText:str,layout):
+        label = self.__createNewIfEmpty(self.setProjectTargetDir)
+        hlp.placeTextField(self.projectTargetDir,label,labelName,placeHolderText,layout)
+        
+    def setProjectExecName(self, labelName:str,placeHolderText:str,layout):
+        label = self.__createNewIfEmpty(self.setProjectExecName)
+        hlp.placeTextField(self.projectExecName,label,labelName,placeHolderText,layout)
+        
+    def setProjectDesc(self, labelName:str,placeHolderText:str,layout):
+        label = self.__createNewIfEmpty(self.setProjectDesc)
+        hlp.placeTextBoxField(self.projectDesc,label,labelName,placeHolderText,layout)
+        
+    def setEntryPointFile(self, labelName:str,placeHolderText:str,layout):
+        label = self.__createNewIfEmpty(self.setEntryPointFile)
+        hlp.placeTextField(self.entryPointFile,label,labelName,placeHolderText,layout)
 
     def initExtraFeatures(self):
         self.__initExtraFeature()

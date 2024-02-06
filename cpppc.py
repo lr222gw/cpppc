@@ -31,15 +31,14 @@ cppc = CPPPC_Manager(ProjConfDat)
 
 # Declare Project Name
 group_projdef = QGroupBox(title="Project config")
-ProjConfDat.projectName = hlp.addTextField("Project Name:", "myProject", layout_projectName)
+ProjConfDat.setProjectName("Project Name:", "myProject", layout_projectName)
 
 
 # Declare Target dir
-ProjConfDat.projectTargetDir = hlp.addTextField("Target directory:"      , ".", layout_projectName) #TODO: Check if directory is safe / suitable!
-ProjConfDat.projectExecName  = hlp.addTextField("Executable Name:"       , "executable",layout_projectName)
-ProjConfDat.projectDesc      = hlp.addTextBoxField("Project Description:",layout_projectName)
-
-ProjConfDat.entryPointFile  = hlp.addTextField("Entry Point file:"       , "main.cpp",layout_projectName)
+ProjConfDat.setProjectTargetDir("Target directory:", ".", layout_projectName) #TODO: Check if directory is safe / suitable!
+ProjConfDat.setProjectExecName("Executable Name:", "executable",layout_projectName)
+ProjConfDat.setProjectDesc("Project Description:", "description of my project",layout_projectName)
+ProjConfDat.setEntryPointFile("Entry Point file:"       , "main.cpp",layout_projectName)
 
 group_projdef.setLayout(layout_projectName)
 
