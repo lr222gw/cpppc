@@ -3,6 +3,7 @@ from os import path
 import os
 import re
 from typing import Union
+from src.cmake_helper import getCMakeVersion
 from src.structs.CMakeDataHelper import *
 from src.structs.ProjectConfigurationDat import *
 import PyQt5.Qt 
@@ -20,7 +21,8 @@ def cmakeifyLib(libDirPath: str) -> tuple[str, CMakeDataHelper]:
          libDirPath = f"./{path.relpath(libDirPath)}"
     
     projectName =  path.basename(libDirPath) #TODO: CMake might have requirements for legal CMakeProject names...
-    
+
+    cmakeVersion = getCMakeVersion()
 
     projDat = ProjectConfigurationData(
         projectName                = projectName,
@@ -31,11 +33,9 @@ def cmakeifyLib(libDirPath: str) -> tuple[str, CMakeDataHelper]:
         overwriteProjectTargetDir  = None,
         useProgram_ccache          = False,
         useMeasureCompiletime      = False,
-        cmakeVersionData           = (3,28,0),# TODO: fix  hardcode...
+        cmakeVersionData           = (cmakeVersion.get_major(),cmakeVersion.get_minor(),cmakeVersion.get_patch()),
         cmakeToCppVars             = dict[str,tuple[str,str]](),
         linkLibs                   = dict[str,tuple[str,bool, list[str],TargetDatas]](), 
-        # linkLibs_public            = list[str](),
-        # linkLibs_private           = list[str](),
         linkLibs_public            = dict[str,list[str]](),
         linkLibs_private           = dict[str,list[str]](),
         props                      = dict[str,str|bool|int]()
