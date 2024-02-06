@@ -84,10 +84,10 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         return cmakeListStr
 
     def getRelativeCMakeFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
-        return self.targetDirPath+"/"+self.cmakeDirPath+ "/"+file
+        return os.path.join(self.targetDirPath,self.cmakeDirPath,file)
     
     def getRelativeCppFilePath(self, file): #NOTE: Relative from CPPPC, not from Project Root...
-        return self.targetDirPath+"/"+self.srcDirPath+ "/"+file 
+        return os.path.join(self.targetDirPath, self.srcDirPath,file)
 
     def genStr_FILE_cmake_inputs_h_in(self):
         ret = self.genStr_cmake_cpp_defines()
