@@ -84,6 +84,7 @@ class CPPPC_Manager:
         self.cmakeListDat.appendOrder(CMC_target_sources)
         self.cmakeListDat.appendOrder(CMC_target_compile_options)
         self.cmakeListDat.appendOrder(CMC_target_link_options)
+        self.cmakeListDat.appendOrder(CMC_target_include_directories)
         self.cmakeListDat.appendOrder(CMC_target_link_libraries)
         self.cmakeListDat.appendOrder(CMC_CALLFUNC)
 
@@ -507,6 +508,16 @@ class CPPPC_Manager:
 
         libs_lineEdit.textChanged.connect(
             lambda checked, lineEdit=libs_lineEdit ,libname=libDirName, publ=public: onLibEditFinish(lineEdit, libname,publ)
+        )
+
+        def onLibInclFinish(lineEdit :QLineEdit, libName:str, public:bool):
+            if (public):
+                self.projDat_data._linkIncl_public_override[libName] = [lib.strip() for lib in lineEdit.text().strip().split(",") if lib != ""]
+            else:
+                self.projDat_data._linkIncl_private_override[libName] = [lib.strip() for lib in lineEdit.text().strip().split(",") if lib != ""]
+
+        includes_lineEdit.textChanged.connect(
+            lambda checked, lineEdit=includes_lineEdit ,libname=libDirName, publ=public: onLibInclFinish(lineEdit, libname,publ)
         )
 
         selectedIncludes = QLabel()

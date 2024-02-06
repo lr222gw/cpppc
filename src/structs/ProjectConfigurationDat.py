@@ -42,10 +42,14 @@ class ProjectConfigurationData():
     _linkLibs : Optional[dict[str,tuple[str,bool, list[str],TargetDatas]]] = None
     _linkLibs_public   :Optional[ dict[str,list[str]]]              = None
     _linkLibs_private  :Optional[ dict[str,list[str]]]              = None
+    _linkIncl_public   :Optional[ dict[str,list[str]]]              = None
+    _linkIncl_private  :Optional[ dict[str,list[str]]]              = None
     _props :Optional[ dict[str,str|bool|int]]                       = None
 
     _linkLibs_public_override   :dict[str,list[str]]
     _linkLibs_private_override  :dict[str,list[str]]
+    _linkIncl_public_override   :dict[str,list[str]]
+    _linkIncl_private_override  :dict[str,list[str]]
 
     def __init__(self, 
                 projectName:Optional[ str ]                           = None,
@@ -61,6 +65,8 @@ class ProjectConfigurationData():
                 linkLibs: Optional[dict[str,tuple[str,bool, list[str],TargetDatas]]]  = None, 
                 linkLibs_public  :Optional[dict[str,list[str]]]       = None,
                 linkLibs_private  :Optional[dict[str,list[str]]]      = None,
+                # linkIncl_public  :Optional[dict[str,list[str]]]       = None,
+                # linkIncl_private  :Optional[dict[str,list[str]]]      = None,
                 props :Optional[ dict[str,str|bool|int]]              = None
                  ):
         self.projectName               =projectName
@@ -76,9 +82,13 @@ class ProjectConfigurationData():
         self.linkLibs                  =linkLibs
         self.linkLibs_public           =linkLibs_public
         self.linkLibs_private          =linkLibs_private
+        self.linkIncl_public           =dict[str,list[str]]()
+        self.linkIncl_private          =dict[str,list[str]]()
         self.props                     =props
         self._linkLibs_public_override  = dict[str,list[str]]()
         self._linkLibs_private_override = dict[str,list[str]]() 
+        self._linkIncl_public_override  = dict[str,list[str]]()
+        self._linkIncl_private_override = dict[str,list[str]]() 
     
     def update(self, updatedInstance):
 
@@ -95,6 +105,8 @@ class ProjectConfigurationData():
         self.linkLibs                  =updatedInstance.linkLibs
         self.linkLibs_public           =updatedInstance.linkLibs_public
         self.linkLibs_private          =updatedInstance.linkLibs_private
+        # self.linkIncl_public           =updatedInstance.linkIncl_public
+        # self.linkIncl_private          =updatedInstance.linkIncl_private
         self.props                     =updatedInstance.props
 
 
@@ -102,6 +114,11 @@ class ProjectConfigurationData():
             self.linkLibs_public[libkey] = userSelectedTargets
         for libkey, userSelectedTargets in self._linkLibs_private_override.items(): 
             self.linkLibs_private[libkey] = userSelectedTargets
+
+        for libkey, userSelectedTargets in self._linkIncl_public_override.items(): 
+            self.linkIncl_public[libkey] = userSelectedTargets
+        for libkey, userSelectedTargets in self._linkIncl_private_override.items(): 
+            self.linkIncl_private[libkey] = userSelectedTargets
             
     @property
     def projectName(self)->str :
@@ -185,6 +202,19 @@ class ProjectConfigurationData():
     @linkLibs_private.setter
     def linkLibs_private(self, v):
         self._linkLibs_private =v 
+
+    @property
+    def linkIncl_public(self)->dict[str,list[str]]:
+        return self.__getVar(self._linkIncl_public)
+    @linkIncl_public.setter
+    def linkIncl_public(self, v):
+        self._linkIncl_public =v 
+    @property
+    def linkIncl_private(self)->dict[str,list[str]]:
+        return self.__getVar(self._linkIncl_private)
+    @linkIncl_private.setter
+    def linkIncl_private(self, v):
+        self._linkIncl_private =v 
     @property
     def props(self)->dict[str,str]:
         return self.__getVar(self._props)

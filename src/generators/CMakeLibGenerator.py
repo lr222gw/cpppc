@@ -126,7 +126,7 @@ def cmakeifyLib(libDirPath: str) -> tuple[str, CMakeDataHelper]:
 
 
     commonHeaderPath = path.commonpath([h.replace("\"", "") for h in headerFiles])
-    cmakelist.genStr_targetIncludeDirectories(projDat.projectExecName,True, commonHeaderPath)    
+    cmakelist.genStr_arg_targetIncludeDirectories(projDat.projectExecName,True, commonHeaderPath)    
 
     with open(cmakelist.targetDirPath+"/"+"CMakeLists.txt", "w") as file:
             file.write(cmakelist.genCMakeList())

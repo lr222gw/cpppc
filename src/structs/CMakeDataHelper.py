@@ -124,7 +124,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
                 0
                 )
         ret += tidy_cmake_string(
-            self.genStr_targetIncludeDirectories(
+            self.genStr_arg_targetIncludeDirectories(
                 str.format("${{{}}}",targetVar),
                 isPublic,
                 os.path.join(CMAKE_CURRENT_SOURCE_DIR, self.cmakeGenSrcDirPath)
@@ -290,8 +290,17 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
                 CMCK("PRIVATE", sources)
             )
         ).__str__()
+    
+    def genStr_targetIncludeDirectories(self) ->str : 
+        return self.cmakeCommands.add_CMC(
+            CMC_target_include_directories(
+                CMCK(self.projdata.projectExecName),
+                CMCK("PUBLIC",  [l for k,v in self.projdata.linkIncl_public.items()  for l in v]), 
+                CMCK("PRIVATE", [l for k,v in self.projdata.linkIncl_private.items() for l in v]) 
+            )
+        ).__str__()
 
-    def genStr_targetIncludeDirectories(self, target:str, isPublic:bool, *dirPaths :str) ->str : 
+    def genStr_arg_targetIncludeDirectories(self, target:str, isPublic:bool, *dirPaths :str) ->str : 
         return self.cmakeCommands.add_CMC(
             CMC_target_include_directories(
                 CMCK(target),
