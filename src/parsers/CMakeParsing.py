@@ -12,11 +12,6 @@ from src.dev.Terminate import WarnUser, terminate
 from src.structs.PersistantDataManager import TargetDatas, getCpppcDir
 from .CMakeParsingHelpers import *
 
-#TODO: Refactory pathify from src.structs.CMakeDataHelper, avoid having 2...
-def __pathify(*args :str) -> str:
-        return "/".join(args)
-
-
 def __derefernce(dict, var):
     variableReferencesName_regx = re.compile(r"\$\{([^}{]+)\}",re.IGNORECASE|re.MULTILINE)
     
@@ -30,10 +25,10 @@ def __derefernce(dict, var):
 
 def getLibraryTargets(libPath:str): # TODO: Unused, consider deprecate
     
-    cmakevars = __getCMakeVarDefinitions(__pathify(libPath,"CMakeLists.txt"))
+    cmakevars = __getCMakeVarDefinitions(os.path.join(libPath,"CMakeLists.txt"))
     targets = list[str]()
     contents :str 
-    with open(__pathify(libPath,"CMakeLists.txt"), 'r') as file:
+    with open(os.path.join(libPath,"CMakeLists.txt"), 'r') as file:
         contents = file.read()
 
     add_library_rgx = re.compile(r"add_library\((?:(?:[\S\-_]+|[\S\-_]+::[\S\-_]+)\s{1,}(?:ALIAS)\s+(\S+)|(?:([\S\-_]+|[\S\-_]+::[\S\-_]+)\s{0,}))(SHARED|STATIC|MODULE|INTERFACE|OBJECT){0,1}(?:.*)\)", re.IGNORECASE | re.MULTILINE)        

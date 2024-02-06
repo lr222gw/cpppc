@@ -247,9 +247,9 @@ class CPPPC_Manager:
         installedLibs = getInstalledLib(lib.getLibraryPath())
         if len(installedLibs) > 0:
             detectedType = LibrarySetupType.InstalledCMake
-        elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(pathify(libraryPath, "CMakeLists.txt"))):
+        elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(os.path.join(libraryPath, "CMakeLists.txt"))):
             detectedType = LibrarySetupType.CMakeBased
-        elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(pathify(libraryPath, "Makefile"))):
+        elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(os.path.join(libraryPath, "Makefile"))):
             detectedType = LibrarySetupType.MakeBased
         elif self.__checkFileExists(self.cmakeListDat.getPathInTarget(libraryPath)):
             detectedType = LibrarySetupType.BareBores

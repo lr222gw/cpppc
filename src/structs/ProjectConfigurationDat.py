@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Any, Optional
 
 from src.dev.Terminate import terminate
@@ -26,9 +27,6 @@ class DepDat():
         self.path    = path
         self.targets = targets
         self.targetDatas = targetDatas
-
-def pathify(*args :str) -> str: #TODO: multiple definitions of pathify, move pathify to common module
-        return "/".join(args)
 
 class ProjectConfigurationData():    
     _projectName:Optional[ str ]                           = None
@@ -200,5 +198,5 @@ class ProjectConfigurationData():
         return var
 
     def getTargetPath(self) -> str:
-        return pathify(self.projectTargetDir, self.projectName)
+        return os.path.join(self.projectTargetDir, self.projectName)
         

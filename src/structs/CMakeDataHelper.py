@@ -1,4 +1,5 @@
 import enum
+import os
 import re
 import textwrap
 
@@ -117,8 +118,8 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStrHlp_generateHeaderFileInBuildDir(self, isPublic : bool,  targetVar) -> str: 
         ret = tidy_cmake_string(
             self.genStr_configureFile(
-                pathify_list([self.cmakeDirPath,self.FILE_cmake_inputs_h_in]),
-                pathify_list([CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h])
+                os.path.join(self.cmakeDirPath,self.FILE_cmake_inputs_h_in),
+                os.path.join(CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h)
                 ),
                 0
                 )
@@ -126,7 +127,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
             self.genStr_targetIncludeDirectories(
                 str.format("${{{}}}",targetVar),
                 isPublic,
-                pathify_list([CMAKE_CURRENT_SOURCE_DIR, self.cmakeGenSrcDirPath])
+                os.path.join(CMAKE_CURRENT_SOURCE_DIR, self.cmakeGenSrcDirPath)
                 ),
                 0
                 )
@@ -135,7 +136,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
             self.genStr_targetSources(                
                 str.format("${{{}}}",targetVar),
                 [
-                    pathify_list([CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h])
+                    os.path.join(CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h)
                 ]
             ),0
             
@@ -199,7 +200,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_includeCmakeFile(self, cmakeFile : str) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_include(
-                CMCK_args(pathify_list([self.cmakeDirPath, cmakeFile]))
+                CMCK_args(os.path.join(self.cmakeDirPath, cmakeFile))
             )
         ).__str__()
 
@@ -376,9 +377,3 @@ def tidy_cmake_string(string :str, linesToSkip:int = 1)->str:
     )
     
     return ret
-
-def pathify_list(strings :list) -> str:
-        return "/".join(strings)    
-
-def pathify(*args :str) -> str:
-        return "/".join(args)

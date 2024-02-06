@@ -1,12 +1,12 @@
  
 from logging import warn, warning
 from os import path
+import os
 import re
 import subprocess
 import platform
 import shutil
 from src.dev.Terminate import WarnUser, terminate
-from src.structs.CMakeDataHelper import pathify
 
 def __isCompressedFile(path:str)->bool:
     return False #TODO: Implement this!
@@ -38,14 +38,14 @@ def fetchLocalLib(libPath:str, libname:str,userProvidedLocalLibsPath:str,targetP
         # Check that library is within the provided path
         if path.commonpath([abs_userProvidedLocalLibsPath, abs_LibPath]) == abs_userProvidedLocalLibsPath:
             print(f"Library [{libPath}] \n\texists in users local libs at: {abs_LibPath}")
-            shutil.copytree(abs_LibPath,pathify(targetPath,libname),dirs_exist_ok=True)
+            shutil.copytree(abs_LibPath,os.path.join(targetPath,libname),dirs_exist_ok=True)
     else:
 
         # Check if name exists in users provided path
-        libPathInUserLocalLibs = pathify(abs_userProvidedLocalLibsPath,libPath)
+        libPathInUserLocalLibs = os.path.join(abs_userProvidedLocalLibsPath,libPath)
         if(path.isdir(libPathInUserLocalLibs)):
             print(f"Library [{libPath}] \n\texists in users local libs at: {libPathInUserLocalLibs}")
-            shutil.copytree(libPathInUserLocalLibs,pathify(targetPath,libname),dirs_exist_ok=True)
+            shutil.copytree(libPathInUserLocalLibs,os.path.join(targetPath,libname),dirs_exist_ok=True)
 
         elif(__isCompressedFile(libPath)):
             # TODO: extract files ... 
