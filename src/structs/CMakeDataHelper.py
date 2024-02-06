@@ -157,10 +157,6 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         self.srcDirPath     = "src"
         self.cmakeDirPath   = "cmake"
 
-    #TODO: Remove
-    def addToCMakeList(self, string : str): pass #Deprecated
-        # self.cmakelist_str += string + "\n\n"
-
     def getCMakeListStr(self) -> str:
         return self.cmakelist_str
     
