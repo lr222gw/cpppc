@@ -133,8 +133,8 @@ class CPPPC_Manager:
 
         self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_targetLinkLibraries())            
 
-        with open(self.cmakeListDat.targetDirPath+"/"+"CMakeLists.txt", "w") as file:
-            file.write(self.cmakeListDat.genCMakeList())
+        self.createFileOnDemand("CMakeLists.txt",self.cmakeListDat.genCMakeList(), self.projDat_data.overwriteProjectTargetDir)
+
             
     def requireCMakeCppBridge(self):
         self.cmakeListDat.addToCMakeList(self.cmakeListDat.genStr_includeCmakeFile(self.cmakeListDat.FILE_cmake_cpp_data))
