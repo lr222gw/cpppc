@@ -105,8 +105,8 @@ class ProjectConfigurationData():
         self.linkLibs                  =updatedInstance.linkLibs
         self.linkLibs_public           =updatedInstance.linkLibs_public
         self.linkLibs_private          =updatedInstance.linkLibs_private
-        # self.linkIncl_public           =updatedInstance.linkIncl_public
-        # self.linkIncl_private          =updatedInstance.linkIncl_private
+        self.linkIncl_public           =updatedInstance.linkIncl_public
+        self.linkIncl_private          =updatedInstance.linkIncl_private
         self.props                     =updatedInstance.props
 
 

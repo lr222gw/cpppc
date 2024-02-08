@@ -242,6 +242,24 @@ class CPPPC_Manager:
             else:
                 
                 WarnUser(str.format("Provided library is not installed or has a faulty path! \n\tName: {}\n\tPath: {}",name,lib.getLibraryPath()))
+
+        if self.projDat_data.linkLibs != None:
+            def refreshOverriddenDict(overrideDict:dict,guiDict:dict):
+
+                newOverriddenDict = dict( ) 
+                for addedLib in overrideDict.keys():
+                    if addedLib in guiDict.keys():
+                        newOverriddenDict[addedLib] = overrideDict[addedLib]
+                overrideDict.clear()
+                overrideDict.update(newOverriddenDict)
+
+            refreshOverriddenDict(self.projDat_data._linkLibs_public_override, self.projDat_data.linkLibs)
+            refreshOverriddenDict(self.projDat_data._linkLibs_private_override, self.projDat_data.linkLibs)
+            refreshOverriddenDict(self.projDat_data._linkIncl_public_override, self.projDat_data.linkLibs)
+            refreshOverriddenDict(self.projDat_data._linkIncl_private_override, self.projDat_data.linkLibs)
+                        
+
+
             
         
     def __detectLibrarySetupType(self, name:str, lib: library_inputWidget) -> LibrarySetupType:
@@ -392,6 +410,8 @@ class CPPPC_Manager:
 
     def addconf_includes(self,libs_lineEdit:QLineEdit,allLibsLineEdits:list[QLineEdit], allLibs:list[str], currentRow, targetDat, public:bool, include_group_layout, libDirName:str):
         includes_lineEdit = QLineEdit()
+        allLibIncldues = self.__prepareAllDefinedLibIncludes(libDirName)
+        includes_lineEdit.setText(",".join(t for t in allLibIncldues))
 
         libs_lineEdit.setText(",".join(t for t in allLibs))
 
@@ -548,6 +568,18 @@ class CPPPC_Manager:
         if len(usersLibs) == 0: 
             usersLibs = defSelectedTarget
         return usersLibs
+    
+    def __prepareAllDefinedLibIncludes(self,libDirName:str) -> list[str]:
+        usersLibIncludes :list[str] = []
+                
+        if len(self.projDat_data._linkIncl_public_override) > 0:
+            if libDirName in self.projDat_data._linkIncl_public_override:
+                usersLibIncludes.extend(self.projDat_data._linkIncl_public_override[libDirName])
+        if len(self.projDat_data._linkIncl_private_override) > 0: 
+            if libDirName in self.projDat_data._linkIncl_private_override:
+                usersLibIncludes.extend(self.projDat_data._linkIncl_private_override[libDirName])
+        
+        return usersLibIncludes
 
     def addconf_libraryLinking(self, linkTargets_lineEdit:QLineEdit,allLibsLineEdits:list[QLineEdit], allLibs:list[str],currentRow:int,targetDat:TargetDatas,public:bool, linking_group_layout, libDirName:str):
 
