@@ -106,7 +106,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
 
     def genStr_FILE_cmake_cpp_data(self):
         targetArg = "target"
-        ret = self.genStr_setVarString_cmakeToCpp(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, "Example string from CMake to C++") + "\n"
+        ret = self.genStr_setVarString_cmakeToCpp(CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR, "Example string from CMake (v.${CMAKE_VERSION}) to C++") + "\n"
         ret += self.genStr_function(CMFUNC__add_cmake_inputs_to_targets, 
             [targetArg],
             [
