@@ -270,12 +270,19 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
             )
         ).__str__()
 
+    def _referenceCorrectifier(self, ref):
+
+        if "::" in ref : 
+            return ref 
+        else:
+            return f"${{{ref}}}"
+
     def genStr_targetLinkLibraries(self) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_target_link_libraries(
                 CMCK(self.projdata.projectExecName),
-                CMCK("PUBLIC",  [l for k,v in self.projdata.linkLibs_public.items()  for l in v]), 
-                CMCK("PRIVATE", [l for k,v in self.projdata.linkLibs_private.items() for l in v]) 
+                CMCK("PUBLIC",  [self._referenceCorrectifier(l) for k,v in self.projdata.linkLibs_public.items()  for l in v]), 
+                CMCK("PRIVATE", [self._referenceCorrectifier(l) for k,v in self.projdata.linkLibs_private.items() for l in v]) 
             )
         ).__str__()
 
@@ -291,8 +298,8 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
         return self.cmakeCommands.add_CMC(
             CMC_target_include_directories(
                 CMCK(self.projdata.projectExecName),
-                CMCK("PUBLIC",  [l for k,v in self.projdata.linkIncl_public.items()  for l in v]), 
-                CMCK("PRIVATE", [l for k,v in self.projdata.linkIncl_private.items() for l in v]) 
+                CMCK("PUBLIC",  [self._referenceCorrectifier(l) for k,v in self.projdata.linkIncl_public.items()  for l in v]), 
+                CMCK("PRIVATE", [self._referenceCorrectifier(l) for k,v in self.projdata.linkIncl_private.items() for l in v]) 
             )
         ).__str__()
 
