@@ -35,7 +35,7 @@ def fetchGithubRepo(url:str, libname:str,targetPath:str = "."):
         contents_url = f'https://api.github.com/repos/{owner}/{repo}/zipball/{ref}'
 
         print(f"Downloading '{repo}' from '{url}'")
-        contents_response = requests.get(contents_url)
+        contents_response = requests.get(contents_url) # TODO: On failure, program freezes until max retries exhausted
 
         if contents_response.status_code == 200:            
             print(f"Unzipping '{repo}' contents to {targetPath}'")
