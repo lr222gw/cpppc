@@ -299,15 +299,15 @@ def __getFinderCmakeOutput_local(name:str, includeFiles:list[str]): #TODO: Consi
     shutil.rmtree(finder_tempPath.absolute().__str__())
     return output 
 
-def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg:Optional[bool]=True) -> tuple[Optional[str], CmakeFindType, dict[str,str]]: 
+def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg:Optional[bool]=True) -> tuple[Optional[str], CmakeFindType, dict[str,str], str]: 
     
     if printdbg:
         print(output.__str__().encode("utf-8").decode('unicode-escape'))
     
     strippedOutput = textnormalizer(output.__str__(), toUpper=False, replaceNewl=False)
 
-    path_pkg_regx = re.compile(fr"The file was found at\s+([\w/.-]+/{name}(?:-[0-9.]+)?/[\w/.-]+)", re.IGNORECASE | re.MULTILINE)
-    path_module_regx = re.compile(fr"The file was found at\s+([\w/.-]+/Modules/[\w/.-]+)", re.IGNORECASE | re.MULTILINE)
+    path_pkg_regx = re.compile(fr"The file was found at\s+([\w/.-]+/({name})(?:-[0-9.]+)?/[\w/.-]+)", re.IGNORECASE | re.MULTILINE)
+    path_module_regx = re.compile(fr"The file was found at\s+([\w/.-]+/Modules/Find([\w/.-]+)+?\.cmake)", re.IGNORECASE | re.MULTILINE)
 
     messagedata_regx = re.compile(fr"-- ({name}_[^=:\n]+?)(?::|=\s)(?!\n)([^\n]+?)\n", re.IGNORECASE | re.MULTILINE)
     msgDatDict = dict[str,str]()    
@@ -318,13 +318,13 @@ def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg
     
     pathMatch = re.findall(path_pkg_regx,strippedOutput)
     if pathMatch != None and len(pathMatch) > 0:
-        return (pathMatch[0], CmakeFindType.Package, msgDatDict)
+        return (pathMatch[0][0], CmakeFindType.Package, msgDatDict,pathMatch[0][1])
     
     pathMatch = re.findall(path_module_regx,strippedOutput)
     if pathMatch != None and len(pathMatch) > 0:
-        return (pathMatch[0], CmakeFindType.Module, msgDatDict)
+        return (pathMatch[0][0], CmakeFindType.Module, msgDatDict, pathMatch[0][1])
 
-    return (None,CmakeFindType.undef, msgDatDict)
+    return (None,CmakeFindType.undef, msgDatDict, name)
 
 def collectGeneratedConfigs(libPath,printdbg:Optional[bool]=True): 
         
@@ -455,25 +455,11 @@ def parseLib(name : str, confFilePaths: Optional[list[str]] = None) -> TargetDat
     thePath = p[0]
     cmaketype= p[1]
     msgDatDict = p[2]
+    name = p[3]
 
-
-    if (thePath == None  ):
-        p = __getCmakeConfPath(name.upper(), output)
-        thePath   = p[0]
-        cmaketype = p[1]
-        msgDatDict = p[2]
-        name = name.upper()
-    if (thePath == None):
-        p = __getCmakeConfPath(name.lower(), output)
-        thePath   = p[0]
-        cmaketype = p[1]
-        msgDatDict = p[2]
-        name = name.lower()    
-        
-    # targets = []
     targets : TargetDatas = TargetDatas([],[],[],[])
     if(thePath != None):
-        
+                
         if (cmaketype == CmakeFindType.Package):
             print(f"Found \"{name}\" at : {thePath}")
             
@@ -485,6 +471,8 @@ def parseLib(name : str, confFilePaths: Optional[list[str]] = None) -> TargetDat
             finder_tempPath = Path.joinpath(getCpppcDir(), "temp_lib")
             confFiles = collectFilePaths([os.path.abspath(thePath)],[])
             targets = gatherTargetsFromConfigFiles(confFiles,finder_tempPath.absolute().__str__())
+
+        targets.find_package = name
 
     else:
         print(f"Did not find \"{name}\"... ")

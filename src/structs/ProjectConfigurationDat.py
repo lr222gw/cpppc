@@ -11,13 +11,22 @@ class TargetDatas():
     INTERFACE: list[str]
     keyWords : Optional[dict[str,str]]
     includes : Optional[list[str]]
-    def __init__(self, possibleTargets: list[str] = [], SHARED: list[str] = [], STATIC: list[str] = [], INTERFACE: list[str] = [], keyWords : Optional[dict[str,str]] = None, includes : Optional[list[str]] = None): 
+    find_package : Optional[str] = None
+    def __init__(self, 
+                 possibleTargets: list[str] = [], 
+                 SHARED: list[str] = [], 
+                 STATIC: list[str] = [], 
+                 INTERFACE: list[str] = [], 
+                 keyWords : Optional[dict[str,str]] = None, 
+                 includes : Optional[list[str]] = None,
+                 find_package : Optional[str] = None): 
         self.possibleTargets  = possibleTargets
         self.SHARED           = SHARED
         self.STATIC           = STATIC
         self.INTERFACE        = INTERFACE
         self.keyWords         = keyWords
         self.includes         = includes
+        self.find_package    = find_package
         
 class DepDat():
     path : str
