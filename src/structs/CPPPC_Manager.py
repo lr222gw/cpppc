@@ -210,7 +210,7 @@ class CPPPC_Manager:
                     confFiles = collectGeneratedConfigs(targetLibPath) 
                     confFiles.extend(collectFilePaths([],[cmakedirPath]))
 
-                    targetDatas = gatherTargetsFromConfigFiles(confFiles, finder_tempPath.absolute().__str__())                      #NEW
+                    targetDatas = gatherTargetsFromConfigFiles(confFiles, finder_tempPath.absolute().__str__())
                     lib.targetDatas = targetDatas
 
                     if lib.selectedTargets != None: 
@@ -231,6 +231,7 @@ class CPPPC_Manager:
 
                 if lib.selectedTargets != None: 
                     TEMP= TargetDatas([targetname],[],[],[]) #TODO, make sure that cmakeifyLib returns keyWords...
+                    lib.targetDatas = TEMP
                     PersistantDataManager().addDependencyData(DepDat(os.path.abspath(targetLibPath),lib.selectedTargets, TEMP))
                 else: 
                     WarnUser(f"Could not find targets for dependency at {os.path.abspath(targetLibPath)}")
