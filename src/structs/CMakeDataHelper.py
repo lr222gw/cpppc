@@ -5,7 +5,7 @@ import textwrap
 
 #from src.structs.GuiData import library_inputWidget
 from .ProjectConfigurationData import ProjectConfigurationGUI
-from .ProjectConfigurationDat import ProjectConfigurationData
+from .ProjectConfigurationDat import ProjectConfigurationData, TargetDatas
 from dataclasses import dataclass, field
 from .CMakeCommands import *
 
@@ -304,10 +304,20 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
             )
         ).__str__()
     
-
+    def genStr_cmake_find_packages(self):
+        if self.projdata.linkLibs != None:
+            for key, findPackage in self.projdata.linkLibs.items():
+                targetData :TargetDatas = findPackage[3]
+                if targetData.find_package != None: 
+                    self.cmakeCommands.add_CMC(
+                        CMC_find_package(
+                            CMCK(targetData.find_package, "REQUIRED")
+                        )
+                    )
+    
     def genStr_cmake_sourceDirVar(self) -> str:
         return f"{self.genStr_setVar(CMVAR__SOURCE_DIR, CMAKIFY_PathToSourceDir(self.srcDirPath))}"
-
+    
     def genStr_cmake_sources(self) -> str:         
         return tidy_cmake_string(f"{self.genStr_file_globRecurse_ConfigureDepends(CMVAR__SOURCES,self.getSourcePaths())}")
 

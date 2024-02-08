@@ -75,6 +75,7 @@ class CPPPC_Manager:
         self.cmakeListDat.appendOrder(CMC_include)
         self.cmakeListDat.appendOrder(CMC_add_subdirectory)
         self.cmakeListDat.appendOrder(CMC_set)
+        self.cmakeListDat.appendOrder(CMC_find_package)
         self.cmakeListDat.appendOrder(CMC_find_program)
         self.cmakeListDat.appendOrder(CMCC_if)
         self.cmakeListDat.appendOrder(CMC_file)
@@ -119,6 +120,8 @@ class CPPPC_Manager:
         
         if(self.projDat.useProgram_ccache.getState()):
             self.cmakeListDat.addCMakeCompilerLauncher("ccache")
+
+        self.cmakeListDat.genStr_cmake_find_packages()
 
         self.cmakeListDat.genStr_cmake_sourceDirVar()
         self.cmakeListDat.genStr_cmake_sources()

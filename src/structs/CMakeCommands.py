@@ -187,6 +187,11 @@ class CMC_project(CMakeCommand):
         '''skip'''
 
 @dataclass
+class CMC_find_package(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+
+@dataclass
 class CMC_find_program(CMakeCommand):
     def __init__(self, *CMC_CKeyArgs : CMCK):
         '''skip'''
