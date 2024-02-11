@@ -586,19 +586,59 @@ class CPPPC_Manager:
         return usersLibIncludes
 
     def addconf_libraryLinking(self, linkTargets_lineEdit:QLineEdit,allLibsLineEdits:list[QLineEdit], allLibs:list[str],currentRow:int,targetDat:TargetDatas,public:bool, linking_group_layout, libDirName:str):
+        
+        componentsLayout = QHBoxLayout()
+        componentTarget_label = QLabel()
+        componentsOfTarget_label = QLabel()
+        componentTarget_lineEdit = QLineEdit()
+        componentsOfTarget_lineEdit = QLineEdit()
+        componentTarget_label.setText("Target:")
+        componentsOfTarget_label.setText("Components:")
+        if libDirName in self.projDat_data._linkLibs_findPackage and self.projDat_data._linkLibs_findPackage[libDirName] != "": 
+            componentTarget_lineEdit.setText(self.projDat_data._linkLibs_findPackage[libDirName])
+        elif targetDat.find_package != None:
+            componentTarget_lineEdit.setText(targetDat.find_package)
+        else :             
+            componentTarget_lineEdit.setPlaceholderText("Leave empty if no components based or local lib")
 
-        linkTargets_lineEdit.setText(",".join(t for t in allLibs))
+        def toggleLibTarget(targetName, libs_lineEdit, findTarget_lineEdit,components_lineEdit):
+            lib_lineLibs = [lib.strip() for lib in libs_lineEdit.text().strip().split(",")if lib != ""]
+            lib_linkComp = [lib.strip() for lib in components_lineEdit.text().strip().split(",")if lib != ""]
+            findTargetName = findTarget_lineEdit.text()
 
-        def toggleLibTarget(targetName, libs_lineEdit):
-            lib_lineLibs = [lib.strip() for lib in libs_lineEdit.text().strip().split(",")if lib != ""]                
+            def isComponent(findTargetName:str, targetName:str)->bool:
+                targetName_regx = re.compile(fr"^{findTargetName}(?:-|::)(?:.*)", re.IGNORECASE)
+                nameMatch = re.match(targetName_regx,targetName)
+                return nameMatch != None 
+
             if targetName.strip() in lib_lineLibs: 
                 lib_lineLibs.remove(targetName.strip())
+                if isComponent(findTargetName, targetName):                    
+                    startIndex = targetName.strip().upper().find(findTargetName.upper())
+                    endIndex = startIndex + len(findTargetName)
+                    fullTargetComponent = targetName.strip()[endIndex:]
+                    compnentSeperator_regx = re.compile("^(?:-|::)(.*)")
+                    cleanedComponentStr = re.findall(compnentSeperator_regx, fullTargetComponent)[0]
+                    if cleanedComponentStr in lib_linkComp:
+                        lib_linkComp.remove(cleanedComponentStr)                
             else: 
                 lib_lineLibs.append(targetName)
+                if isComponent(findTargetName, targetName):                    
+                    startIndex = targetName.upper().find(findTargetName.upper())
+                    endIndex = startIndex + len(findTargetName)
+                    fullTargetComponent = targetName[endIndex:]
+                    compnentSeperator_regx = re.compile("^(?:-|::)(.*)")
+                    cleanedComponentStr = re.findall(compnentSeperator_regx, fullTargetComponent)[0]
+                    lib_linkComp.append(cleanedComponentStr)
+
             libs_lineEdit.setText(", ".join(lib_lineLibs))
+            components_lineEdit.setText(", ".join(lib_linkComp))
             for le in allLibsLineEdits:
                 le.setText(", ".join(lib_lineLibs))
 
+        # Initialize previous stored library data...
+        for l in allLibs:
+            toggleLibTarget(l, linkTargets_lineEdit, componentTarget_lineEdit, componentsOfTarget_lineEdit)
 
         MAX_TARGETS_PER_ROW = 4
 
@@ -637,7 +677,13 @@ class CPPPC_Manager:
                     subGrid.addWidget(toggleTargetButton, currentRow, column)
 
                     currentRow += math.floor((column+1)/MAX_TARGETS_PER_ROW)
-                    toggleTargetButton.clicked.connect(lambda checked, target=target, libs_lineEdit=linkTargets_lineEdit:toggleLibTarget(target,libs_lineEdit))
+                    toggleTargetButton.clicked.connect(
+                        lambda checked, 
+                        target=target, 
+                        libs_lineEdit=linkTargets_lineEdit,
+                        findTarget_lineEdit=componentTarget_lineEdit,
+                        components_lineEdit=componentsOfTarget_lineEdit,
+                        :toggleLibTarget(target,libs_lineEdit, findTarget_lineEdit,components_lineEdit))
                     targetCounter +=1
                                                             
             currentRow+=1
@@ -645,18 +691,58 @@ class CPPPC_Manager:
         selectedTargets = QLabel()
         selectedTargets.setText("Selected Targets:")
 
-        def onEditFinish(lineEdit :QLineEdit, libName:str, public:bool):
+        selectedComponentTargets = QLabel()
+        selectedComponentTargets.setText("Selected Find_packages Components:")
+
+        componentsLayout.addWidget(componentTarget_label)
+        componentsLayout.addWidget(componentTarget_lineEdit)
+        componentsLayout.addWidget(componentsOfTarget_label)
+        componentsLayout.addWidget(componentsOfTarget_lineEdit)
+
+        def onEditFinish_lib(lineEdit :QLineEdit, libName:str, public:bool):
             if (public):
                 self.projDat_data._linkLibs_public_override[libName] = [lib.strip() for lib in lineEdit.text().strip().split(",") if lib != ""]
             else:
                 self.projDat_data._linkLibs_private_override[libName] = [lib.strip() for lib in lineEdit.text().strip().split(",") if lib != ""]
+        
+        def onEditFinish_comp(lineEdit :QLineEdit, libName:str):
+            self.projDat_data._linkLibs_components[libName] = [lib.strip() for lib in lineEdit.text().strip().split(",") if lib != ""]
+
+        def onComponentTargetFinish(target :QLineEdit, targets:QLineEdit, targets_comps:QLineEdit, libName:str):
+            orig_targets = [lib.strip() for lib in targets.text().strip().split(",")if lib != ""]                
+            newFindName :str = target.text()
+            # Toggle off, to clear old components
+            for l in orig_targets:
+                toggleLibTarget(l, linkTargets_lineEdit, target, componentsOfTarget_lineEdit)
+            
+            # Manually remove contents of Components lineEdit
+            targets_comps.setText("") 
+            # Toggle On, to restore users choice of components (where applicable)
+            for l in orig_targets:
+                toggleLibTarget(l, linkTargets_lineEdit, target, componentsOfTarget_lineEdit)            
+                
+            self.projDat_data._linkLibs_findPackage[libName] = newFindName
 
         linkTargets_lineEdit.textChanged.connect(
-            lambda checked, lineEdit=linkTargets_lineEdit ,libname=libDirName, publ=public: onEditFinish(lineEdit, libname,publ)
+            lambda checked, lineEdit=linkTargets_lineEdit ,libname=libDirName, publ=public: onEditFinish_lib(lineEdit, libname,publ)
+        )
+        componentsOfTarget_lineEdit.textChanged.connect(
+            lambda checked, lineEdit=componentsOfTarget_lineEdit ,libname=libDirName: onEditFinish_comp(lineEdit, libname)
+        )
+
+        componentTarget_lineEdit.textChanged.connect(
+            lambda checked, 
+            lineEdit=componentTarget_lineEdit,
+            targets=linkTargets_lineEdit,
+            targets_comps=componentsOfTarget_lineEdit,
+            libname=libDirName
+            : onComponentTargetFinish(lineEdit, targets, targets_comps,libname)
         )
         
         linking_group_layout.addWidget(selectedTargets)
         linking_group_layout.addWidget(linkTargets_lineEdit)
+        linking_group_layout.addWidget(selectedComponentTargets)
+        linking_group_layout.addLayout(componentsLayout)
         currentRow += 1
                 
     def createSanitizerBlacklistOnDemand(self):

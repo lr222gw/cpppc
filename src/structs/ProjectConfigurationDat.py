@@ -59,6 +59,8 @@ class ProjectConfigurationData():
     _linkLibs_private_override  :dict[str,list[str]]
     _linkIncl_public_override   :dict[str,list[str]]
     _linkIncl_private_override  :dict[str,list[str]]
+    _linkLibs_components        :dict[str,list[str]]
+    _linkLibs_findPackage       :dict[str,str]
 
     def __init__(self, 
                 projectName:Optional[ str ]                           = None,
@@ -98,6 +100,9 @@ class ProjectConfigurationData():
         self._linkLibs_private_override = dict[str,list[str]]() 
         self._linkIncl_public_override  = dict[str,list[str]]()
         self._linkIncl_private_override = dict[str,list[str]]() 
+
+        self._linkLibs_components       = dict[str,list[str]]() 
+        self._linkLibs_findPackage       = dict[str,str]() 
     
     def update(self, updatedInstance):
 
@@ -128,6 +133,11 @@ class ProjectConfigurationData():
             self.linkIncl_public[libkey] = userSelectedTargets
         for libkey, userSelectedTargets in self._linkIncl_private_override.items(): 
             self.linkIncl_private[libkey] = userSelectedTargets
+
+    def getLibComponents(self, localLibName:str) -> list[str]:
+        if localLibName in self._linkLibs_components:
+            return self._linkLibs_components[localLibName]
+        return []
             
     @property
     def projectName(self)->str :
