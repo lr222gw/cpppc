@@ -272,7 +272,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
 
     def _referenceCorrectifier(self, ref):
 
-        if "::" in ref : 
+        if "::" in ref or "-" in ref: 
             return ref 
         else:
             return f"${{{ref}}}"
