@@ -65,6 +65,8 @@ def __getLibraryTargets_cmakefile(cmakef:str) -> dict[str,list[str]]: #TODO: Ren
     
     cmakevars = __getCMakeVarDefinitions(cmakef)
 
+    basename = os.path.basename(cmakef)
+
     with open(cmakef, 'r') as file:
         add_library_rgx = re.compile(r"add_library\((?:(?:[\S\-_]+|[\S\-_]+::[\S\-_]+)\s{1,}(?:ALIAS)\s+(\S+)|(?:([\S\-_]+|[\S\-_]+::[\S\-_]+)\s{0,}))(SHARED|STATIC|MODULE|INTERFACE|OBJECT){0,1}(?:.*)\)", re.IGNORECASE | re.MULTILINE)
         possibleTargets_rgx = re.compile(r"(?:(?!(?:\w|\s)*[#\n])^.+(?:\bTARGET\s+([^\s\\)]+)))", re.IGNORECASE | re.MULTILINE)
@@ -76,11 +78,12 @@ def __getLibraryTargets_cmakefile(cmakef:str) -> dict[str,list[str]]: #TODO: Ren
         includeMatches = re.findall(r"(?m)((?!(?:\w|\s)*[#\n]).*(?:target_include_directories)\(([^\s]+))", contents)
 
         m = dict[str,list[str]]()
-        m["PossibleTargets"] = list[str]()
+        m["PossibleTargets"] = list[str]()        
         m["SHARED"] = list[str]()
         m["STATIC"] = list[str]()
         m["INTERFACE"] = list[str]()
         m["Includes"] = list[str]()
+        m["ParsedComponentTargets"] = list[str]()
 
         temp_incl = [i[1] for i in includeMatches if len(i) == 2 ]        
         for i in temp_incl: 
@@ -106,8 +109,12 @@ def __getLibraryTargets_cmakefile(cmakef:str) -> dict[str,list[str]]: #TODO: Ren
                 derefenced = __derefernce(cmakevars,p)
                 if derefenced != p:
                     m["PossibleTargets"].append(derefenced)
+                    if "Targets-" in basename != -1:
+                        m["ParsedComponentTargets"].append(derefenced)
             else : 
                 m["PossibleTargets"].append(p)
+                if "Targets-" in basename != -1 or "targets-" in basename != -1:
+                        m["ParsedComponentTargets"].append(p)
 
         return m 
 
@@ -227,10 +234,11 @@ def __getFinderCmakeOutput_installed(name:str):
     finderCMakeFile = Path.joinpath(getCpppcDir(), "CMakeLists.txt")
     finder_tempPath = Path.joinpath(getCpppcDir(), "temp")
     Path.touch(finderCMakeFile)
+    # TODO: Consider using CMakeFindDependencyMacro in order to use find_dependency to find more dependables...
     with finderCMakeFile.open("w") as file:
         file.write(f"cmake_minimum_required(VERSION 3.28.0)\n")
         file.write("project(find_dummy)\n")
-        file.write(f"find_package({name})\n")
+        file.write(f"find_package({name})\n") # TODO: Consider f"find_package({name} NAMES {name.upper()} {name.lower()})\n"
         file.write(f"if(NOT ${{{name}_FOUND}})\n")
         file.write(f"\tfind_package({name.upper()})\n")
         file.write(f"\tif(NOT ${{{name.upper()}_FOUND}})\n")
@@ -407,13 +415,20 @@ def gatherTargetsFromConfigFiles(configFiles:list[str], workpath:str)->TargetDat
     targets_cleaned.setdefault("STATIC", list[str]())
     targets_cleaned.setdefault("INTERFACE", list[str]())
     targets_cleaned.setdefault("Includes", list[str]())
+    targets_cleaned.setdefault("ParsedComponentTargets", list[str]())
     for k, v in targets.items(): 
-        if k in ["PossibleTargets", "SHARED", "STATIC", "INTERFACE", "Includes"]:
+        if k in ["PossibleTargets", "SHARED", "STATIC", "INTERFACE", "Includes", "ParsedComponentTargets"]:
             for vv in targets[k]:
                 if not vv in targets_cleaned[k]:
                     targets_cleaned[k].append(vv)
 
-    return TargetDatas(targets_cleaned["PossibleTargets"], targets_cleaned["SHARED"], targets_cleaned["STATIC"], targets_cleaned["INTERFACE"], includes=targets_cleaned["Includes"])
+    return TargetDatas(
+        targets_cleaned["PossibleTargets"], 
+        targets_cleaned["SHARED"], 
+        targets_cleaned["STATIC"], 
+        targets_cleaned["INTERFACE"], 
+        targets_cleaned["ParsedComponentTargets"],
+        includes=targets_cleaned["Includes"])
 
 
 def __printResults(targets : TargetDatas):

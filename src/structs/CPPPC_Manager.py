@@ -587,6 +587,8 @@ class CPPPC_Manager:
 
     def addconf_libraryLinking(self, linkTargets_lineEdit:QLineEdit,allLibsLineEdits:list[QLineEdit], allLibs:list[str],currentRow:int,targetDat:TargetDatas,public:bool, linking_group_layout, libDirName:str):
         
+        confirmedComponents = targetDat.parsedComponentTargets
+
         componentsLayout = QHBoxLayout()
         componentTarget_label = QLabel()
         componentsOfTarget_label = QLabel()
@@ -601,19 +603,21 @@ class CPPPC_Manager:
         else :             
             componentTarget_lineEdit.setPlaceholderText("Leave empty if no components based or local lib")
 
-        def toggleLibTarget(targetName :str, libs_lineEdit :QLineEdit, findTarget_lineEdit :QLineEdit,components_lineEdit:QLineEdit):
+        def toggleLibTarget(targetName :str, libs_lineEdit :QLineEdit, findTarget_lineEdit :QLineEdit,components_lineEdit:QLineEdit,confirmedComponents:list[str]):
             lib_lineLibs = [lib.strip() for lib in libs_lineEdit.text().strip().split(",")if lib != ""]
             lib_linkComp = [lib.strip() for lib in components_lineEdit.text().strip().split(",")if lib != ""]
             findTargetName = findTarget_lineEdit.text()
 
-            def isComponent(findTargetName:str, targetName:str)->bool:
+            def isComponent(findTargetName:str, targetName:str,confirmedComponents:list[str])->bool:
+                if targetName not in confirmedComponents:
+                    return False 
                 targetName_regx = re.compile(fr"^{findTargetName}(?:-|::)(.*)", re.IGNORECASE)
                 nameMatch = re.match(targetName_regx,targetName)
                 return nameMatch != None and nameMatch[1] != findTargetName
 
             if targetName.strip() in lib_lineLibs: 
                 lib_lineLibs.remove(targetName.strip())
-                if isComponent(findTargetName, targetName):                    
+                if isComponent(findTargetName, targetName, confirmedComponents):                    
                     startIndex = targetName.strip().upper().find(findTargetName.upper())
                     endIndex = startIndex + len(findTargetName)
                     fullTargetComponent = targetName.strip()[endIndex:]
@@ -623,7 +627,7 @@ class CPPPC_Manager:
                         lib_linkComp.remove(cleanedComponentStr)                
             else: 
                 lib_lineLibs.append(targetName)
-                if isComponent(findTargetName, targetName):                    
+                if isComponent(findTargetName, targetName, confirmedComponents):                    
                     startIndex = targetName.upper().find(findTargetName.upper())
                     endIndex = startIndex + len(findTargetName)
                     fullTargetComponent = targetName[endIndex:]
@@ -638,7 +642,7 @@ class CPPPC_Manager:
 
         # Initialize previous stored library data...
         for l in allLibs:
-            toggleLibTarget(l, linkTargets_lineEdit, componentTarget_lineEdit, componentsOfTarget_lineEdit)
+            toggleLibTarget(l, linkTargets_lineEdit, componentTarget_lineEdit, componentsOfTarget_lineEdit, confirmedComponents)
 
         MAX_TARGETS_PER_ROW = 4
 
@@ -683,7 +687,7 @@ class CPPPC_Manager:
                         libs_lineEdit=linkTargets_lineEdit,
                         findTarget_lineEdit=componentTarget_lineEdit,
                         components_lineEdit=componentsOfTarget_lineEdit,
-                        :toggleLibTarget(target,libs_lineEdit, findTarget_lineEdit,components_lineEdit))
+                        :toggleLibTarget(target,libs_lineEdit, findTarget_lineEdit,components_lineEdit, confirmedComponents))
                     targetCounter +=1
                                                             
             currentRow+=1
@@ -713,13 +717,13 @@ class CPPPC_Manager:
             newFindName :str = target.text()
             # Toggle off, to clear old components
             for l in orig_targets:
-                toggleLibTarget(l, linkTargets_lineEdit, target, componentsOfTarget_lineEdit)
+                toggleLibTarget(l, linkTargets_lineEdit, target, componentsOfTarget_lineEdit, confirmedComponents)
             
             # Manually remove contents of Components lineEdit
             targets_comps.setText("") 
             # Toggle On, to restore users choice of components (where applicable)
             for l in orig_targets:
-                toggleLibTarget(l, linkTargets_lineEdit, target, componentsOfTarget_lineEdit)            
+                toggleLibTarget(l, linkTargets_lineEdit, target, componentsOfTarget_lineEdit, confirmedComponents)            
                 
             self.projDat_data._linkLibs_findPackage[libName] = newFindName
 

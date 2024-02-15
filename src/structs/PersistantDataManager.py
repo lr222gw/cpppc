@@ -69,6 +69,7 @@ class PersistantDataManager():
                             tempDependenciesDirs[entry]["targetDatas"]["SHARED"],
                             tempDependenciesDirs[entry]["targetDatas"]["STATIC"],
                             tempDependenciesDirs[entry]["targetDatas"]["INTERFACE"],
+                            tempDependenciesDirs[entry]["targetDatas"]["parsedComponentTargets"],
                             keyWords = tempDependenciesDirs[entry]["targetDatas"]["keyWords"],
                             includes = tempDependenciesDirs[entry]["targetDatas"]["includes"],
                             find_package = tempDependenciesDirs[entry]["targetDatas"]["find_packages"]
