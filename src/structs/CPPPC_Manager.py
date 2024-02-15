@@ -601,15 +601,15 @@ class CPPPC_Manager:
         else :             
             componentTarget_lineEdit.setPlaceholderText("Leave empty if no components based or local lib")
 
-        def toggleLibTarget(targetName, libs_lineEdit, findTarget_lineEdit,components_lineEdit):
+        def toggleLibTarget(targetName :str, libs_lineEdit :QLineEdit, findTarget_lineEdit :QLineEdit,components_lineEdit:QLineEdit):
             lib_lineLibs = [lib.strip() for lib in libs_lineEdit.text().strip().split(",")if lib != ""]
             lib_linkComp = [lib.strip() for lib in components_lineEdit.text().strip().split(",")if lib != ""]
             findTargetName = findTarget_lineEdit.text()
 
             def isComponent(findTargetName:str, targetName:str)->bool:
-                targetName_regx = re.compile(fr"^{findTargetName}(?:-|::)(?:.*)", re.IGNORECASE)
+                targetName_regx = re.compile(fr"^{findTargetName}(?:-|::)(.*)", re.IGNORECASE)
                 nameMatch = re.match(targetName_regx,targetName)
-                return nameMatch != None 
+                return nameMatch != None and nameMatch[1] != findTargetName
 
             if targetName.strip() in lib_lineLibs: 
                 lib_lineLibs.remove(targetName.strip())
