@@ -1,6 +1,7 @@
 import glob
 import io
 import os
+import pathlib
 import shutil
 from zipfile import ZipFile
 import zipfile
