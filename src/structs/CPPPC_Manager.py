@@ -594,7 +594,7 @@ class CPPPC_Manager:
         componentsOfTarget_label = QLabel()
         componentTarget_lineEdit = QLineEdit()
         componentsOfTarget_lineEdit = QLineEdit()
-        componentTarget_label.setText("Target:")
+        componentTarget_label.setText("Installed Target:")
         componentsOfTarget_label.setText("Components:")
         if libDirName in self.projDat_data._linkLibs_findPackage and self.projDat_data._linkLibs_findPackage[libDirName] != "": 
             componentTarget_lineEdit.setText(self.projDat_data._linkLibs_findPackage[libDirName])
