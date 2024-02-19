@@ -15,6 +15,18 @@ prepareStorage()
 app = QApplication([])
 app.setStyleSheet("QPushButton { color: magenta; }")
 
+palette = app.palette()
+    
+# Set dark color palette
+palette.setColor(app.palette().Window, QColor(30, 30, 30))
+palette.setColor(app.palette().WindowText, QColor(200, 200, 200))
+palette.setColor(app.palette().Button, QColor(50, 50, 50))
+palette.setColor(app.palette().ButtonText, QColor(200, 200, 200))
+
+
+app.setPalette(palette)
+
+
 # Preparing Window
 window = QWidget()
 rootLayout = QHBoxLayout()
