@@ -4,3 +4,6 @@ src/structs/__pycache__/*
 src/dev/__pycache__/*
 build/*
 dist/*
+src/fetchers/__pycache__/*
+src/parsers/__pycache__/*
+src/generators/__pycache__/*

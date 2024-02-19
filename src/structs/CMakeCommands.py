@@ -28,7 +28,7 @@ class CMakeCommandKeyArguments:
                     stringified_args.append(arg)
             self._args = stringified_args                
         else:             
-            self._args = args
+            self._args = args # type: ignore
     
     def __str__(self):
         return str.format(
@@ -64,7 +64,7 @@ class CMakeCommandKeyArguments_str(CMakeCommandKeyArguments):
         super().__init__(key, *self._args)        
 
     def stringifyArgs(self, args):
-        self._args = tuple("\""+arg+"\"" for arg in args)
+        self._args = tuple("\""+arg+"\"" for arg in args) # type: ignore
 
 @dataclass
 class CMakeCommandKeyArguments_FuncArgs(CMakeCommandKeyArguments):
@@ -90,6 +90,12 @@ class CMakeCommandMeta(type):
         if "__init__" not in dct:
             #sets the __init__ method of a subclass to be the same as the basclass (i.e. CMakeCommand)
             dct['__init__'] = bases[0].__init__
+        else: 
+            # If user write "skip" in docstring, then use baseclass constructor
+            import inspect
+            if inspect.getdoc(dct['__init__']) == "skip": 
+                dct['__init__'] = bases[0].__init__
+
             
         return super().__new__(cls, name, bases, dct)
 
@@ -98,16 +104,22 @@ CMCK_str = CMakeCommandKeyArguments_str         # Adds \"\" around strings
 CMCK_args = CMakeCommandKeyArguments_FuncArgs   # Ignores the key argument...
 @dataclass
 class CMakeCommand(metaclass=CMakeCommandMeta): #CMC for short
-    commandName :str
-    commandArgVals : list = field(default_factory=list)
+    '''
+    Inheriting from CMakeCommand can skip 
+    initialization of __init__ function 
+    by providing "skip" as docstring 
+    for the __init__ function
+    '''
+    commandName :str = "<NO COMMAND>"
+    commandArgVals : list[CMCK] = field(default_factory=list[CMCK])
 
-    def add_commandArgVals(self, commandArgVals : list):
+    def add_commandArgVals(self, *commandArgVals : CMCK):
         if not isinstance(commandArgVals, tuple):
             terminate("args must be tuple")
-        self.commandArgVals = commandArgVals if all(isinstance(arg, CMakeCommandKeyArguments) or isinstance(arg, CMakeCommandKeyArguments_str) for arg in commandArgVals) else terminate("args must be a CMakeCommandKeyArguments, aka CMCK" )        
+        self.commandArgVals = list(commandArgVals) if all(isinstance(arg, CMakeCommandKeyArguments) or isinstance(arg, CMakeCommandKeyArguments_str) for arg in commandArgVals) else terminate("args must be a CMakeCommandKeyArguments, aka CMCK" )        
 
-    def __init__(self, *CMC_CKeyArgs ):        
-        self.add_commandArgVals(CMC_CKeyArgs)
+    def __init__(self, *CMC_CKeyArgs : CMCK ):        
+        self.add_commandArgVals(*CMC_CKeyArgs)
 
 
     def __str__(self):
@@ -120,69 +132,112 @@ class CMakeCommand(metaclass=CMakeCommandMeta): #CMC for short
 @dataclass
 class CMakeCommandContainer(metaclass=CMakeCommandMeta):
     commandName :str
-    baseArgs : CMakeCommandKeyArguments  = field(default_factory=CMakeCommandKeyArguments)
+    baseArgs : CMakeCommandKeyArguments # = field(default_factory=CMakeCommandKeyArguments())
     containerContent : list = field(default_factory=list)
 
-    def add_containerContent(self, containerContents : list): #TODO: Should be tuple! (?)
+    def add_containerContent(self, *containerContents : CMakeCommand):
         if not isinstance(containerContents, tuple):
             terminate("containerContents must be tuple")
-        self.containerContent = containerContents if all(isinstance(arg, CMakeCommand) for arg in containerContents) else terminate("args must be a CMakeCommand")        
+        self.containerContent = list(containerContents) if all(isinstance(arg, CMakeCommand) for arg in containerContents) else terminate("args must be a CMakeCommand")        
 
-    def __init__(self, CMC_args :CMakeCommandKeyArguments ,*CMC_cs ):
+    def __init__(self, CMC_args :CMakeCommandKeyArguments ,*CMC_cs :CMakeCommand):
         self.baseArgs = CMC_args
-        self.add_containerContent(CMC_cs)
+        self.add_containerContent(*CMC_cs)
 
     def __str__(self):
         return str.format(
             "{}({})\n\t{}\n{}()",
             self.commandName,
-            ' '.join(map(str, self.baseArgs)),
+            self.baseArgs.__str__(),
             ' '.join(map(str, self.containerContent)) if len(self.containerContent) < 3 else '\n\t'.join(map(str, self.containerContent)),
             "end" + self.commandName # NOTE: Might exist cases where the scope does not end with <key>() \n <body contents> \n end<key>() ...
         )
 
 # Any class inheriting from CMakeCommand will be expected to have their classname start with "CMC_"
 @dataclass
-class CMC_set(CMakeCommand): pass
+class CMC_set(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+@dataclass
+class CMC_file(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_file(CMakeCommand): pass
+class CMC_include(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+        
+@dataclass
+class CMC_add_executable(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_include(CMakeCommand): pass
+class CMC_add_library(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+
+class CMC_add_subdirectory(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+@dataclass
+class CMC_project(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_add_executable(CMakeCommand): pass
+class CMC_find_package(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_project(CMakeCommand): pass
+class CMC_find_program(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+@dataclass
+class CMC_target_sources(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+        
+@dataclass
+class CMC_target_include_directories(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+@dataclass
+class CMC_target_compile_options(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_find_program(CMakeCommand): pass
+class CMC_target_link_options(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_target_sources(CMakeCommand): pass
+class CMC_target_link_libraries(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_target_compile_options(CMakeCommand): pass
+class CMC_set_property(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_target_link_options(CMakeCommand): pass
+class CMC_set_target_properties(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_target_link_libraries(CMakeCommand): pass
+class CMC_findProgram(CMakeCommand): 
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
 
 @dataclass
-class CMC_set_property(CMakeCommand): pass
-
-@dataclass
-class CMC_set_target_properties(CMakeCommand): pass
-
-@dataclass
-class CMC_findProgram(CMakeCommand): pass
-
-@dataclass
-class CMCC_if(CMakeCommandContainer): pass
+class CMCC_if(CMakeCommandContainer): 
+    def __init__(self, CMC_args :CMakeCommandKeyArguments ,*CMC_cs :CMakeCommand):
+        '''skip'''
 
 @dataclass
 class CMC_CALLFUNC(CMakeCommand):
@@ -192,6 +247,9 @@ class CMC_CALLFUNC(CMakeCommand):
 
 @dataclass
 class CMC_cmake_minimum_required(CMakeCommand):
+    def __init__(self, *CMC_CKeyArgs : CMCK):
+        '''skip'''
+
     def __str__(self):
         return str.format(
             "{}({})",
@@ -252,10 +310,10 @@ class CMakeCommandDct:
 def CM_generatorExpressionConditional(condition:str, *args) -> str:
     return str.format("$<$<{}>: \n\t\t{}>",condition, "-" + '\n\t\t-'.join(map(str, args)) if len(args)> 0 else "")
 
-def propifyList(propList):
+def propifyList(propDict : dict[str,str]):
     padding = 1
-    maxSpace=max(len(arg.cmake_propName) + padding for arg in propList)
-    return [prop.cmake_propName.ljust(maxSpace) + str(prop.getValue()) for prop in propList]
+    maxSpace=max(len(key) + padding for key, val in propDict.items())
+    return [key.ljust(maxSpace) + str(val) for key, val in propDict.items()]
 
 def CMVAR_REF(varName :str) -> str: 
     """

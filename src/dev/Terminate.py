@@ -35,3 +35,7 @@ def _get_stack_from_frame():
     for frame_info in stack_info:
         stack_str += f"File: {frame_info.filename}:[{frame_info.lineno}], Function: {frame_info.function}\n"
     return stack_str
+
+def WarnUser(msg:str):
+    print(f"WARNING: {msg}")
+    #TODO: register warnings, to make them presentable in GUI

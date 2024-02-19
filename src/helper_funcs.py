@@ -28,17 +28,39 @@ def addTextField(fieldName:str,placeholder:str, parentLayout) -> GuiData:
 
     return GuiData(newLineEdit)
 
-def addTextBoxField(fieldName:str, parentLayout) -> GuiData:
+def placeTextField(textDat:GuiData[QLineEdit],label:QLabel, fieldName:str,placeholder:str, parentLayout):
+    
+    label.setText(fieldName)    
+    textDat.widget.setPlaceholderText(placeholder)
+
+    # Append widgets to parent layout
+    parentLayout.addWidget(label)
+    parentLayout.addWidget(textDat.widget)    
+
+def addTextBoxField(fieldName:str, parentLayout, height:Optional[int]=50) -> GuiData:
     
     # Create Label, input field widgets
     newFieldLabel=QLabel(text=fieldName)
     newLineEdit=QTextEdit()
+    newLineEdit.setFixedHeight(height) # type: ignore : has default value
 
     # Append widgets to parent layout
     parentLayout.addWidget(newFieldLabel)
     parentLayout.addWidget(newLineEdit)
 
     return GuiData(newLineEdit)
+
+def placeTextBoxField(textDat:GuiData[QTextEdit],label:QLabel, fieldName:str,placeholder:str, parentLayout, height:Optional[int]=50):
+    
+    # Create Label, input field widgets
+    label.setText(fieldName)
+    textDat.widget.setFixedHeight(height) # type: ignore : has default value
+    textDat.widget.setPlaceholderText(placeholder)
+
+    # Append widgets to parent layout
+    parentLayout.addWidget(label)
+    parentLayout.addWidget(textDat.widget)
+
 
 def addSpinBox(fieldName:str, parentLayout) -> GuiData:
     
@@ -56,7 +78,7 @@ def addCheckBox(fieldName:str, defaultValue :bool, parentLayout) -> GuiDataToggl
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
@@ -68,7 +90,7 @@ def addProp_CheckBox(fieldName:str, defaultValue :bool, parentLayout) -> PropTog
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
@@ -79,7 +101,7 @@ def addFeature_CheckBox(fieldName:str,value : str, defaultValue :bool, parentLay
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
     # Append widgets to parent layout
     parentLayout.addWidget(newCheckBox)
@@ -90,7 +112,7 @@ def addFeatureShare_CheckBox(fieldName:str,value : str, defaultValue :bool, pare
     
     # Create Label, input field widgets
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
     
     # Append widgets to parent layout
@@ -109,7 +131,7 @@ def strListFactory(func :Callable, parentCheckbox : GuiDataToggle, *args) -> Fun
 
 def strListShareFactory(parentCheckbox : GuiDataToggle, *args : Container_FeatureShareToggle_FunctionWrapperList) -> list[FunctionWrapper]:
 
-    funcCallDictionary :dict[list] = dict()
+    funcCallDictionary :dict[Callable[...,None], list[FeatureShareToggle], ] = dict()
     # Prepare dictionary
     for toggleFuncPair in args:                        
         for func in toggleFuncPair.functions:
@@ -127,15 +149,16 @@ def strListShareFactory(parentCheckbox : GuiDataToggle, *args : Container_Featur
         )
 
     return functionWrapperList
-def lambdaHelper(toggles, parentCheckbox)->list[str]:
-    valueList = list()
+def lambdaHelper(toggles, parentCheckbox)->tuple[str, ...]:
+    valueList :list[str] = list()
     for toggle in toggles:
         if toggle.getState() and parentCheckbox.getState():
             valueList.append(toggle.getValue())
             if toggle.requirement != None:
                 toggle.requirement()
     
-    return valueList 
+    a = tuple(valueList)
+    return a
 
 def addCmakeVersionBox(fieldName:str, version:QSpinBox, parentLayout) -> GuiData:
     # Create Label, input field widgets
@@ -178,7 +201,7 @@ def createQHBoxLayout() -> QHBoxLayout:
 
 def createCheckBox(fieldName:str, defaultValue :bool) -> PropToggle:        
     newCheckBox=QCheckBox(text=fieldName)    
-    newCheckBox.setCheckState(defaultValue)
+    newCheckBox.setCheckState(Qt.CheckState.Checked if defaultValue else  Qt.CheckState.Unchecked)
     newCheckBox.setTristate(False)
 
     return PropToggle(newCheckBox)    
@@ -224,18 +247,22 @@ def addHidableGroup(
     parentLayout,
     checkboxParentLayout,
     groupTitle:str,
-    checkbox :GuiDataToggle
+    checkbox :GuiDataToggle,
+    minWdith: Optional[int] = None,
+    minHeight:Optional[int] = None
 ) -> QVBoxLayout:
+    minWdith  = minWdith  or 400 #Default values
+    minHeight = minHeight or 0   #Default values
 
     # Create A frame, needed to make the layout/content collapsable
     frame_widget = QFrame()
-
+    
     # Create new Layout for collapsable content, assign to frame widget
     frame_layout = QVBoxLayout()
     frame_widget.setLayout(frame_layout)
     
     # Create A Group
-    group_widget = QGroupBox(title=groupTitle)
+    group_widget = QGroupBox(title=groupTitle)    
 
     # new Layout for button and collapsable content, assign to group widget
     group_layout = QVBoxLayout()
@@ -258,7 +285,9 @@ def addHidableGroup(
     scroll_area.setWidgetResizable(True)
     scroll_area.setWidget(group_widget)
     
-    scroll_area.setMinimumSize(245,0)
+    scroll_area.setMinimumSize(
+        minWdith,   
+        minHeight)  
     
 
     # Add the scroll area to the frame layout to make the group_layout scrollable
@@ -276,6 +305,12 @@ def addHidableGroup(
     
     return group_layout
 
+def variadicArgumentValidator(expectedNrOfArgs: int, *args):
+    if len(args) != expectedNrOfArgs:
+        errMsg = "Function not design to take anything but "+str(expectedNrOfArgs)+" variadic arguments, got "+str(len(args))+"\n"
+        errMsg += "\t"+"\n\t".join(map(str, args) )
+        terminate(errMsg)
+
 def toggleHideShow_updGeoemtry(frame_widget, checkbox,scroll_area):    
     showHideFrame(frame_widget, checkbox.getState())
     scroll_area.updateGeometry()
@@ -285,3 +320,46 @@ def showHideFrame(frame :QFrame, condition:bool):
         frame.show()
     else: 
         frame.hide()
+
+def addFloatingWindow(
+    parentLayout,
+    groupTitle:str
+) -> tuple[QVBoxLayout, QGroupBox]:
+
+    # Create A frame, needed to make the layout/content collapsable
+    frame_widget = QFrame()
+
+    # Create new Layout for collapsable content, assign to frame widget
+    frame_layout = QVBoxLayout()
+    frame_widget.setLayout(frame_layout)
+    frame_widget.resize(800,500)
+    
+    # Create A Group
+    group_widget = QGroupBox(title=groupTitle)
+
+    # new Layout for button and collapsable content, assign to group widget
+    group_layout = QVBoxLayout()
+    group_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    group_widget.setLayout(group_layout)
+
+    # Assign the group widget to the frames layout
+    frame_layout.addWidget(group_widget)
+    frame_layout.setStretch(0, 1)
+    frame_layout.setStretch(1, 1)
+
+    # Add the frame Widget to the parent Layout to be displayed
+    parentLayout.addWidget(frame_widget)    
+
+    frame_widget.show()
+
+    # Wrap the group_layout in a scroll area
+    scroll_area = QScrollArea()
+    scroll_area.setWidgetResizable(True)
+    scroll_area.setWidget(group_widget)
+    
+    scroll_area.setMinimumSize(245,0)
+
+    # Add the scroll area to the frame layout to make the group_layout scrollable
+    frame_layout.addWidget(scroll_area)
+
+    return group_layout,group_widget
