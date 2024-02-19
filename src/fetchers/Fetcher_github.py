@@ -61,10 +61,10 @@ def _extractToDirectory(libname :str,targetPath :str, zipFile : ZipFile):
 
     libraryFiles=glob.glob(tempdirFiles, include_hidden=True)
     if not os.path.exists(finalpath):
-        os.mkdir(finalpath)
+        pathlib.Path(finalpath).mkdir(parents=True,exist_ok=True)
     else:
         shutil.rmtree(finalpath)
-        os.mkdir(finalpath)
+        pathlib.Path(finalpath).mkdir(parents=True,exist_ok=True)
         
     for file in libraryFiles:
         shutil.move(file, targetPath+"/"+libname+"/")
