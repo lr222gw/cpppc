@@ -5,6 +5,7 @@ from pathlib import Path
 
 from src.fetchers.Fetcher_local import getInstalledLib, fetchLocalLib
 from src.generators.CMakeLibGenerator import cmakeifyLib
+from src.gui.theme import LabelLink
 from src.parsers.CMakeParsing import  collectFilePaths, collectGeneratedConfigs, gatherTargetsFromConfigFiles, parseLib
 
 from src.fetchers.Fetcher_github import fetchGithubRepo
@@ -326,7 +327,8 @@ class CPPPC_Manager:
             currentRow = 0
             groupCount = 0
             for libDirName, libdat in self.projDat_data.linkLibs.items():
-                libraryGroup = QGroupBox()                
+                libraryGroup = QGroupBox()
+                libraryGroup.setObjectName("LibraryGroup")
 
                 innerGrid = QGridLayout()
                 libName = libdat[0]
@@ -350,8 +352,9 @@ class CPPPC_Manager:
 
 
                 linking_group = QGroupBox()
+                linking_group.setObjectName("LinkingGroup")
                 linking_group.setHidden(True)
-                linking_group_label = QLabel()
+                linking_group_label = LabelLink()
 
                 selectedFoldStatus = FOLD_SYMBOL
                 numOfTargets = self.__getNumberOfTargets(targetDat)
@@ -359,7 +362,13 @@ class CPPPC_Manager:
                     selectedFoldStatus = UNFOLD_SYMBOL
                     linking_group.setHidden(False)
 
-                linking_group_label.setText(f"{selectedFoldStatus} <a href=\"linking_group\">Select Library Targets through parsed Target names</a> [{numOfTargets} Found]")
+                linking_group_label.setLink("keyword_group_label", 
+                                            "Select Library Targets through parsed Target names",
+                                            selectedFoldStatus,
+                                            f"[{numOfTargets} Found]",
+                                            "href"
+                )
+                
                 linking_group_label.linkActivated.connect(lambda checked, group=linking_group, label=linking_group_label : hide(group, label))
                 linking_group.setFlat(True)
                 
@@ -373,6 +382,7 @@ class CPPPC_Manager:
                 self.addconf_libraryLinking(libs_1, [libs_2],allLibs,currentRow, targetDat, publ, linking_group_layout, libDirName)
                 
                 keyword_group = QGroupBox()
+                keyword_group.setObjectName("KeywordGroup")
                 keyword_group.setHidden(True)
                 selectedFoldStatus = FOLD_SYMBOL
                 numOfTargets = self.__getNumberOfKeywords(targetDat)
@@ -380,14 +390,19 @@ class CPPPC_Manager:
                     selectedFoldStatus = UNFOLD_SYMBOL
                     keyword_group.setHidden(False)
 
-                keyword_group_label = QLabel()
-                keyword_group_label.setText(f"{selectedFoldStatus} <a href=\"keyword_group\">Select Library and Includes through parsed Keywords</a>  [{numOfTargets} Found]")
+                keyword_group_label = LabelLink()
+                keyword_group_label.setLink("keyword_group_label", 
+                                            "Select Library and Includes through parsed Keywords",
+                                            selectedFoldStatus,
+                                            f"[{numOfTargets} Found]",
+                                            "href"
+                                            )
+
                 keyword_group_label.linkActivated.connect(lambda checked, group=keyword_group, label=keyword_group_label : hide(group,label))
                 include_group_layout = QVBoxLayout()
                 keyword_group.setLayout(include_group_layout)
                 keyword_group.setFlat(True)
                 self.addconf_includes(libs_2, [libs_1], allLibs, currentRow, targetDat, publ, include_group_layout, libDirName)
-                
                 
                 innerGrid.addWidget(keyword_group_label)
                 innerGrid.addWidget(keyword_group)
