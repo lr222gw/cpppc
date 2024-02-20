@@ -120,7 +120,8 @@ def initColorTheme(app : QApplication):
                 border: 1px solid {getCol(frametitleBackBorder_color)};
                 border-radius: 5px;                 
             }}        
-            QGroupBox::title {{        
+            QGroupBox::title {{       
+                color: {getCol(text_color)}; 
                 subcontrol-origin: margin;
                 subcontrol-position: top center;
                 padding: 0 3px;        
