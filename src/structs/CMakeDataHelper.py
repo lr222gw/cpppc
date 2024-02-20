@@ -1,5 +1,6 @@
 import enum
 import os
+import pathlib
 import re
 import textwrap
 
@@ -118,8 +119,8 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStrHlp_generateHeaderFileInBuildDir(self, isPublic : bool,  targetVar) -> str: 
         ret = tidy_cmake_string(
             self.genStr_configureFile(
-                os.path.join(self.cmakeDirPath,self.FILE_cmake_inputs_h_in),
-                os.path.join(CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h)
+                str((pathlib.Path(self.cmakeDirPath) / self.FILE_cmake_inputs_h_in).as_posix()),
+                str((pathlib.Path(CMAKE_CURRENT_SOURCE_DIR) / self.cmakeGenSrcDirPath / self.FILE_cmake_inputs_h).as_posix())
                 ),
                 0
                 )
@@ -127,7 +128,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
             self.genStr_arg_targetIncludeDirectories(
                 str.format("${{{}}}",targetVar),
                 isPublic,
-                os.path.join(CMAKE_CURRENT_SOURCE_DIR, self.cmakeGenSrcDirPath)
+                str((pathlib.Path(CMAKE_CURRENT_SOURCE_DIR) / self.cmakeGenSrcDirPath).as_posix())
                 ),
                 0
                 )
@@ -136,7 +137,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
             self.genStr_targetSources(                
                 str.format("${{{}}}",targetVar),
                 [
-                    os.path.join(CMAKE_CURRENT_SOURCE_DIR,self.cmakeGenSrcDirPath,self.FILE_cmake_inputs_h)
+                    str((pathlib.Path(CMAKE_CURRENT_SOURCE_DIR) / self.cmakeGenSrcDirPath / self.FILE_cmake_inputs_h).as_posix())
                 ]
             ),0
             
@@ -196,7 +197,7 @@ class CMakeDataHelper : #TODO: Rename this to CMakeDataManager or similar...
     def genStr_includeCmakeFile(self, cmakeFile : str) -> str:
         return self.cmakeCommands.add_CMC(
             CMC_include(
-                CMCK_args(os.path.join(self.cmakeDirPath, cmakeFile))
+                CMCK_args(str((pathlib.Path(self.cmakeDirPath) / cmakeFile).as_posix()))
             )
         ).__str__()
 
