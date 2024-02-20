@@ -391,3 +391,12 @@ class UserInput_checkbox(Input[GuiDataToggle], classType=GuiDataToggle, superRoo
 class Container_FeatureShareToggle_FunctionWrapperList():
     featureShareToggle : FeatureShareToggle
     functions : list[Callable]  = field(default_factory=list[Callable])
+
+class LabelLink(QLabel):
+    def setLink(self,varname:str,linkText:str, textBefore: Optional[str] = None,textAfter: Optional[str] = None, objName : Optional[str]=None):
+        def use(t :Optional[str]) -> str:
+            return t if t != None else ''
+                
+        self.setText(f"{use(textBefore)} <a href=\"{varname}\" >{linkText}</a>  {use(textAfter)}")
+        if objName != None:
+            self.setObjectName(objName)    
