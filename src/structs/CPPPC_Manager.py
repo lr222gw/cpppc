@@ -5,7 +5,6 @@ from pathlib import Path
 
 from src.fetchers.Fetcher_local import getInstalledLib, fetchLocalLib
 from src.generators.CMakeLibGenerator import cmakeifyLib
-from src.gui.theme import LabelLink
 from src.parsers.CMakeParsing import  collectFilePaths, collectGeneratedConfigs, gatherTargetsFromConfigFiles, parseLib
 
 from src.fetchers.Fetcher_github import fetchGithubRepo
