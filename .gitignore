@@ -7,3 +7,4 @@ dist/*
 src/fetchers/__pycache__/*
 src/parsers/__pycache__/*
 src/generators/__pycache__/*
+src/gui/__pycache__/*

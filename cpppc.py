@@ -1,7 +1,8 @@
 from src import helper_funcs as hlp, action_funcs as act
-from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout,QVBoxLayout, QHBoxLayout, QGroupBox, QFrame, QStackedLayout, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout,QVBoxLayout, QHBoxLayout, QGroupBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
+from src.gui.theme import initColorTheme
 
 from src.structs.GuiData import *
 from src.structs.CMakeVersionData import CMakeVersionData
@@ -14,34 +15,7 @@ prepareStorage()
 
 app = QApplication([])
 
-palette = app.palette()
-    
-# Set dark color palette
-dark_color = QColor(37, 42, 52)
-text_color = QColor(234, 234, 234)
-highlighttext_color = QColor(234, 234, 0)
-placeHoldertext_color = QColor(105, 105, 105)
-button_color = QColor(8, 217, 214)
-
-
-palette.setColor(app.palette().Window, dark_color)
-palette.setColor(app.palette().WindowText, text_color)
-palette.setColor(app.palette().Button, button_color)
-palette.setColor(app.palette().ButtonText, text_color)
-palette.setColor(app.palette().ToolTipText, text_color)
-palette.setColor(app.palette().Text, text_color)
-palette.setColor(app.palette().HighlightedText, highlighttext_color)
-palette.setColor(app.palette().PlaceholderText, placeHoldertext_color)
-palette.setColor(QPalette.Disabled, QPalette.Text, placeHoldertext_color)  # Set disabled text color
-app.setStyleSheet(
-    """ QPushButton,QComboBox { color: rgb(218, 12, 129); }
-        QCheckBox { color:rgb(8, 217, 214); }
-
-    """
-    )
-
-app.setPalette(palette)
-
+initColorTheme(app)
 
 # Preparing Window
 window = QWidget()

@@ -307,7 +307,7 @@ def __getFinderCmakeOutput_local(name:str, includeFiles:list[str]): #TODO: Consi
     shutil.rmtree(finder_tempPath.absolute().__str__())
     return output 
 
-def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg:Optional[bool]=True) -> tuple[Optional[str], CmakeFindType, dict[str,str], str]: 
+def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg:Optional[bool]=False) -> tuple[Optional[str], CmakeFindType, dict[str,str], str]: 
     
     if printdbg:
         print(output.__str__().encode("utf-8").decode('unicode-escape'))
@@ -334,7 +334,7 @@ def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg
 
     return (None,CmakeFindType.undef, msgDatDict, name)
 
-def collectGeneratedConfigs(libPath,printdbg:Optional[bool]=True): 
+def collectGeneratedConfigs(libPath,printdbg:Optional[bool]=False): 
         
     finder_tempPath    = Path.joinpath(getCpppcDir(), "temp")
     finder_libparse    = Path.joinpath(getCpppcDir(), "libparse")
