@@ -1,10 +1,10 @@
 name: Build Executables
 
-on:
+on: 
+  workflow_dispatch:
   push:
     branches:
       - build
-  workflow_dispatch:
 
 jobs:
   build_linux:
