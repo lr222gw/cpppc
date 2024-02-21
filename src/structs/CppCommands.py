@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 
 from ..dev.Terminate import terminate
 
@@ -125,14 +126,18 @@ class CPPCommandContainer(metaclass=CPPCommandMeta):
     commandName :str
     baseArgs : CPPCK 
     containerContent : list = field(default_factory=list)
+    identifier : str = ""
 
     def add_containerContent(self, containerContents : list):
         if not isinstance(containerContents, list):
             terminate("containerContents must be tuple")
-        self.containerContent = containerContents if all(isinstance(arg, CPPCommand) for arg in containerContents) else terminate("args must be a CPPCommand")        
+        if not hasattr(self, 'containerContent'):
+            self.containerContent = []
+        self.containerContent.extend(containerContents if all(isinstance(arg, CPPCommand) for arg in containerContents) else terminate("args must be a CPPCommand"))
 
-    def __init__(self, CPP_args  ,*CMC_cs ):
+    def __init__(self, CPP_args  ,*CMC_cs, identifier :Optional[str] = "" ):
         self.baseArgs = CPP_args
+        self.identifier = identifier
         self.add_containerContent(list(CMC_cs))
 
     def __str__(self):
@@ -181,8 +186,8 @@ class CPP_CUSTOMLINE(CPPCommand):
         )
 
 class CPPC_main(CPPCommandContainer):
-    def __init__(self,CPP_args : list[CPPCK],*CPP_CKeyArgs):
-        super().__init__(CPP_args, *CPP_CKeyArgs)
+    def __init__(self,CPP_args : list[CPPCK],*CPP_CKeyArgs, identifier :Optional[str] = "" ):
+        super().__init__(CPP_args, *CPP_CKeyArgs, identifier=identifier)
         self.commandName = "int main"
     
     def __str__(self):
@@ -201,6 +206,7 @@ class CPPCommandDct:
     all_cppc : dict = field(default_factory=dict)
     _cpps :   dict = field(default_factory=dict)
     _cpp_cs : dict = field(default_factory=dict)
+    _cpp_cs_appended : dict = field(default_factory=dict[type, dict[str,CPPCommandContainer]])
     all_cppc : dict = field(default_factory=dict)
 
     
@@ -225,9 +231,34 @@ class CPPCommandDct:
             self._cpp_cs.setdefault(type(cmc_container), [])
             self.all_cppc.setdefault(type(cmc_container), [])
 
+        if type(cmc_container) in self._cpp_cs_appended:
+            if cmc_container.identifier in self._cpp_cs_appended[type(cmc_container)]:
+                for content in self._cpp_cs_appended[type(cmc_container)][cmc_container.identifier]:
+                    cmc_container.add_containerContent(content)
+                self._cpp_cs_appended[type(cmc_container)][cmc_container.identifier].clear()
+
         self._cpp_cs[type(cmc_container)].append(cmc_container)
         self.all_cppc[type(cmc_container)].append(cmc_container)
         return cmc_container
+    
+    def appendTo_CPP_C(self, identifier: str, commandType : type ,commandsToAdd : list[CPPCommand]):
+        if not issubclass(commandType, CPPCommandContainer):
+            terminate("Can only append to subclasses of CPPCommandContainer")
+            
+        if(commandType not in self._cpp_cs):
+           
+            if(commandType not in self._cpp_cs_appended):
+                self._cpp_cs_appended.setdefault(commandType, dict[str,list[CPPCommand]]())
+                
+            if identifier not in self._cpp_cs_appended[commandType]:
+                self._cpp_cs_appended[commandType].setdefault(identifier, list[CPPCommand]())
+
+            self._cpp_cs_appended[commandType][identifier].append(commandsToAdd)
+        else : 
+
+            for container in self._cpp_cs[commandType]:
+                if container.identifier == identifier:
+                    container.add_containerContent(commandsToAdd)
 
     def clear(self):
         self._cpps.clear()
