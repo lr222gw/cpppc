@@ -164,7 +164,10 @@ def initColorTheme(app : QApplication):
                 border-radius: 5px;
                 border: 0px solid #999999;            
                 margin: 4px 0px 0px 0px;  
-            }}       
+            }}     
+            QMessageBox{{
+                background-color: {getCol(widgetBackground_color)};
+            }}  
         
         """
         )
