@@ -150,7 +150,7 @@ class CPPPC_Manager:
                 self.projDat.projectExecName_str(),
             ]
         )
-        
+        self.cppDat.genStr_includeGeneratedCmakeInput()
         self.__generateCMakeCppBridge()
 
     def __generateCMakeCppBridge(self):

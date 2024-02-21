@@ -57,9 +57,11 @@ class CppDataHelper():
                  *lines, CPP_CUSTOMLINE("return "+returnStatement)
             )
         ).__str__()
+    
+    def genStr_includeGeneratedCmakeInput(self) -> str:
+        self.genStr_includeUserFile("generated/cmake_inputs.h")
 
     def genStr_FILE_entrypoint(self) -> str:
         ret = self.genStr_includeSystemFile("iostream")
-        ret += self.genStr_includeUserFile("generated/cmake_inputs.h") #TODO: do not hardcode
         ret += self.genStr_mainfunc([CPP_CUSTOMLINE("std::cout << \"Hello, \"<<"+self.cmakeDataHelper.cmakeToCppVars[CMVAR__CPPPC_EXAMPLE_BRIDGE_VAR]+"<<\"!\" << std::endl")])
         return ret
