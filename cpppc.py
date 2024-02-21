@@ -93,7 +93,7 @@ ProjConfDat.addExtraFeatureGroup_UserInputs(
     layout_projectName,
     "CMake vars to C++",
     "Use CMake to C++ Communcation",
-    True, #False, #TODO:CHANGEBACK
+    False, 
     ProjConfDat.addCmakeToCppVar,
     UserInput("Variable Name"),
     UserInput("Value"),
@@ -124,7 +124,7 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
     layout_projectName,
     "Sanitizer settings",   
     "Use Sanitizers",
-    True, #False, #TODO:CHANGEBACK
+    False, 
     ToggleShareData("Debug", "g", True, 
         g.genStr_linkSanitizers, g.genStr_compileSanitizers),
     ToggleShareData("Sanitize Adress,Leak and Undef", "fsanitize=address,leak,undefined", True,
@@ -135,7 +135,7 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
         g.genStr_linkSanitizers),
     ToggleShareData("Recover adress", "fsanitize-recover=address", True,
         g.genStr_compileSanitizers),
-    ToggleShareData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", True, #False, #TODO:CHANGEBACK
+    ToggleShareData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", False,
         g.genStr_linkSanitizers, g.genStr_compileSanitizers, 
         requirement=lambda: cppc.createSanitizerBlacklistOnDemand())    
     )    
@@ -150,7 +150,7 @@ libraryLayout = ProjConfDat.addExtraFeatureGroup_UserInputs(
     layout_projectName,
     "Libraries",
     "Use external Libraries",
-    True,
+    False,
     ProjConfDat.addLibraryComponent,
     UserInput_checkbox("Remote",False,rotation=-90),
     UserInput_checkbox("Public",False,rotation=-90),
