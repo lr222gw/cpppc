@@ -1,14 +1,23 @@
+import enum
 import json
 import os
 from typing import Any, Optional
 
 from src.dev.Terminate import terminate
 
+class LibrarySetupType(enum.Enum):
+    Undefined   = 0
+    BareBores   = 1
+    CMakeBased  = 2
+    InstalledCMake  = 3
+    MakeBased   = 4
+    
 class TargetDatas():
     possibleTargets: list[str]
     SHARED: list[str]
     STATIC: list[str]
     INTERFACE: list[str]
+    libraryType: LibrarySetupType = LibrarySetupType.Undefined    
     keyWords : Optional[dict[str,str]]
     includes : Optional[list[str]]
     parsedComponentTargets: list[str] = list[str]()
@@ -19,6 +28,7 @@ class TargetDatas():
                  STATIC: list[str] = [], 
                  INTERFACE: list[str] = [], 
                  parsedComponentTargets: list[str] = [], 
+                 libraryType  : LibrarySetupType = LibrarySetupType.Undefined,
                  keyWords : Optional[dict[str,str]] = None, 
                  includes : Optional[list[str]] = None,
                  find_package : Optional[str] = None): 
@@ -28,6 +38,7 @@ class TargetDatas():
         self.INTERFACE        = INTERFACE
         self.keyWords         = keyWords
         self.includes         = includes
+        self.libraryType      = libraryType
         self.parsedComponentTargets         = parsedComponentTargets
         self.find_package    = find_package
         

@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-import enum
 import glob
 from pathlib import Path
 
@@ -12,14 +11,9 @@ from src.structs.PersistantDataManager import DepDat, PersistantDataManager, get
 from .CMakeDataHelper import *
 from .CppDataHelper import *
 from .ProjectConfigurationData import *
+from .ProjectConfigurationDat import *
 import os
 
-class LibrarySetupType(enum.Enum):
-    Undefined   = 0
-    BareBores   = 1
-    CMakeBased  = 2
-    InstalledCMake  = 3
-    MakeBased   = 4
 
 @dataclass
 class CPPPC_Manager:
@@ -189,14 +183,28 @@ class CPPPC_Manager:
         for (name, lib) in self.projDat.linkLibs_dict.items():
 
             localLibPath = self.cmakeListDat.getLocalPathInDeps(name)
-            targetLibPath = self.cmakeListDat.getPathInTarget(localLibPath) #TODO: Might not work if user use another directory than '.' for target dir...
+            targetLibPath = self.cmakeListDat.getPathInTarget(localLibPath) 
+
+            # Load from persistant storage
+            if lib.selectedTargets == None and lib.targetDatas == None:                 
+                tempDat = PersistantDataManager().getDependencyData(os.path.abspath(targetLibPath))
+                if tempDat != None: 
+                    lib.selectedTargets = tempDat.targets
+                    lib.targetDatas = tempDat.targetDatas
             
             librarySetupType = self.__detectLibrarySetupType(name, lib)
 
             if librarySetupType == LibrarySetupType.InstalledCMake:
-                # lib.targetNames = getInstalledLib(lib.getLibraryPath())     #TODO: Check if this can be replaced...
-                lib.targetDatas = parseLib(lib.getLibraryPath())
-                # TODO: Add Support for Windows and MacOS...            
+                
+                if not PersistantDataManager().checkDependencyExist(os.path.abspath(targetLibPath)):
+                    lib.targetDatas = parseLib(lib.getLibraryPath())
+                    if lib.selectedTargets != None or lib.targetDatas != None: 
+                        lib.targetDatas.libraryType = LibrarySetupType.InstalledCMake
+                        PersistantDataManager().addDependencyData(DepDat(os.path.abspath(targetLibPath),lib.selectedTargets, lib.targetDatas))       
+                else:
+                    tempDat = PersistantDataManager().getDependencyData(os.path.abspath(targetLibPath))
+                    lib.selectedTargets = tempDat.targets
+                    lib.targetDatas = tempDat.targetDatas
                 
             elif librarySetupType == LibrarySetupType.CMakeBased:
 
@@ -213,7 +221,8 @@ class CPPPC_Manager:
                     targetDatas = gatherTargetsFromConfigFiles(confFiles, finder_tempPath.absolute().__str__())
                     lib.targetDatas = targetDatas
 
-                    if lib.selectedTargets != None: 
+                    if lib.selectedTargets != None or lib.targetDatas != None: 
+                        lib.targetDatas.libraryType = LibrarySetupType.CMakeBased
                         PersistantDataManager().addDependencyData(DepDat(os.path.abspath(targetLibPath),lib.selectedTargets, lib.targetDatas))
                     else: 
                         WarnUser(f"Could not find targets for dependency at {os.path.abspath(targetLibPath)}")
@@ -227,11 +236,12 @@ class CPPPC_Manager:
                 pass 
             elif librarySetupType == LibrarySetupType.BareBores:
                 targetname, cmakeListFile = cmakeifyLib(targetLibPath)
-                lib.selectedTargets = [targetname]
+                lib.selectedTargets = [targetname]                
 
-                if lib.selectedTargets != None: 
+                if lib.selectedTargets != None or lib.targetDatas != None: 
                     TEMP= TargetDatas([targetname],[],[],[]) #TODO, make sure that cmakeifyLib returns keyWords...
                     lib.targetDatas = TEMP
+                    lib.targetDatas.libraryType = LibrarySetupType.BareBores
                     PersistantDataManager().addDependencyData(DepDat(os.path.abspath(targetLibPath),lib.selectedTargets, TEMP))
                 else: 
                     WarnUser(f"Could not find targets for dependency at {os.path.abspath(targetLibPath)}")
@@ -268,8 +278,10 @@ class CPPPC_Manager:
         
     def __detectLibrarySetupType(self, name:str, lib: library_inputWidget) -> LibrarySetupType:
         detectedType : LibrarySetupType = LibrarySetupType.Undefined
+        if lib.targetDatas != None and lib.targetDatas.libraryType != LibrarySetupType.Undefined:
+            return lib.targetDatas.libraryType
+
         libraryPath = self.cmakeListDat.getLocalPathInDeps(name)
-        
         installedLibs = getInstalledLib(lib.getLibraryPath())
         if len(installedLibs) > 0:
             detectedType = LibrarySetupType.InstalledCMake

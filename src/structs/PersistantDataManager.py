@@ -98,7 +98,7 @@ class PersistantDataManager():
             return self.dependenciesDirs[absDepPath]
         else:
             print(f"Missing History entry for dependency with path {absDepPath}")
-            exit("failed")
+            return None
     
     def _load_config_from_file(self):
         try:
@@ -119,9 +119,10 @@ class PersistantDataManager():
                             tempDependenciesDirs[entry]["targetDatas"]["STATIC"],
                             tempDependenciesDirs[entry]["targetDatas"]["INTERFACE"],
                             tempDependenciesDirs[entry]["targetDatas"]["parsedComponentTargets"],
+                            LibrarySetupType(tempDependenciesDirs[entry]["targetDatas"]["libraryType"]),
                             keyWords = tempDependenciesDirs[entry]["targetDatas"]["keyWords"],
                             includes = tempDependenciesDirs[entry]["targetDatas"]["includes"],
-                            find_package = tempDependenciesDirs[entry]["targetDatas"]["find_packages"]
+                            find_package = tempDependenciesDirs[entry]["targetDatas"]["find_package"]
                             
                         )
                     )
@@ -146,11 +147,13 @@ class PersistantDataManager():
             'userLocalLibPath': self.userLocalLibPath,
         }
         def dataSerializer(obj):
-            print(obj.__str__())
+            print(str(obj))
             if isinstance(obj,ProjectConfigurationData):
                 return obj.__dict__
             elif isinstance(obj, DepDat): 
                 return obj.__dict__
+            elif isinstance(obj, enum.Enum): 
+                return obj.value
             else:
                 return obj.__dict__
 
