@@ -1,3 +1,4 @@
+import hashlib
 import json
 from os import path
 from pathlib import Path
@@ -10,6 +11,24 @@ from src.structs.ProjectConfigurationDat import *
 DIR_HISTORY_CPPPC :str
 FILE_HISTORY_CPPPC_DEPENDENT_DATA = "cpppc_data.json"
 
+def hash_directory(directory): # Written by Chatgpt...        
+    file_hashes = []
+
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            with open(file_path, 'rb') as f:
+                sha256_hash = hashlib.sha256()
+                for byte_block in iter(lambda: f.read(4096), b""):
+                    sha256_hash.update(byte_block)
+
+                file_hashes.append(sha256_hash.hexdigest())
+
+    # Concatenate individual file hashes and hash the result
+    directory_hash = hashlib.sha256("".join(file_hashes).encode()).hexdigest()
+    return directory_hash
+
+
 
 class PersistantDataManager():
     """ 
@@ -19,6 +38,7 @@ class PersistantDataManager():
     __instance = None
     projectDatasDict : dict[str,ProjectConfigurationData]
     dependenciesDirs : dict[str,DepDat] # Path, status? 
+    downloadedLibs    : dict[str,str] # url, Path
     userLocalLibPath : str
 
     def __new__(cls):
@@ -27,6 +47,7 @@ class PersistantDataManager():
             #TODO: Load projectDatasDict from file ()
             cls.__instance.projectDatasDict =  dict[str,ProjectConfigurationData]()
             cls.__instance.dependenciesDirs =  dict[str,DepDat]()
+            cls.__instance.downloadedLibs    =  dict[str,str]()
             cls.__instance._load_config_from_file()
         return cls.__instance
     
@@ -37,6 +58,20 @@ class PersistantDataManager():
     def addDependencyData(self, dep: DepDat):
         depKey = path.abspath(dep.path)
         self.dependenciesDirs[depKey] = dep
+
+    def addDownloadedLibData(self, url :str, path:str):
+        self.downloadedLibs[url+path] = hash_directory(path)
+        print(f"Created hash for \n\t{url+path}:\n\t[{self.downloadedLibs[url+path]}]")
+    
+    def checkDownloadedLibExists(self, url:str, path:str)->bool:
+        if url+path in self.downloadedLibs:
+            testedHash = hash_directory(path)
+            print(f"Check Hash for \n\t{url+path}:\n\t[{self.downloadedLibs[url+path]}]")
+            print(f"Test  Hash for \n\t{path}:\n\t[{testedHash}]")
+            if self.downloadedLibs[url+path] == hash_directory(path):
+                return True
+        return False
+
 
     def checkDependencyExist(self, absDepPath:str)->bool:
         if absDepPath in self.dependenciesDirs.keys():
@@ -59,7 +94,9 @@ class PersistantDataManager():
             with open(path.join(DIR_HISTORY_CPPPC,FILE_HISTORY_CPPPC_DEPENDENT_DATA), 'r') as file:
                 data = json.load(file)
                 self.projectDatasDict = data.get('projectDatasDict', {})
-                tempDependenciesDirs = data.get('dependenciesDirs', {})
+                self.downloadedLibs   = data.get('downloadedLibs', {})
+                tempDependenciesDirs  = data.get('dependenciesDirs', {})
+
                 for entry in tempDependenciesDirs:
                     d = DepDat(                        
                         path=tempDependenciesDirs[entry]["path"],
@@ -84,6 +121,7 @@ class PersistantDataManager():
         except FileNotFoundError:
             # File not found, initialize with empty dictionaries
             self.projectDatasDict = {}
+            self.downloadedLibs = {}
             self.dependenciesDirs = {}
             self.userLocalLibPath = "."
 
@@ -92,6 +130,7 @@ class PersistantDataManager():
         data = {
             'projectDatasDict': self.projectDatasDict,
             'dependenciesDirs': self.dependenciesDirs,
+            'downloadedLibs'  : self.downloadedLibs,
             'userLocalLibPath': self.userLocalLibPath,
         }
         def dataSerializer(obj):
