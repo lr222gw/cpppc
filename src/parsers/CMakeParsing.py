@@ -314,21 +314,21 @@ def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg
     
     strippedOutput = textnormalizer(output.__str__(), toUpper=False, replaceNewl=False)
 
-    path_pkg_regx = re.compile(fr"The file was found at\s+([\w/.-]+/({name})(?:-[0-9.]+)?/[\w/.-]+)", re.IGNORECASE | re.MULTILINE)
-    path_module_regx = re.compile(fr"The file was found at\s+([\w/.-]+/Modules/Find([\w/.-]+)+?\.cmake)", re.IGNORECASE | re.MULTILINE)
+    path_pkg_regx = re.compile(fr"The file was found at\s+([\w \/:.-]+(?:\\|/)({name})(?:-[0-9.]+)?(?:\\|/)[\w \\/.-]+)", re.IGNORECASE | re.MULTILINE)
+    path_module_regx = re.compile(fr"The file was found at\s+([\w \\/.-]+(?:\\|/)Modules(?:\\|/)Find([\w\\/.-]+)+?\.cmake)", re.IGNORECASE | re.MULTILINE)
 
     messagedata_regx = re.compile(fr"-- ({name}_[^=:\n]+?)(?::|=\s)(?!\n)([^\n]+?)\n", re.IGNORECASE | re.MULTILINE)
     msgDatDict = dict[str,str]()    
 
-    messageData = re.findall(messagedata_regx,output.__str__().encode("utf-8").decode('unicode-escape'))
+    messageData = re.findall(messagedata_regx,str(output.stderr + output.stdout))
     for m in messageData:
         msgDatDict[m[0]] = m[1]
     
-    pathMatch = re.findall(path_pkg_regx,strippedOutput)
+    pathMatch = re.findall(path_pkg_regx,str(output.stderr + output.stdout))
     if pathMatch != None and len(pathMatch) > 0:
         return (pathMatch[0][0], CmakeFindType.Package, msgDatDict,pathMatch[0][1])
     
-    pathMatch = re.findall(path_module_regx,strippedOutput)
+    pathMatch = re.findall(path_module_regx,str(output.stderr + output.stdout))
     if pathMatch != None and len(pathMatch) > 0:
         return (pathMatch[0][0], CmakeFindType.Module, msgDatDict, pathMatch[0][1])
 
