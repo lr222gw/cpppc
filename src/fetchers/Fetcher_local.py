@@ -7,6 +7,7 @@ import subprocess
 import platform
 import shutil
 from src.dev.Terminate import WarnUser, terminate
+from src.parsers.CMakeParsing import parseLib
 
 def __isCompressedFile(path:str)->bool:
     return False #TODO: Implement this!
@@ -83,11 +84,19 @@ def getInstalledLib(libPath:str)->list[str]:
 
         # subprocess.run()
 
-        pass
-    elif platform.system() == 'Windows':
-        pass
-    elif platform.system() == 'Darwin':
-        pass
+    elif platform.system() == 'Windows' or platform.system() == 'Darwin':
+        out = parseLib(libPath)
+        reqLibs.extend(out.STATIC)
+        reqLibs.extend(out.SHARED)
+        reqLibs.extend(out.INTERFACE)
+        reqLibs.extend(out.parsedComponentTargets)
+        reqLibs.extend(out.possibleTargets)
+        if out.includes != None :
+            reqLibs.extend(out.includes)
+        if out.keyWords != None :
+            reqLibs.extend(out.keyWords)
+
+        print(reqLibs)            
     
     return reqLibs
 
