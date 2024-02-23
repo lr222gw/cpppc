@@ -29,6 +29,18 @@ def hash_directory(directory): # Written by Chatgpt...
     return directory_hash
 
 
+def listDirectory(directory:str):
+    filesList = list[str]()
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            filesList.append(file_path)
+    return filesList 
+
+def removeUnmatchingFilesInDir(orignalDirFiles:list[str], modifiedDirFiles:list[str]):
+    for modifiedDirFile in modifiedDirFiles:
+        if modifiedDirFile not in orignalDirFiles:
+            os.remove(modifiedDirFile)
 
 class PersistantDataManager():
     """ 
