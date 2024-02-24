@@ -8,7 +8,7 @@ import subprocess
 import platform
 import shutil
 from src.dev.Terminate import WarnUser, terminate
-from src.dev.copyutil import copyDirTree
+from src.dev.fileutils import copyDirTree
 from src.parsers.CMakeParsing import parseLib
 
 def __isCompressedFile(path:str)->bool:

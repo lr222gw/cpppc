@@ -4,6 +4,7 @@ import os
 from typing import Any, Optional
 
 from src.dev.Terminate import terminate
+from src.dev.fileutils import hash_directory
 
 class LibrarySetupType(enum.Enum):
     Undefined   = 0
@@ -44,10 +45,12 @@ class TargetDatas():
         
 class DepDat():
     path : str
+    pathHash : str
     targets : list[str]
     targetDatas: TargetDatas
     def __init__(self,path : str, targets : list[str], targetDatas: TargetDatas):
         self.path    = path
+        self.pathHash = hash_directory(self.path)
         self.targets = targets
         self.targetDatas = targetDatas
 
