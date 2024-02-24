@@ -238,7 +238,7 @@ def __getFinderCmakeOutput_installed(name:str):
     with finderCMakeFile.open("w") as file:
         file.write(f"cmake_minimum_required(VERSION 3.28.0)\n")
         file.write("project(find_dummy)\n")
-        file.write(f"find_package({name} REQUIRED)\n") # TODO: Consider f"find_package({name} NAMES {name.upper()} {name.lower()})\n"
+        file.write(f"find_package({name} )\n") # TODO: Consider f"find_package({name} NAMES {name.upper()} {name.lower()})\n"
         file.write(f"if(NOT ${{{name}_FOUND}})\n")
         file.write(f"\tfind_package({name.upper()})\n")
         file.write(f"\tif(NOT ${{{name.upper()}_FOUND}})\n")
