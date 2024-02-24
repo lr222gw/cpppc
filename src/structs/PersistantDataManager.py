@@ -1,4 +1,3 @@
-import hashlib
 import json
 from os import path
 from pathlib import Path
@@ -11,37 +10,6 @@ from src.structs.ProjectConfigurationDat import *
 
 DIR_HISTORY_CPPPC :str
 FILE_HISTORY_CPPPC_DEPENDENT_DATA = "cpppc_data.json"
-
-def hash_directory(directory): # Written by Chatgpt...        
-    file_hashes = []
-
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            file_path = os.path.join(root, file)
-            with open(file_path, 'rb') as f:
-                sha256_hash = hashlib.sha256()
-                for byte_block in iter(lambda: f.read(4096), b""):
-                    sha256_hash.update(byte_block)
-
-                file_hashes.append(sha256_hash.hexdigest())
-
-    # Concatenate individual file hashes and hash the result
-    directory_hash = hashlib.sha256("".join(file_hashes).encode()).hexdigest()
-    return directory_hash
-
-
-def listDirectory(directory:str):
-    filesList = list[str]()
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            file_path = os.path.join(root, file)
-            filesList.append(file_path)
-    return filesList 
-
-def removeUnmatchingFilesInDir(orignalDirFiles:list[str], modifiedDirFiles:list[str]):
-    for modifiedDirFile in modifiedDirFiles:
-        if modifiedDirFile not in orignalDirFiles:
-            os.remove(modifiedDirFile)
 
 class PersistantDataManager():
     """ 
@@ -88,6 +56,9 @@ class PersistantDataManager():
 
     def checkDependencyExist(self, absDepPath:str)->bool:
         if absDepPath in self.dependenciesDirs.keys():
+            if self.dependenciesDirs[absDepPath].pathHash != hash_directory(absDepPath):
+                print(f"Persistant entry does not match content in path {absDepPath}")
+                return False
             return True
         return False
     
@@ -96,9 +67,12 @@ class PersistantDataManager():
     
     def getDependencyData(self, absDepPath:str) -> DepDat:
         if absDepPath in self.dependenciesDirs.keys():
+            if self.dependenciesDirs[absDepPath].pathHash != hash_directory(absDepPath):
+                print(f"Persistant entry does not match content in path {absDepPath}")
+                return None
             return self.dependenciesDirs[absDepPath]
         else:
-            print(f"Missing History entry for dependency with path {absDepPath}")
+            print(f"Missing Persistant entry for dependency with path {absDepPath}")
             return None
     
     def _load_config_from_file(self):
@@ -112,7 +86,7 @@ class PersistantDataManager():
 
                 for entry in tempDependenciesDirs:
                     d = DepDat(                        
-                        path=tempDependenciesDirs[entry]["path"],
+                        path=tempDependenciesDirs[entry]["path"],                        
                         targets=tempDependenciesDirs[entry]["targets"],
                         targetDatas=TargetDatas(
                             tempDependenciesDirs[entry]["targetDatas"]["possibleTargets"],
@@ -127,6 +101,7 @@ class PersistantDataManager():
                             
                         )
                     )
+                    d.pathHash = tempDependenciesDirs[entry]["pathHash"]
                     self.dependenciesDirs[entry] = d
                 
 
