@@ -314,8 +314,8 @@ def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg
     
     strippedOutput = textnormalizer(output.__str__(), toUpper=False, replaceNewl=False)
 
-    path_pkg_regx = re.compile(fr"The file was found at\s+([\w \/:.-]+(?:\\|/)({name})(?:-[0-9.]+)?(?:\\|/)[\w \\/.-]+)", re.IGNORECASE | re.MULTILINE)
-    path_module_regx = re.compile(fr"The file was found at\s+([\w \\/.-]+(?:\\|/)Modules(?:\\|/)Find([\w\\/.-]+)+?\.cmake)", re.IGNORECASE | re.MULTILINE)
+    path_pkg_regx = re.compile(fr"The file was found at\s+([\w \/():.-]+(?:\\|/)({name})(?:-[0-9.]+)?(?:\\|/)[\w \\()/.-]+)", re.IGNORECASE | re.MULTILINE)
+    path_module_regx = re.compile(fr"The file was found at\s+([\w \\()/:.-]+(?:\\|/)Modules(?:\\|/)Find([\w\\()/.-]+)+?\.cmake)", re.IGNORECASE | re.MULTILINE)
 
     messagedata_regx = re.compile(fr"-- ({name}_[^=:\n]+?)(?::|=\s)(?!\n)([^\n]+?)\n", re.IGNORECASE | re.MULTILINE)
     msgDatDict = dict[str,str]()    
