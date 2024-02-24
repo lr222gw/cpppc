@@ -2,11 +2,13 @@
 from logging import warn, warning
 from os import path
 import os
+import pathlib
 import re
 import subprocess
 import platform
 import shutil
 from src.dev.Terminate import WarnUser, terminate
+from src.dev.copyutil import copyDirTree
 from src.parsers.CMakeParsing import parseLib
 
 def __isCompressedFile(path:str)->bool:
@@ -31,22 +33,21 @@ def fetchLocalLib(libPath:str, libname:str,userProvidedLocalLibsPath:str,targetP
     if not path.isdir(abs_userProvidedLocalLibsPath): 
         terminate("User provided path is not a directory")        
 
+    libTargetPath = (pathlib.Path(targetPath) / libname).absolute().__str__()
 
     if path.isdir(libPath): 
         
         abs_LibPath   = path.abspath(libPath)
-
         # Check that library is within the provided path
         if path.commonpath([abs_userProvidedLocalLibsPath, abs_LibPath]) == abs_userProvidedLocalLibsPath:
             print(f"Library [{libPath}] \n\texists in users local libs at: {abs_LibPath}")
-            shutil.copytree(abs_LibPath,os.path.join(targetPath,libname),dirs_exist_ok=True)
+            copyDirTree(pathlib.Path(abs_LibPath),pathlib.Path(libTargetPath), ignoredSubdirs=["build"])
     else:
 
-        # Check if name exists in users provided path
         libPathInUserLocalLibs = os.path.join(abs_userProvidedLocalLibsPath,libPath)
         if(path.isdir(libPathInUserLocalLibs)):
             print(f"Library [{libPath}] \n\texists in users local libs at: {libPathInUserLocalLibs}")
-            shutil.copytree(libPathInUserLocalLibs,os.path.join(targetPath,libname),dirs_exist_ok=True)
+            copyDirTree(pathlib.Path(libPathInUserLocalLibs),pathlib.Path(libTargetPath), ignoredSubdirs=["build"])
 
         elif(__isCompressedFile(libPath)):
             # TODO: extract files ... 
