@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 import glob
 from pathlib import Path
+from src.dev.ThreadManager import ThreadManager
 
 from src.fetchers.Fetcher_local import getInstalledLib, fetchLocalLib
 from src.generators.CMakeLibGenerator import cmakeifyLib
@@ -52,9 +53,10 @@ class CPPPC_Manager:
         self.projDat.initExtraFeatures()
 
     def createProject(self):     
-
-        self.__prepareRequiredStructure()
-
+        self.__prepareRequiredStructure()        
+        ThreadManager().startTask(self._createProject_TS)
+        
+    def _createProject_TS(self):  # NOTE: _TS; This function may not manipulate QtWidgets, only read!
         print("Setting up libraries")
         self.__setupLibraries()
         print("Creating Project")                
@@ -323,11 +325,15 @@ class CPPPC_Manager:
         print("All libraries fetched")
 
     def configureLibraries(self, layout_projectName):
-        parentL = QHBoxLayout()
-        layout, groupWidget = hlp.addFloatingWindow(parentL, "Library Configuration")
         self.projDat_data.update(self.projDat.getData())
         self.__prepareRequiredStructure()
-        self.__setupLibraries() 
+        
+        # Start slow task in loading thread, provides visual feedback to user
+        ThreadManager().startTaskWithCallbackTask(self.__setupLibraries,self._load___setupLibraries_initGui)
+
+    def _load___setupLibraries_initGui(self ):        
+        parentL = QHBoxLayout()
+        layout, groupWidget = hlp.addFloatingWindow(parentL, "Library Configuration")
         self.projDat_data.update(self.projDat.getData())
         if self.projDat_data.linkLibs != None:
             grid = QGridLayout()
