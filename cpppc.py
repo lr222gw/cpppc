@@ -23,6 +23,10 @@ class CPPPC_mainWindow(QWidget):
         super().__init__()
         self.app = app
         self.setWindowTitle("CPPPC - C++ Project Configurator")
+    
+    def closeEvent(self, event):
+        event.accept()
+        app.closeAllWindows()
 
 window = CPPPC_mainWindow(app)
 rootLayout = QHBoxLayout()
