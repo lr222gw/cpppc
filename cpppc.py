@@ -62,9 +62,8 @@ layout_cmakeVersion.setStretch(1,1)
 group_cmake.setMaximumHeight(100)
 
 
-
 createProjectButton = hlp.addButton("Create", layout_actionButtons)
-createProjectButton.clicked.connect(lambda: cppc.createProject())
+createProjectButton.clicked.connect(cppc.createProject)
 
 configureLibsButton = hlp.addButton("Configure Libraries", layout_actionButtons)
 configureLibsButton.clicked.connect(lambda: cppc.configureLibraries(layout_projectName))
