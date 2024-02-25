@@ -17,8 +17,14 @@ app = QApplication([])
 
 initColorTheme(app)
 
-# Preparing Window
-window = QWidget()
+class CPPPC_mainWindow(QWidget):
+    app :QApplication
+    def __init__(self, app:QApplication):
+        super().__init__()
+        self.app = app
+        self.setWindowTitle("CPPPC - C++ Project Configurator")
+
+window = CPPPC_mainWindow(app)
 rootLayout = QHBoxLayout()
 layout_projectName = QFormLayout()
 layout_actionButtons = QHBoxLayout()

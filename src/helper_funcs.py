@@ -328,6 +328,7 @@ def addFloatingWindow(
 
     # Create A frame, needed to make the layout/content collapsable
     frame_widget = QFrame()
+    frame_widget.setWindowTitle(groupTitle)
 
     # Create new Layout for collapsable content, assign to frame widget
     frame_layout = QVBoxLayout()
