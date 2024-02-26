@@ -7,7 +7,7 @@ from src.gui.theme import initColorTheme
 from src.structs.GuiData import *
 from src.structs.CMakeVersionData import CMakeVersionData
 from src.structs.PersistantDataManager import PersistantDataManager, prepareStorage
-from src.structs.ProjectConfigurationData import ProjectConfigurationGUI
+from src.structs.ProjectConfigurationGUI import ProjectConfigurationGUI
 import src.cmake_helper as  cmake_helper
 from src.structs.CPPPC_Manager import CPPPC_Manager
 

@@ -11,7 +11,7 @@ from src.fetchers.Fetcher_github import fetchGithubRepo
 from src.structs.PersistantDataManager import DepDat, PersistantDataManager, getCpppcDir
 from .CMakeDataHelper import *
 from .CppDataHelper import *
-from .ProjectConfigurationData import *
+from .ProjectConfigurationGUI import *
 from .ProjectConfigurationDat import *
 import os
 

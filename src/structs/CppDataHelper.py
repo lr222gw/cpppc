@@ -1,5 +1,5 @@
 import os
-from .ProjectConfigurationData import ProjectConfigurationGUI
+from .ProjectConfigurationGUI import ProjectConfigurationGUI
 from .CMakeDataHelper import *
 from dataclasses import dataclass, field
 from .CppCommands import *
