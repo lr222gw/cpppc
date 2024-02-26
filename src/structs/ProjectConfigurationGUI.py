@@ -3,7 +3,7 @@ from typing import Tuple
 from dataclasses import dataclass, field
 from typing import Callable
 
-from src.structs import ProjectConfigurationDat
+from src.structs import ProjectConfigurationData
 from src.structs.PersistantDataManager import PersistantDataManager
 from .CMakeVersionData import CMakeVersionData
 from .GuiData import *
@@ -167,7 +167,7 @@ class ProjectConfigurationGUI:
                 else: 
                     linkLibs[lib_key] = (lib_input.getLibraryPath(), False, list(),getNewIfNone(lib_input.targetDatas, TargetDatas))
         
-        return ProjectConfigurationDat.ProjectConfigurationData(
+        return ProjectConfigurationData.ProjectConfigurationData(
             projectName               =self.projectName_str(),
             projectTargetDir          =self.projectTargetDir_str(),
             projectExecName           =self.projectExecName_str(),

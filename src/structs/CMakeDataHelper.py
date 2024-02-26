@@ -6,7 +6,7 @@ import textwrap
 
 #from src.structs.GuiData import library_inputWidget
 from .ProjectConfigurationGUI import ProjectConfigurationGUI
-from .ProjectConfigurationDat import ProjectConfigurationData, TargetDatas
+from .ProjectConfigurationData import ProjectConfigurationData, TargetDatas
 from dataclasses import dataclass, field
 from .CMakeCommands import *
 

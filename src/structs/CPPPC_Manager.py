@@ -12,7 +12,7 @@ from src.structs.PersistantDataManager import DepDat, PersistantDataManager, get
 from .CMakeDataHelper import *
 from .CppDataHelper import *
 from .ProjectConfigurationGUI import *
-from .ProjectConfigurationDat import *
+from .ProjectConfigurationData import *
 import os
 
 

@@ -5,7 +5,7 @@ import shutil
 from typing import Optional
 from src.dev.Terminate import terminate
 from src.dev.fileutils import *
-from src.structs.ProjectConfigurationDat import *
+from src.structs.ProjectConfigurationData import *
 
 
 DIR_HISTORY_CPPPC :str
