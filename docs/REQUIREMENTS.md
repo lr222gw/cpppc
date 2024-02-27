@@ -4,6 +4,12 @@
 
 Before using CPPPC, ensure that the following dependencies are installed on your Linux system:
 
+## Install Python dependencies 
+Run the following command to install required dependencies
+```bash
+pip install -r requirements.txt
+```
+
 
 ## 1. Install CMake
 
