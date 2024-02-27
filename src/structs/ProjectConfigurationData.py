@@ -1,221 +1,268 @@
-from typing import Tuple
-from dataclasses import dataclass, field
-from typing import Callable
-from .CMakeVersionData import CMakeVersionData
-from .GuiData import *
-from .. import helper_funcs as hlp
-from .CMakeCommands import *
-from PyQt5.QtWidgets import *
+import enum
+import json
+import os
+from typing import Any, Optional
 
-@dataclass
-class ProjectConfigurationData:     
+from src.dev.Terminate import terminate
+from src.dev.fileutils import hash_directory
 
-    projectName :       GuiData= field(default= GuiData)
-    def projectName_str(self) -> str:
-        return self.projectName.widget.text()
-
-    projectTargetDir :  GuiData= field(default= GuiData)
-    def projectTargetDir_str(self) -> str:
-        return self.projectTargetDir.widget.text()
-
-    projectExecName :   GuiData= field(default= GuiData)
-    def projectExecName_str(self) -> str:
-        return self.projectExecName.widget.text()
-
-    projectDesc :       GuiData= field(default= GuiData)
-    def projectDesc_str(self) -> str:
-        return self.projectDesc.widget.toPlainText()
-
-    entryPointFile :   GuiData= field(default= GuiData)
-    def entryPointFile_str(self) -> str:
-        return self.entryPointFile.widget.text()
-
-    overwriteProjectTargetDir : GuiDataToggle = field(default= GuiDataToggle)    
-
-    #TODO: put inside a vector, enable user to use multiple prgorams...
-    useProgram_ccache : GuiDataToggle = field(default= GuiDataToggle)
-
-    #TODO: Split sanitizers into Memory and address sanitizers
-
-    useMeasureCompiletime : GuiDataToggle = field(default= GuiDataToggle)
-
-    useCmakeCppBridge : GuiDataToggle = field(default= GuiDataToggle)
-
-    cmakeToCppVars : dict = field(default_factory=dict)
-
-    publicLinkLibs :list = field(default_factory=list)
-    privateLinkLibs:list = field(default_factory=list)
-
-    guiToggles          :list[GuiDataToggle] = field(default_factory=list[GuiDataToggle]) 
-    extraFeatures       :list[FeatureToggle] = field(default_factory=list[FeatureToggle])
-    extraFeaturesShared :list[FeatureShareToggle] = field(default_factory=list[FeatureShareToggle])
-    def initExtraFeatures(self):
-        self.__initExtraFeature()
-        self.__initExtraFeatureShared()
-        self.__initGuiToggleRequirments()
-    def __initExtraFeature(self):
-        for feature in self.extraFeatures:
-            feature.functionWrapper()
-    def __initExtraFeatureShared(self):
-        for feature in self.extraFeaturesShared:
-            for functionWrapper in feature.functionWrappers:
-                functionWrapper()
-
-    def __initGuiToggleRequirments(self):
-        for toggle in self.guiToggles:
-            if(toggle.getState() and toggle.requirement != None):
-                toggle.requirement()
-
-    def getPathInTarget(self, targetInsidePath : str) -> str:
-        return self.getTargetPath() + "/" + targetInsidePath
-         
-
-    def addExtraFeature_checkbox(self, label:str, value :str, featureDefaultState:bool, parentLayout) -> FeatureToggle: 
-        datToggle = hlp.addFeature_CheckBox(label,value, featureDefaultState, parentLayout)
-        datToggle.setState(featureDefaultState)
-        self.extraFeatures.append(datToggle)
-        return datToggle
-
-    def __addExtraFeature_subCheckbox(self, label:str, value :str, featureDefaultState:bool, parentLayout, requirement:Optional[Callable]) -> FeatureToggle: 
-        datToggle = hlp.addFeature_CheckBox(label,value, featureDefaultState, parentLayout)
-        datToggle.setState(featureDefaultState)
-        datToggle.requirement=requirement
-        return datToggle
+class LibrarySetupType(enum.Enum):
+    Undefined   = 0
+    BareBores   = 1
+    CMakeBased  = 2
+    InstalledCMake  = 3
+    MakeBased   = 4
     
-    def __addExtraFeatureShare_subCheckbox(self, label:str, value :str, featureDefaultState:bool, parentLayout, requirement:Optional[Callable]) -> FeatureShareToggle: 
-        datToggle = hlp.addFeatureShare_CheckBox(label,value, featureDefaultState, parentLayout)
-        datToggle.setState(featureDefaultState)
-        datToggle.requirement=requirement
-        return datToggle
-
-    def addExtraFeatureGroup_checkbox(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, genStrFunc : Callable, *ToggleDatas : ToggleData) -> FeatureGroup : 
-        groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
-        groupLayout = hlp.addHidableGroup(
-            groupParentLayout,
-            groupCheckBoxParentLayout,
-            groupName,
-            groupToggle
-        )
-        # Use the regular GuiToggle as arg, create a Feature Toggle
-        featureGroupToggle = FeatureGroup(
-            groupToggle,
-            functionWrapper=hlp.strListFactory(genStrFunc, groupToggle, *[self.__addExtraFeature_subCheckbox(data.name, data.val, data.defaultValue, groupLayout, requirement=data.requirement) for data in ToggleDatas]),
-            featureName=groupName
-        )
-        self.extraFeatures.append(featureGroupToggle)
-        return featureGroupToggle
-
-    def addExtraFeatureShareGroup_checkbox(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, *ToggleShareDatas : ToggleShareData) -> FeatureShareGroup : 
-        groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
-        groupLayout = hlp.addHidableGroup(
-            groupParentLayout,
-            groupCheckBoxParentLayout,
-            groupName,
-            groupToggle
-        )
-        # Use the regular GuiToggle as arg, create a Feature Toggle
-        featureGroupToggles = FeatureShareGroup(
-            groupToggle,
-            functionWrappers=hlp.strListShareFactory(
-                groupToggle, 
-                *[Container_FeatureShareToggle_FunctionWrapperList(self.__addExtraFeatureShare_subCheckbox(data.name, data.val, data.defaultValue, groupLayout,requirement=data.requirement ), data.functionWrappers) for data in ToggleShareDatas]),
-            featureName=groupName
-        )
-        self.extraFeaturesShared.append(featureGroupToggles)
-        return featureGroupToggles
-
-
-    def addExtraFeatureGroup_UserInputs(self, groupParentLayout, groupCheckBoxParentLayout, groupName : str, checkBoxName : str, defaultState:bool, func:Callable[[QGridLayout,Tuple[UserInput]],None], *userInputHeaders : UserInput, requirement:Optional[Callable] = None) -> GuiDataToggle: 
-        groupToggle = hlp.addCheckBox(checkBoxName,defaultState,groupCheckBoxParentLayout)
-        groupLayout = hlp.addHidableGroup(
-            groupParentLayout,
-            groupCheckBoxParentLayout,
-            groupName,
-            groupToggle
-        )
-                
-        self.addUserInput(groupLayout, func,*userInputHeaders)
-        groupToggle.requirement = requirement
-        self.guiToggles.append(groupToggle)        
-
-        return groupToggle
-
-
-    #Properties 
-    props :list = field(default_factory=list)
-    def addProp_checkbox(self, label:str, cmakePropName:str,cmakePropValue:bool, parentLayout) -> PropToggle:
-        datToggle = hlp.addProp_CheckBox(label,cmakePropValue,parentLayout)
-        datToggle.cmake_propName = cmakePropName        
-        datToggle.setValue(cmakePropValue)
-        self.props.append(datToggle)
-        return datToggle
-
-    def addProp_combobox_list(self, label:str, cmakePropName:str,cmakePropValues:list, defaultChoice:int, parentLayout) -> GuiDataComboBox:
-        datComboboxList = hlp.addComboBox_list(label,cmakePropValues,parentLayout)
-        datComboboxList.cmake_propName = cmakePropName
-        # datToggle.widget.setState(cmakePropValue)
+class TargetDatas():
+    possibleTargets: list[str]
+    SHARED: list[str]
+    STATIC: list[str]
+    INTERFACE: list[str]
+    libraryType: LibrarySetupType = LibrarySetupType.Undefined    
+    keyWords : Optional[dict[str,str]]
+    includes : Optional[list[str]]
+    parsedComponentTargets: list[str] = list[str]()
+    find_package : Optional[str] = None    
+    def __init__(self, 
+                 possibleTargets: list[str] = [], 
+                 SHARED: list[str] = [], 
+                 STATIC: list[str] = [], 
+                 INTERFACE: list[str] = [], 
+                 parsedComponentTargets: list[str] = [], 
+                 libraryType  : LibrarySetupType = LibrarySetupType.Undefined,
+                 keyWords : Optional[dict[str,str]] = None, 
+                 includes : Optional[list[str]] = None,
+                 find_package : Optional[str] = None): 
+        self.possibleTargets  = possibleTargets
+        self.SHARED           = SHARED
+        self.STATIC           = STATIC
+        self.INTERFACE        = INTERFACE
+        self.keyWords         = keyWords
+        self.includes         = includes
+        self.libraryType      = libraryType
+        self.parsedComponentTargets         = parsedComponentTargets
+        self.find_package    = find_package
         
-        datComboboxList.setValue(defaultChoice)
-        self.props.append(datComboboxList)
+class DepDat():
+    path : str
+    pathHash : str
+    targets : list[str]
+    targetDatas: TargetDatas
+    def __init__(self,path : str, targets : list[str], targetDatas: TargetDatas):
+        self.path    = path
+        self.pathHash = hash_directory(self.path)
+        self.targets = targets
+        self.targetDatas = targetDatas
 
-    def addUserInput(self, parentLayout, func:Callable[[QGridLayout,Tuple[UserInput]],None], *headers : UserInput):
-        layout_grid = QGridLayout()
+class ProjectConfigurationData():    
+    _projectName:Optional[ str ]                           = None
+    _projectTargetDir:Optional[ str ]                      = None
+    _projectExecName :Optional[ str ]                      = None
+    _projectDesc:Optional[ str ]                           = None
+    _entryPointFile:Optional[ str ]                        = None
+    _overwriteProjectTargetDir:Optional[ bool ]            = None
+    _useProgram_ccache :Optional[ bool ]                   = None
+    _useMeasureCompiletime :Optional[ bool ]               = None
+    _cmakeVersionData:Optional[  tuple[int,int,int]]       = None
+    _cmakeToCppVars :Optional[ dict[str,tuple[str,str]] ]  = None
+    _linkLibs : Optional[dict[str,tuple[str,bool, list[str],TargetDatas]]] = None
+    _linkLibs_public   :Optional[ dict[str,list[str]]]              = None
+    _linkLibs_private  :Optional[ dict[str,list[str]]]              = None
+    _linkIncl_public   :Optional[ dict[str,list[str]]]              = None
+    _linkIncl_private  :Optional[ dict[str,list[str]]]              = None
+    _props :Optional[ dict[str,str|bool|int]]                       = None
 
-        columnCounter = 0
-        for header in headers:
-            layout_grid.addWidget(header.label,0,columnCounter)
-            columnCounter += 1
-        
-        columnCounter = 0
-        for header in headers:
-            layout_grid.addWidget(header.input, 1, columnCounter)
-            columnCounter += 1
-        
-        newButton = QPushButton("Add/Edit")
-        layout_grid.addWidget(newButton, 1, columnCounter)
-        newButton.clicked.connect(lambda: func(layout_grid,*headers))
+    _linkLibs_public_override   :dict[str,list[str]]
+    _linkLibs_private_override  :dict[str,list[str]]
+    _linkIncl_public_override   :dict[str,list[str]]
+    _linkIncl_private_override  :dict[str,list[str]]
+    _linkLibs_components        :dict[str,list[str]]
+    _linkLibs_findPackage       :dict[str,str]
 
-        parentLayout.addLayout(layout_grid)
+    def __init__(self, 
+                projectName:Optional[ str ]                           = None,
+                projectTargetDir:Optional[ str ]                      = None,
+                projectExecName :Optional[ str ]                      = None,
+                projectDesc:Optional[ str ]                           = None,
+                entryPointFile:Optional[ str ]                        = None,
+                overwriteProjectTargetDir:Optional[ bool ]            = None,
+                useProgram_ccache :Optional[ bool ]                   = None,
+                useMeasureCompiletime :Optional[ bool ]               = None,
+                cmakeVersionData:Optional[  tuple[int,int,int]]       = None,
+                cmakeToCppVars :Optional[ dict[str,tuple[str,str]] ]  = None,
+                linkLibs: Optional[dict[str,tuple[str,bool, list[str],TargetDatas]]]  = None, 
+                linkLibs_public  :Optional[dict[str,list[str]]]       = None,
+                linkLibs_private  :Optional[dict[str,list[str]]]      = None,
+                # linkIncl_public  :Optional[dict[str,list[str]]]       = None,
+                # linkIncl_private  :Optional[dict[str,list[str]]]      = None,
+                props :Optional[ dict[str,str|bool|int]]              = None
+                 ):
+        self.projectName               =projectName
+        self.projectTargetDir          =projectTargetDir
+        self.projectExecName           =projectExecName
+        self.projectDesc               =projectDesc
+        self.entryPointFile            =entryPointFile
+        self.overwriteProjectTargetDir =overwriteProjectTargetDir
+        self.useProgram_ccache         =useProgram_ccache
+        self.useMeasureCompiletime     =useMeasureCompiletime
+        self.cmakeVersionData          =cmakeVersionData
+        self.cmakeToCppVars            =cmakeToCppVars
+        self.linkLibs                  =linkLibs
+        self.linkLibs_public           =linkLibs_public
+        self.linkLibs_private          =linkLibs_private
+        self.linkIncl_public           =dict[str,list[str]]()
+        self.linkIncl_private          =dict[str,list[str]]()
+        self.props                     =props
+        self._linkLibs_public_override  = dict[str,list[str]]()
+        self._linkLibs_private_override = dict[str,list[str]]() 
+        self._linkIncl_public_override  = dict[str,list[str]]()
+        self._linkIncl_private_override = dict[str,list[str]]() 
 
-    def addCmakeToCppVar(self, gridLayout: QGridLayout, *args: UserInput ):
-        if len(args) != 2:
-            terminate("Function not design to take anything but 2 variadic arguments")
-        name  = args[0].getInputText()
-        value = args[1].getInputText()
-        if name == "" or value == "":
-            print("Nothing to add!") 
-            return            
+        self._linkLibs_components       = dict[str,list[str]]() 
+        self._linkLibs_findPackage       = dict[str,str]() 
+    
+    def update(self, updatedInstance):
 
-        if name not in self.cmakeToCppVars:
-            cmakeCppvar = CmakeCppVarWidget(name, str(value))           
-            row = gridLayout.rowCount() +1
+        self.projectName               =updatedInstance.projectName
+        self.projectTargetDir          =updatedInstance.projectTargetDir
+        self.projectExecName           =updatedInstance.projectExecName
+        self.projectDesc               =updatedInstance.projectDesc
+        self.entryPointFile            =updatedInstance.entryPointFile
+        self.overwriteProjectTargetDir =updatedInstance.overwriteProjectTargetDir
+        self.useProgram_ccache         =updatedInstance.useProgram_ccache
+        self.useMeasureCompiletime     =updatedInstance.useMeasureCompiletime
+        self.cmakeVersionData          =updatedInstance.cmakeVersionData
+        self.cmakeToCppVars            =updatedInstance.cmakeToCppVars
+        self.linkLibs                  =updatedInstance.linkLibs
+        self.linkLibs_public           =updatedInstance.linkLibs_public
+        self.linkLibs_private          =updatedInstance.linkLibs_private
+        self.linkIncl_public           =updatedInstance.linkIncl_public
+        self.linkIncl_private          =updatedInstance.linkIncl_private
+        self.props                     =updatedInstance.props
 
-            gridLayout.addWidget(cmakeCppvar.nameWidget, row, 0)
-            gridLayout.addWidget(cmakeCppvar.valWidget, row, 1)
 
-            remButton = hlp.addButton_gridLayout("-", gridLayout, row, 2)
-            remButton.clicked.connect(lambda: self.remCmakeToCppVar(cmakeCppvar, remButton, gridLayout))            
+        for libkey, userSelectedTargets in self._linkLibs_public_override.items(): 
+            self.linkLibs_public[libkey] = userSelectedTargets
+        for libkey, userSelectedTargets in self._linkLibs_private_override.items(): 
+            self.linkLibs_private[libkey] = userSelectedTargets
+
+        for libkey, userSelectedTargets in self._linkIncl_public_override.items(): 
+            self.linkIncl_public[libkey] = userSelectedTargets
+        for libkey, userSelectedTargets in self._linkIncl_private_override.items(): 
+            self.linkIncl_private[libkey] = userSelectedTargets
+
+    def getLibComponents(self, localLibName:str) -> list[str]:
+        if localLibName in self._linkLibs_components:
+            return self._linkLibs_components[localLibName]
+        return []
             
-            self.cmakeToCppVars[name] = cmakeCppvar
-        else: 
-            self.cmakeToCppVars[name].valWidget.setText(str(value))
+    @property
+    def projectName(self)->str :
+        return self.__getVar(self._projectName)
+    @projectName.setter
+    def projectName(self, v):
+        self._projectName =v 
+    @property
+    def projectTargetDir(self)->str :
+        return self.__getVar(self._projectTargetDir)
+    @projectTargetDir.setter
+    def projectTargetDir(self, v):
+        self._projectTargetDir =v 
+    @property
+    def projectExecName(self)->str :
+        return self.__getVar(self._projectExecName)
+    @projectExecName.setter
+    def projectExecName(self, v):
+        self._projectExecName =v 
+    @property
+    def projectDesc(self)->str :
+        return self.__getVar(self._projectDesc)
+    @projectDesc.setter
+    def projectDesc(self, v):
+        self._projectDesc =v 
+    @property
+    def entryPointFile(self)->str :
+        return self.__getVar(self._entryPointFile)
+    @entryPointFile.setter
+    def entryPointFile(self, v):
+        self._entryPointFile =v 
+    @property
+    def overwriteProjectTargetDir(self)->bool :
+        return self.__getVar(self._overwriteProjectTargetDir)
+    @overwriteProjectTargetDir.setter
+    def overwriteProjectTargetDir(self, v):
+        self._overwriteProjectTargetDir =v 
+    @property
+    def useProgram_ccache(self)->bool :
+        return self.__getVar(self._useProgram_ccache)
+    @useProgram_ccache.setter
+    def useProgram_ccache(self, v):
+        self._useProgram_ccache =v 
+    @property
+    def useMeasureCompiletime(self)->bool :
+        return self.__getVar(self._useMeasureCompiletime)
+    @useMeasureCompiletime.setter
+    def useMeasureCompiletime(self, v):
+        self._useMeasureCompiletime =v 
+    @property
+    def cmakeVersionData(self)->tuple[int,int,int]:
+        return self.__getVar(self._cmakeVersionData)
+    @cmakeVersionData.setter
+    def cmakeVersionData(self, v):
+        self._cmakeVersionData =v 
+    @property
+    def cmakeToCppVars(self)->dict[str,tuple[str,str]] :
+        return self.__getVar(self._cmakeToCppVars)
+    @cmakeToCppVars.setter
+    def cmakeToCppVars(self, v):
+        self._cmakeToCppVars =v 
+    @property
+    def linkLibs(self)->Optional[dict[str,tuple[str,bool, list[str],TargetDatas]]]:
+        """
+        dict[userSlectedName: str, tuple[librarypath: str, isPublicLib: bool, list[libraryTargetNames: str]]]
+        """
+        return self.__getVar(self._linkLibs)
+    @linkLibs.setter
+    def linkLibs(self, v):
+        self._linkLibs =v 
 
-    def remCmakeToCppVar(self, cmakeCppVar: CmakeCppVarWidget, remButton, layout : QGridLayout):    
-        cmakeCppVar.nameWidget.deleteLater()
-        cmakeCppVar.valWidget.deleteLater()
-        remButton.deleteLater()
-        self.cmakeToCppVars.pop(cmakeCppVar.nameWidget.text())
+    @property
+    def linkLibs_public(self)->dict[str,list[str]]:
+        return self.__getVar(self._linkLibs_public)
+    @linkLibs_public.setter
+    def linkLibs_public(self, v):
+        self._linkLibs_public =v 
+    @property
+    def linkLibs_private(self)->dict[str,list[str]]:
+        return self.__getVar(self._linkLibs_private)
+    @linkLibs_private.setter
+    def linkLibs_private(self, v):
+        self._linkLibs_private =v 
+
+    @property
+    def linkIncl_public(self)->dict[str,list[str]]:
+        return self.__getVar(self._linkIncl_public)
+    @linkIncl_public.setter
+    def linkIncl_public(self, v):
+        self._linkIncl_public =v 
+    @property
+    def linkIncl_private(self)->dict[str,list[str]]:
+        return self.__getVar(self._linkIncl_private)
+    @linkIncl_private.setter
+    def linkIncl_private(self, v):
+        self._linkIncl_private =v 
+    @property
+    def props(self)->dict[str,str]:
+        return self.__getVar(self._props)
+    @props.setter
+    def props(self, v):
+        self._props =v 
+
+    def __getVar(self, var:Any)->Any:
+        if  var == None:
+            terminate("ProjectConfigurationData was empty!")
+        return var
 
     def getTargetPath(self) -> str:
-        path = self.projectTargetDir.widget.text() + "/" + self.projectName.widget.text()
-        return path
-
-    cmakeVersionData:  CMakeVersionData = field(default=CMakeVersionData)
-    def toString(self):
-        print(f"ProjectName:{self.projectName.widget.text()}")
-        print(f"projectTargetDir:{self.projectTargetDir.widget.text()}")
-        print(f"projectExecName:{self.projectExecName.widget.text()}")
-        print(f"projectDesc:{self.projectDesc.widget.toPlainText()}")
-        print(f"cmakeVersionData.major:{self.cmakeVersionData.get_major()}")
-        print(f"cmakeVersionData.minor:{self.cmakeVersionData.get_minor()}")
-        print(f"cmakeVersionData.patch:{self.cmakeVersionData.get_patch()}")
+        return os.path.join(self.projectTargetDir, self.projectName)
+        

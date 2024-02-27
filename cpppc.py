@@ -1,41 +1,56 @@
 from src import helper_funcs as hlp, action_funcs as act
-from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout,QVBoxLayout, QHBoxLayout, QGroupBox, QFrame, QStackedLayout, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QFormLayout,QVBoxLayout, QHBoxLayout, QGroupBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
+from src.gui.theme import initColorTheme
 
 from src.structs.GuiData import *
 from src.structs.CMakeVersionData import CMakeVersionData
-from src.structs.ProjectConfigurationData import ProjectConfigurationData
+from src.structs.PersistantDataManager import PersistantDataManager, prepareStorage
+from src.structs.ProjectConfigurationGUI import ProjectConfigurationGUI
 import src.cmake_helper as  cmake_helper
 from src.structs.CPPPC_Manager import CPPPC_Manager
 
-app = QApplication([])
-app.setStyleSheet("QPushButton { color: magenta; }")
+prepareStorage()
 
-# Preparing Window
-window = QWidget()
+app = QApplication([])
+
+initColorTheme(app)
+
+class CPPPC_mainWindow(QWidget):
+    app :QApplication
+    def __init__(self, app:QApplication):
+        super().__init__()
+        self.app = app
+        self.setWindowTitle("CPPPC - C++ Project Configurator")
+    
+    def closeEvent(self, event):
+        event.accept()
+        app.closeAllWindows()
+
+window = CPPPC_mainWindow(app)
 rootLayout = QHBoxLayout()
 layout_projectName = QFormLayout()
+layout_actionButtons = QHBoxLayout()
 layout_cmakeVersion = QHBoxLayout()
 layout_targetProperties = QFormLayout()
 
 layout_2nd_column = QVBoxLayout()
 layout_3rd_column = QVBoxLayout()
 
-ProjConfDat = ProjectConfigurationData()
+ProjConfDat = ProjectConfigurationGUI()
 cppc = CPPPC_Manager(ProjConfDat)
 
 # Declare Project Name
 group_projdef = QGroupBox(title="Project config")
-ProjConfDat.projectName = hlp.addTextField("Project Name:", "myProject", layout_projectName)
+ProjConfDat.setProjectName("Project Name:", "myProject", layout_projectName)
 
 
 # Declare Target dir
-ProjConfDat.projectTargetDir = hlp.addTextField("Target directory:"      , ".", layout_projectName) #TODO: Check if directory is safe / suitable!
-ProjConfDat.projectExecName  = hlp.addTextField("Executable Name:"       , "executable",layout_projectName)
-ProjConfDat.projectDesc      = hlp.addTextBoxField("Project Description:",layout_projectName)
-
-ProjConfDat.entryPointFile  = hlp.addTextField("Entry Point file:"       , "main.cpp",layout_projectName)
+ProjConfDat.setProjectTargetDir("Target directory:", ".", layout_projectName) #TODO: Check if directory is safe / suitable!
+ProjConfDat.setProjectExecName("Executable Name:", "executable",layout_projectName)
+ProjConfDat.setProjectDesc("Project Description:", "description of my project",layout_projectName)
+ProjConfDat.setEntryPointFile("Entry Point file:"       , "main.cpp",layout_projectName)
 
 group_projdef.setLayout(layout_projectName)
 
@@ -51,9 +66,13 @@ layout_cmakeVersion.setStretch(1,1)
 group_cmake.setMaximumHeight(100)
 
 
+createProjectButton = hlp.addButton("Create", layout_actionButtons)
+createProjectButton.clicked.connect(cppc.createProject)
 
-createProjectButton = hlp.addButton("Create", layout_projectName)
-createProjectButton.clicked.connect(lambda: cppc.createProject())
+configureLibsButton = hlp.addButton("Configure Libraries", layout_actionButtons)
+configureLibsButton.clicked.connect(lambda: cppc.configureLibraries(layout_projectName))
+
+layout_projectName.addRow(layout_actionButtons)
 
 # TODO: Replace with addProp_* functions
 ProjConfDat.overwriteProjectTargetDir = hlp.addCheckBox("Overwrite", False, layout_projectName)
@@ -83,7 +102,7 @@ ProjConfDat.addExtraFeatureGroup_UserInputs(
     layout_projectName,
     "CMake vars to C++",
     "Use CMake to C++ Communcation",
-    False,
+    False, 
     ProjConfDat.addCmakeToCppVar,
     UserInput("Variable Name"),
     UserInput("Value"),
@@ -114,7 +133,7 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
     layout_projectName,
     "Sanitizer settings",   
     "Use Sanitizers",
-    False,
+    False, 
     ToggleShareData("Debug", "g", True, 
         g.genStr_linkSanitizers, g.genStr_compileSanitizers),
     ToggleShareData("Sanitize Adress,Leak and Undef", "fsanitize=address,leak,undefined", True,
@@ -127,18 +146,32 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
         g.genStr_compileSanitizers),
     ToggleShareData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", False,
         g.genStr_linkSanitizers, g.genStr_compileSanitizers, 
-        requirement=lambda: cppc.createFileOnDemand("sanitizer_blacklist.txt", "test")
-        ),
+        requirement=lambda: cppc.createSanitizerBlacklistOnDemand())    
     )    
 
 
 layout_2nd_column.addWidget(group_cmake)
 layout_2nd_column.addWidget(group_properties)
 
-#TODO: GUI to select libs from system and files
-# ProjConfDat.publicLinkLibs = ["lib1", "lib2", "lib3"]
-# ProjConfDat.privateLinkLibs  = ["lib4", "lib5", "lib6"]
 
+libraryLayout = ProjConfDat.addExtraFeatureGroup_UserInputs(
+    layout_3rd_column,
+    layout_projectName,
+    "Libraries",
+    "Use external Libraries",
+    False,
+    ProjConfDat.addLibraryComponent,
+    UserInput_checkbox("Remote",False,rotation=-90),
+    UserInput_checkbox("Public",False,rotation=-90),
+    UserInput("Libary Name"),
+    UserInput("Path to library"),   
+    minHeight=225 
+)
+
+ProjConfDat.addLocalLibraryBrowseDialog(
+    'Browse \nLocal Libs',
+    libraryLayout[0]
+)
 
 rootLayout.addWidget(group_projdef)
 rootLayout.addLayout(layout_2nd_column)
@@ -147,3 +180,4 @@ rootLayout.addLayout(layout_3rd_column)
 window.setLayout(rootLayout)
 window.show()
 app.exec()
+PersistantDataManager().save_config_to_file()
