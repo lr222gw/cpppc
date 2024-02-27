@@ -7,10 +7,15 @@ from zipfile import ZipFile
 import zipfile
 import requests
 import re
+import pathlib
 
 from src.dev.Terminate import terminate
+from src.structs.PersistantDataManager import PersistantDataManager
 def fetchGithubRepo(url:str, libname:str,targetPath:str = "."):
-    
+    pathToLib = (pathlib.Path(targetPath) / libname).absolute().__str__()
+    if PersistantDataManager().checkDownloadedLibExists(url, pathToLib):
+        print(f"Url '"+url+"' already downloaded and unchanged, skip download.")
+        return 
     github_repo_regx = re.compile(r"^(https{0,1}://){0,1}github\.com/([a-zA-Z_0-9-.]+)/((?!\.git)[a-zA-Z_0-9-.]+)(/(tree|commit)/([a-zA-Z0-9]+)){0,1}")
 
     myMatch = re.match(github_repo_regx, url)
@@ -42,6 +47,7 @@ def fetchGithubRepo(url:str, libname:str,targetPath:str = "."):
             print(f"Unzipping '{repo}' contents to {targetPath}'")
             z = zipfile.ZipFile(io.BytesIO(contents_response.content), "r")            
             _extractToDirectory(libname,targetPath,z)
+            PersistantDataManager().addDownloadedLibData(url,pathToLib)
         else:
             print(f"Failed to fetch contents. Status code: {contents_response.status_code}")
     else:

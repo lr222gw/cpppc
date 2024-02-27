@@ -3,6 +3,7 @@ import os
 import subprocess
 import re
 from typing import Optional
+from src.action_funcs import warningPopup
 from src.dev.Terminate import terminate
 from src.structs.PersistantDataManager import PersistantDataManager
 from .structs.CMakeVersionData import CMakeVersionData as CMakeVersionData
@@ -17,7 +18,7 @@ def __checkInstalled_cmake():
         
         return versionstring 
     except :
-        print("Error:", "CMake is not installed")
+        warningPopup("CMake is not installed")
         return False
 
 def getCMakeVersion():

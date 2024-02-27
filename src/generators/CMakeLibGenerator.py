@@ -5,7 +5,7 @@ import re
 from typing import Union
 from src.cmake_helper import getCMakeVersion
 from src.structs.CMakeDataHelper import *
-from src.structs.ProjectConfigurationDat import *
+from src.structs.ProjectConfigurationData import *
 import PyQt5.Qt 
 import PyQt5.QtWidgets
 

@@ -1,3 +1,5 @@
+import pathlib
+import sys
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
@@ -5,32 +7,35 @@ from PyQt5.QtGui import *
 def getCol(c: QColor)->str:
     return "rgba"+c.getRgb().__str__()
 
+dark_color                  = QColor(37, 42, 52)
+widgetBackground_color      = QColor(24, 25, 29) 
+frametitleBack_color        = QColor(24, 25, 29, 75) 
+frametitleBackBorder_color  = QColor(24, 25, 29, 135) 
+text_color                  = QColor(234, 234, 234)
+highlighttext_color         = QColor(234, 234, 0)
+placeHoldertext_color       = QColor(105, 105, 105)
+button_color                = QColor(8, 217, 214)
+labelLink_color             = button_color
+checkboxBorder_color        = QColor(255,4,255, 95)
+groupBorder_color           = QColor(8, 217, 214, 250)
+subGroupBorder_color        = QColor(8, 217, 214, 75)
+textButton_color            = QColor(0, 0, 0)
+textCheckbox_color          = QColor(8, 217, 214)
+textLink_color              = QColor(8, 217, 214)
+scrollbar_color             = QColor(8, 217, 214, 150)
+scrollbarBackground_color   = frametitleBackBorder_color
+transparent_color           = QColor(255, 255, 255, 0)
+
+# Baspath is required in order for compiled version to access the images...
+basePath = pathlib.Path(getattr(sys, '_MEIPASS', '.'))
+# Media paths 
+checkmark_blue_path = basePath / "media" / "check_blue.png"
 
 def initColorTheme(app : QApplication):
-
-    def getCol(c: QColor)->str:
-        return "rgba"+c.getRgb().__str__()
     
     palette = app.palette()
             
-    dark_color                  = QColor(37, 42, 52)
-    widgetBackground_color      = QColor(24, 25, 29) 
-    frametitleBack_color        = QColor(24, 25, 29, 75) 
-    frametitleBackBorder_color  = QColor(24, 25, 29, 135) 
-    text_color                  = QColor(234, 234, 234)
-    highlighttext_color         = QColor(234, 234, 0)
-    placeHoldertext_color       = QColor(105, 105, 105)
-    button_color                = QColor(8, 217, 214)
-    labelLink_color             = button_color
-    checkboxBorder_color        = QColor(255,4,255, 95)
-    groupBorder_color           = QColor(8, 217, 214, 250)
-    subGroupBorder_color        = QColor(8, 217, 214, 75)
-    textButton_color            = QColor(0, 0, 0)
-    textCheckbox_color          = QColor(8, 217, 214)
-    textLink_color              = QColor(8, 217, 214)
-    scrollbar_color             = QColor(8, 217, 214, 150)
-    scrollbarBackground_color   = frametitleBackBorder_color
-    transparent_color           = QColor(255, 255, 255, 0)
+    
 
     palette.setColor(app.palette().Window, dark_color)
     palette.setColor(app.palette().WindowText, text_color)
@@ -90,7 +95,7 @@ def initColorTheme(app : QApplication):
                 
             }} 
             QCheckBox::indicator:checked {{
-                image: url(media/check_blue.png);
+                image: url({str(checkmark_blue_path.as_posix())});
                 background-color: {getCol(widgetBackground_color)};                      
             }}
 
@@ -164,7 +169,10 @@ def initColorTheme(app : QApplication):
                 border-radius: 5px;
                 border: 0px solid #999999;            
                 margin: 4px 0px 0px 0px;  
-            }}       
+            }}     
+            QMessageBox{{
+                background-color: {getCol(widgetBackground_color)};
+            }}  
         
         """
         )

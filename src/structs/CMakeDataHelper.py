@@ -5,8 +5,8 @@ import re
 import textwrap
 
 #from src.structs.GuiData import library_inputWidget
-from .ProjectConfigurationData import ProjectConfigurationGUI
-from .ProjectConfigurationDat import ProjectConfigurationData, TargetDatas
+from .ProjectConfigurationGUI import ProjectConfigurationGUI
+from .ProjectConfigurationData import ProjectConfigurationData, TargetDatas
 from dataclasses import dataclass, field
 from .CMakeCommands import *
 

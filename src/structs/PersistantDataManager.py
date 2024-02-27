@@ -4,12 +4,12 @@ from pathlib import Path
 import shutil
 from typing import Optional
 from src.dev.Terminate import terminate
-from src.structs.ProjectConfigurationDat import *
+from src.dev.fileutils import *
+from src.structs.ProjectConfigurationData import *
 
 
 DIR_HISTORY_CPPPC :str
 FILE_HISTORY_CPPPC_DEPENDENT_DATA = "cpppc_data.json"
-
 
 class PersistantDataManager():
     """ 
@@ -19,6 +19,7 @@ class PersistantDataManager():
     __instance = None
     projectDatasDict : dict[str,ProjectConfigurationData]
     dependenciesDirs : dict[str,DepDat] # Path, status? 
+    downloadedLibs    : dict[str,str] # url, Path
     userLocalLibPath : str
 
     def __new__(cls):
@@ -27,6 +28,7 @@ class PersistantDataManager():
             #TODO: Load projectDatasDict from file ()
             cls.__instance.projectDatasDict =  dict[str,ProjectConfigurationData]()
             cls.__instance.dependenciesDirs =  dict[str,DepDat]()
+            cls.__instance.downloadedLibs    =  dict[str,str]()
             cls.__instance._load_config_from_file()
         return cls.__instance
     
@@ -38,8 +40,25 @@ class PersistantDataManager():
         depKey = path.abspath(dep.path)
         self.dependenciesDirs[depKey] = dep
 
+    def addDownloadedLibData(self, url :str, path:str):
+        self.downloadedLibs[url+path] = hash_directory(path)
+        print(f"Created hash for \n\t{url+path}:\n\t[{self.downloadedLibs[url+path]}]")
+    
+    def checkDownloadedLibExists(self, url:str, path:str)->bool:
+        if url+path in self.downloadedLibs:
+            testedHash = hash_directory(path)
+            print(f"Check Hash for \n\t{url+path}:\n\t[{self.downloadedLibs[url+path]}]")
+            print(f"Test  Hash for \n\t{path}:\n\t[{testedHash}]")
+            if self.downloadedLibs[url+path] == hash_directory(path):
+                return True
+        return False
+
+
     def checkDependencyExist(self, absDepPath:str)->bool:
         if absDepPath in self.dependenciesDirs.keys():
+            if self.dependenciesDirs[absDepPath].pathHash != hash_directory(absDepPath):
+                print(f"Persistant entry does not match content in path {absDepPath}")
+                return False
             return True
         return False
     
@@ -48,10 +67,13 @@ class PersistantDataManager():
     
     def getDependencyData(self, absDepPath:str) -> DepDat:
         if absDepPath in self.dependenciesDirs.keys():
+            if self.dependenciesDirs[absDepPath].pathHash != hash_directory(absDepPath):
+                print(f"Persistant entry does not match content in path {absDepPath}")
+                return None
             return self.dependenciesDirs[absDepPath]
         else:
-            print(f"Missing History entry for dependency with path {absDepPath}")
-            exit("failed")
+            print(f"Missing Persistant entry for dependency with path {absDepPath}")
+            return None
     
     def _load_config_from_file(self):
         try:
@@ -59,10 +81,12 @@ class PersistantDataManager():
             with open(path.join(DIR_HISTORY_CPPPC,FILE_HISTORY_CPPPC_DEPENDENT_DATA), 'r') as file:
                 data = json.load(file)
                 self.projectDatasDict = data.get('projectDatasDict', {})
-                tempDependenciesDirs = data.get('dependenciesDirs', {})
+                self.downloadedLibs   = data.get('downloadedLibs', {})
+                tempDependenciesDirs  = data.get('dependenciesDirs', {})
+
                 for entry in tempDependenciesDirs:
                     d = DepDat(                        
-                        path=tempDependenciesDirs[entry]["path"],
+                        path=tempDependenciesDirs[entry]["path"],                        
                         targets=tempDependenciesDirs[entry]["targets"],
                         targetDatas=TargetDatas(
                             tempDependenciesDirs[entry]["targetDatas"]["possibleTargets"],
@@ -70,12 +94,14 @@ class PersistantDataManager():
                             tempDependenciesDirs[entry]["targetDatas"]["STATIC"],
                             tempDependenciesDirs[entry]["targetDatas"]["INTERFACE"],
                             tempDependenciesDirs[entry]["targetDatas"]["parsedComponentTargets"],
+                            LibrarySetupType(tempDependenciesDirs[entry]["targetDatas"]["libraryType"]),
                             keyWords = tempDependenciesDirs[entry]["targetDatas"]["keyWords"],
                             includes = tempDependenciesDirs[entry]["targetDatas"]["includes"],
-                            find_package = tempDependenciesDirs[entry]["targetDatas"]["find_packages"]
+                            find_package = tempDependenciesDirs[entry]["targetDatas"]["find_package"]
                             
                         )
                     )
+                    d.pathHash = tempDependenciesDirs[entry]["pathHash"]
                     self.dependenciesDirs[entry] = d
                 
 
@@ -84,6 +110,7 @@ class PersistantDataManager():
         except FileNotFoundError:
             # File not found, initialize with empty dictionaries
             self.projectDatasDict = {}
+            self.downloadedLibs = {}
             self.dependenciesDirs = {}
             self.userLocalLibPath = "."
 
@@ -92,14 +119,17 @@ class PersistantDataManager():
         data = {
             'projectDatasDict': self.projectDatasDict,
             'dependenciesDirs': self.dependenciesDirs,
+            'downloadedLibs'  : self.downloadedLibs,
             'userLocalLibPath': self.userLocalLibPath,
         }
         def dataSerializer(obj):
-            print(obj.__str__())
+            print(str(obj))
             if isinstance(obj,ProjectConfigurationData):
                 return obj.__dict__
             elif isinstance(obj, DepDat): 
                 return obj.__dict__
+            elif isinstance(obj, enum.Enum): 
+                return obj.value
             else:
                 return obj.__dict__
 

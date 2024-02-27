@@ -7,7 +7,7 @@ from src.gui.theme import initColorTheme
 from src.structs.GuiData import *
 from src.structs.CMakeVersionData import CMakeVersionData
 from src.structs.PersistantDataManager import PersistantDataManager, prepareStorage
-from src.structs.ProjectConfigurationData import ProjectConfigurationGUI
+from src.structs.ProjectConfigurationGUI import ProjectConfigurationGUI
 import src.cmake_helper as  cmake_helper
 from src.structs.CPPPC_Manager import CPPPC_Manager
 
@@ -17,8 +17,18 @@ app = QApplication([])
 
 initColorTheme(app)
 
-# Preparing Window
-window = QWidget()
+class CPPPC_mainWindow(QWidget):
+    app :QApplication
+    def __init__(self, app:QApplication):
+        super().__init__()
+        self.app = app
+        self.setWindowTitle("CPPPC - C++ Project Configurator")
+    
+    def closeEvent(self, event):
+        event.accept()
+        app.closeAllWindows()
+
+window = CPPPC_mainWindow(app)
 rootLayout = QHBoxLayout()
 layout_projectName = QFormLayout()
 layout_actionButtons = QHBoxLayout()
@@ -56,9 +66,8 @@ layout_cmakeVersion.setStretch(1,1)
 group_cmake.setMaximumHeight(100)
 
 
-
 createProjectButton = hlp.addButton("Create", layout_actionButtons)
-createProjectButton.clicked.connect(lambda: cppc.createProject())
+createProjectButton.clicked.connect(cppc.createProject)
 
 configureLibsButton = hlp.addButton("Configure Libraries", layout_actionButtons)
 configureLibsButton.clicked.connect(lambda: cppc.configureLibraries(layout_projectName))
@@ -93,7 +102,7 @@ ProjConfDat.addExtraFeatureGroup_UserInputs(
     layout_projectName,
     "CMake vars to C++",
     "Use CMake to C++ Communcation",
-    True, #False, #TODO:CHANGEBACK
+    False, 
     ProjConfDat.addCmakeToCppVar,
     UserInput("Variable Name"),
     UserInput("Value"),
@@ -124,7 +133,7 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
     layout_projectName,
     "Sanitizer settings",   
     "Use Sanitizers",
-    True, #False, #TODO:CHANGEBACK
+    False, 
     ToggleShareData("Debug", "g", True, 
         g.genStr_linkSanitizers, g.genStr_compileSanitizers),
     ToggleShareData("Sanitize Adress,Leak and Undef", "fsanitize=address,leak,undefined", True,
@@ -135,7 +144,7 @@ ProjConfDat.addExtraFeatureShareGroup_checkbox(
         g.genStr_linkSanitizers),
     ToggleShareData("Recover adress", "fsanitize-recover=address", True,
         g.genStr_compileSanitizers),
-    ToggleShareData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", True, #False, #TODO:CHANGEBACK
+    ToggleShareData("Use Blacklist", "fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/sanitizer_blacklist.txt", False,
         g.genStr_linkSanitizers, g.genStr_compileSanitizers, 
         requirement=lambda: cppc.createSanitizerBlacklistOnDemand())    
     )    
@@ -150,7 +159,7 @@ libraryLayout = ProjConfDat.addExtraFeatureGroup_UserInputs(
     layout_projectName,
     "Libraries",
     "Use external Libraries",
-    True,
+    False,
     ProjConfDat.addLibraryComponent,
     UserInput_checkbox("Remote",False,rotation=-90),
     UserInput_checkbox("Public",False,rotation=-90),

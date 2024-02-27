@@ -9,7 +9,7 @@ import subprocess
 from typing import Optional
 
 from src.dev.Terminate import WarnUser, terminate
-from src.structs.PersistantDataManager import TargetDatas, getCpppcDir
+from src.structs.PersistantDataManager import TargetDatas, getCpppcDir, hash_directory, listDirectory, removeUnmatchingFilesInDir
 from .CMakeParsingHelpers import *
 
 def __derefernce(dict, var):
@@ -238,7 +238,7 @@ def __getFinderCmakeOutput_installed(name:str):
     with finderCMakeFile.open("w") as file:
         file.write(f"cmake_minimum_required(VERSION 3.28.0)\n")
         file.write("project(find_dummy)\n")
-        file.write(f"find_package({name})\n") # TODO: Consider f"find_package({name} NAMES {name.upper()} {name.lower()})\n"
+        file.write(f"find_package({name} )\n") # TODO: Consider f"find_package({name} NAMES {name.upper()} {name.lower()})\n"
         file.write(f"if(NOT ${{{name}_FOUND}})\n")
         file.write(f"\tfind_package({name.upper()})\n")
         file.write(f"\tif(NOT ${{{name.upper()}_FOUND}})\n")
@@ -314,21 +314,21 @@ def __getCmakeConfPath(name:str,output:subprocess.CompletedProcess[str],printdbg
     
     strippedOutput = textnormalizer(output.__str__(), toUpper=False, replaceNewl=False)
 
-    path_pkg_regx = re.compile(fr"The file was found at\s+([\w/.-]+/({name})(?:-[0-9.]+)?/[\w/.-]+)", re.IGNORECASE | re.MULTILINE)
-    path_module_regx = re.compile(fr"The file was found at\s+([\w/.-]+/Modules/Find([\w/.-]+)+?\.cmake)", re.IGNORECASE | re.MULTILINE)
+    path_pkg_regx = re.compile(fr"The file was found at\s+([\w \/():.-]+(?:\\|/)({name})(?:-[0-9.]+)?(?:\\|/)[\w \\()/.-]+)", re.IGNORECASE | re.MULTILINE)
+    path_module_regx = re.compile(fr"The file was found at\s+([\w \\()/:.-]+(?:\\|/)Modules(?:\\|/)Find([\w\\()/.-]+)+?\.cmake)", re.IGNORECASE | re.MULTILINE)
 
     messagedata_regx = re.compile(fr"-- ({name}_[^=:\n]+?)(?::|=\s)(?!\n)([^\n]+?)\n", re.IGNORECASE | re.MULTILINE)
     msgDatDict = dict[str,str]()    
 
-    messageData = re.findall(messagedata_regx,output.__str__().encode("utf-8").decode('unicode-escape'))
+    messageData = re.findall(messagedata_regx,str(output.stderr + output.stdout))
     for m in messageData:
         msgDatDict[m[0]] = m[1]
     
-    pathMatch = re.findall(path_pkg_regx,strippedOutput)
+    pathMatch = re.findall(path_pkg_regx,str(output.stderr + output.stdout))
     if pathMatch != None and len(pathMatch) > 0:
         return (pathMatch[0][0], CmakeFindType.Package, msgDatDict,pathMatch[0][1])
     
-    pathMatch = re.findall(path_module_regx,strippedOutput)
+    pathMatch = re.findall(path_module_regx,str(output.stderr + output.stdout))
     if pathMatch != None and len(pathMatch) > 0:
         return (pathMatch[0][0], CmakeFindType.Module, msgDatDict, pathMatch[0][1])
 
@@ -340,8 +340,19 @@ def collectGeneratedConfigs(libPath,printdbg:Optional[bool]=False):
     finder_libparse    = Path.joinpath(getCpppcDir(), "libparse")
 
     libPath = Path(libPath)
+
+    # Save Original directory file listing in case changed
+    hashbefore_cmake = hash_directory(libPath.absolute().__str__())
+    fileListingBefore_cmake = listDirectory(libPath.absolute().__str__())
+    
+    # Run command to generate possible config files...
     output = subprocess.run(["cmake", "--fresh",f"-S {libPath.absolute().__str__()}", f"-B {finder_tempPath.absolute().__str__()}"] ,text=True, capture_output=True)
     
+    # Remove Any files added from running cmake command
+    if(hashbefore_cmake != hash_directory(libPath.absolute().__str__())):
+        fileListingAfter_cmake = listDirectory(libPath.absolute().__str__())
+        removeUnmatchingFilesInDir(fileListingBefore_cmake,fileListingAfter_cmake)
+
     if printdbg:
         print(output.__str__().encode("utf-8").decode('unicode-escape'))
     
